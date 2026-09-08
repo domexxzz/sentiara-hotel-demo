@@ -1,0 +1,113 @@
+/* ── Sentiara design tokens (from _ds/modernist styles.css) ───────────── */
+:root {
+  --bg: #f3f2f2;
+  --surface: #eae9e9;
+  --paper: #ffffff;
+  --text: #201e1d;
+  --muted: rgba(32, 30, 29, 0.58);
+  --faint: rgba(32, 30, 29, 0.38);
+  --divider: rgba(32, 30, 29, 0.16);
+  --line-strong: rgba(32, 30, 29, 0.42);
+
+  --accent: #ec3013;
+  --accent-100: #fff2ef;
+  --accent-200: #ffe0d9;
+  --accent-400: #ff9783;
+  --accent-500: #ff563c;
+  --accent-600: #dd2b0f;
+  --accent-700: #ae1800;
+  --accent-900: #4d170e;
+
+  --n100: #f8f4f4;
+  --n200: #eae7e7;
+  --n300: #d7d3d3;
+  --n400: #bab6b6;
+  --n500: #9b9797;
+  --n600: #7d7979;
+  --n700: #605d5d;
+  --n800: #444141;
+  --n900: #2d2b2b;
+
+  --ok: #1f7a4d;
+  --ok-bg: #e6f4ec;
+  --line-brand: #06c755;
+
+  --shadow-sm: 0 1px 2px rgba(45, 43, 43, 0.14);
+  --shadow-md: 0 3px 10px rgba(45, 43, 43, 0.16);
+  --shadow-lg: 0 12px 32px rgba(45, 43, 43, 0.22);
+
+  --font: "Archivo", system-ui, sans-serif;
+  --th: "IBM Plex Sans Thai", "Archivo", sans-serif;
+
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s6: 24px;
+  --s8: 32px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--th);
+  background: #d9d6d3;
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+button {
+  font-family: var(--th);
+  cursor: pointer;
+  border: 0;
+  background: none;
+  color: inherit;
+}
+
+input,
+textarea,
+select {
+  font-family: var(--th);
+  color: inherit;
+}
+
+.k {
+  font-family: var(--font);
+  font-weight: 800;
+  font-size: 10px;
+  line-height: 1;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.mono {
+  font-family: var(--font);
+  font-variant-numeric: tabular-nums;
+}
+
+.th {
+  font-family: var(--th);
+}
+
+/* Thai line-height guard — measured ink height ~1.51em, use >=1.6 */
+p,
+li,
+.th {
+  line-height: 1.62;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}

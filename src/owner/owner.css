@@ -1,0 +1,619 @@
+/* ══ Owner dashboard ═════════════════════════════════════════════════
+   Window shell (.deskwin/.desknav/.deskmain) is shared with the front desk;
+   this file only adds owner-specific pieces. */
+
+/* clickable KPI — the whole pitch is that every number opens its source */
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(168px, 1fr));
+  gap: 1px;
+  background: var(--divider);
+  border: 1px solid var(--divider);
+}
+.kpi {
+  background: var(--paper);
+  padding: 13px 15px 14px;
+  text-align: left;
+  display: block;
+  position: relative;
+}
+.kpi:hover {
+  background: var(--n100);
+}
+.kpi.on {
+  background: var(--text);
+  color: var(--bg);
+}
+.kpi .k {
+  color: var(--faint);
+}
+.kpi.on .k {
+  color: var(--accent-400);
+}
+.kpi .n {
+  font-family: var(--font);
+  font-weight: 800;
+  font-size: 26px;
+  line-height: 1.15;
+  margin-top: 5px;
+}
+.kpi .sub {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 2px;
+  display: block;
+}
+.kpi.on .sub {
+  color: rgba(243, 242, 242, 0.66);
+}
+.kpi .dl {
+  display: inline-block;
+  font-family: var(--font);
+  font-weight: 800;
+  font-size: 10px;
+  padding: 2px 6px;
+  margin-top: 7px;
+}
+.kpi .dl.up {
+  background: var(--ok-bg);
+  color: #14603a;
+}
+.kpi .dl.down {
+  background: var(--accent-100);
+  color: var(--accent-700);
+}
+.kpi .trace {
+  position: absolute;
+  right: 11px;
+  top: 12px;
+  color: var(--faint);
+}
+.kpi.on .trace {
+  color: var(--accent-400);
+}
+
+/* "ที่มา" drill-down */
+.trace-panel {
+  border: 1px solid var(--text);
+  border-top: 3px solid var(--accent);
+  background: var(--paper);
+  padding: 16px 18px 18px;
+}
+.trace-panel h4 {
+  margin: 0;
+  font-family: var(--font);
+  font-weight: 800;
+  font-size: 15px;
+}
+.trace-panel .lead {
+  margin: 4px 0 12px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.trace-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 9px 0;
+  font-size: 13px;
+}
+.trace-row + .trace-row {
+  border-top: 1px solid var(--divider);
+}
+.trace-row .sub {
+  display: block;
+  font-size: 11px;
+  color: var(--faint);
+}
+.trace-row .v {
+  margin-left: auto;
+  font-family: var(--font);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  flex: none;
+}
+
+/* revenue chart */
+.chart {
+  border: 1px solid var(--divider);
+  background: var(--paper);
+  padding: 16px 18px 14px;
+}
+.chart-head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.chart-head h4 {
+  margin: 0;
+  font-family: var(--font);
+  font-weight: 800;
+  font-size: 15px;
+}
+.chart-legend {
+  margin-left: auto;
+  display: flex;
+  gap: 13px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.chart-legend span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.chart-legend i {
+  width: 10px;
+  height: 10px;
+}
+.bars {
+  display: grid;
+  /* จำนวนแท่งเปลี่ยนได้ (7 วันย้อนหลัง + แท่ง "วันนี้" เมื่อมีบิลปิดแล้ว) */
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 10px;
+  align-items: end;
+  height: 190px;
+}
+.bar {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  height: 100%;
+  gap: 5px;
+  text-align: center;
+  padding: 0;
+}
+.bar .stack {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  flex: 1;
+  gap: 2px;
+}
+.bar .seg-rooms {
+  background: var(--accent);
+  transition: opacity 0.15s ease;
+}
+.bar .seg-fnb {
+  background: var(--n700);
+  transition: opacity 0.15s ease;
+}
+.bar:hover .seg-rooms,
+.bar:hover .seg-fnb {
+  opacity: 0.82;
+}
+.bar .lbl {
+  font-size: 11px;
+  color: var(--muted);
+  flex: none;
+}
+.bar.on .lbl {
+  color: var(--text);
+  font-weight: 700;
+}
+.bar.on .stack {
+  outline: 2px solid var(--text);
+  outline-offset: 3px;
+}
+
+.daycard {
+  display: flex;
+  gap: 22px;
+  flex-wrap: wrap;
+  padding: 13px 15px;
+  background: var(--surface);
+  border: 1px solid var(--divider);
+  margin-top: 14px;
+}
+.daycard div .k {
+  color: var(--faint);
+}
+.daycard div .n {
+  font-family: var(--font);
+  font-weight: 800;
+  font-size: 17px;
+  margin-top: 3px;
+}
+
+/* AI assistant */
+.ask-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.ask {
+  text-align: left;
+  border: 1px solid var(--line-strong);
+  background: var(--paper);
+  padding: 12px 14px;
+  font-size: 13.5px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.ask:hover {
+  background: var(--surface);
+}
+.ask .ic {
+  color: var(--accent);
+  flex: none;
+}
+.ask .go {
+  margin-left: auto;
+  color: var(--faint);
+  flex: none;
+}
+
+.turn {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.turn .q {
+  align-self: flex-end;
+  background: var(--text);
+  color: var(--bg);
+  padding: 10px 13px;
+  font-size: 13px;
+  max-width: 78%;
+}
+.turn .a {
+  background: var(--paper);
+  border: 1px solid var(--divider);
+  border-left: 3px solid var(--accent);
+  padding: 13px 15px;
+  font-size: 13.5px;
+}
+.turn .a .evi {
+  display: block;
+  margin-top: 9px;
+  padding-top: 9px;
+  border-top: 1px dashed var(--divider);
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+/* approvals */
+.appr {
+  border: 1px solid var(--divider);
+  background: var(--paper);
+  padding: 15px 17px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+.appr .top {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+.appr .top strong {
+  font-size: 14.5px;
+}
+.appr .top .meta {
+  font-size: 11.5px;
+  color: var(--muted);
+  margin-top: 3px;
+}
+.appr .amt {
+  margin-left: auto;
+  font-family: var(--font);
+  font-weight: 800;
+  font-size: 21px;
+  flex: none;
+}
+.ainote {
+  display: flex;
+  gap: 9px;
+  padding: 11px 13px;
+  background: var(--accent-100);
+  border: 1px solid var(--accent-200);
+  font-size: 12.5px;
+  color: var(--accent-900);
+}
+.ainote .ic {
+  color: var(--accent);
+  flex: none;
+  margin-top: 1px;
+}
+.appr .acts {
+  display: flex;
+  gap: 9px;
+}
+
+.audit {
+  border: 1px solid var(--divider);
+  background: var(--paper);
+}
+.audit .row {
+  padding: 11px 15px;
+  font-size: 12.5px;
+}
+.audit .row + .row {
+  border-top: 1px solid var(--divider);
+}
+.audit .row .stamp {
+  display: block;
+  font-size: 11px;
+  color: var(--faint);
+  margin-top: 3px;
+}
+
+.owner-note {
+  font-size: 11.5px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin: 0;
+}
+
+@media (max-width: 900px) {
+  .kpis {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .bars {
+    height: 150px;
+    gap: 6px;
+  }
+}
+
+/* ══ ช่องทางขาย / Channel Manager ════════════════════════════════════
+   หน้านี้ต้องอ่านออกทันทีว่าอะไรทำงานจริง อะไรยังไม่ได้ต่อ */
+
+.ch-status {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 13px 15px;
+  background: #fff4e2;
+  border: 1px solid #f0d9ac;
+  color: #7a4f05;
+}
+.ch-status .ic {
+  flex: none;
+  margin-top: 2px;
+}
+.ch-status strong {
+  display: block;
+  font-family: var(--font);
+  font-weight: 800;
+  font-size: 13.5px;
+  margin-bottom: 3px;
+}
+.ch-status span {
+  font-size: 12.5px;
+  line-height: 1.7;
+}
+.ch-status b {
+  font-weight: 700;
+}
+
+.ch-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: var(--divider);
+  border: 1px solid var(--divider);
+}
+.ch-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 11px 15px;
+  background: var(--paper);
+}
+.ch-row.on {
+  background: var(--ok-bg);
+}
+.ch-row .nm {
+  min-width: 190px;
+}
+.ch-row .nm strong {
+  font-family: var(--font);
+  font-weight: 800;
+  font-size: 13.5px;
+}
+.ch-row .nm span,
+.ch-row .comm span {
+  display: block;
+  font-size: 11px;
+  color: var(--faint);
+  line-height: 1.55;
+  margin-top: 2px;
+}
+.ch-row .comm {
+  flex: 1;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.ch-tag {
+  flex: none;
+  font-family: var(--font);
+  font-weight: 800;
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 4px 9px;
+}
+.ch-tag.ok {
+  background: #1f7a4d;
+  color: #fff;
+}
+.ch-tag.wait {
+  background: var(--n200);
+  color: var(--muted);
+  border: 1px solid var(--line-strong);
+}
+
+.ch-split {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 1px;
+  background: var(--divider);
+  border: 1px solid var(--divider);
+}
+@media (max-width: 900px) {
+  .ch-split {
+    grid-template-columns: 1fr;
+  }
+}
+.ch-card {
+  background: var(--paper);
+  padding: 14px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ch-card .k {
+  color: var(--faint);
+}
+.ch-big {
+  font-family: var(--font);
+  font-weight: 800;
+  font-size: 40px;
+  line-height: 1;
+  color: var(--accent);
+}
+
+.ch-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+.ch-bars .lbl {
+  font-size: 12px;
+  color: var(--muted);
+}
+.ch-bars .bar {
+  display: block;
+  height: 9px;
+  background: var(--n200);
+  margin: 5px 0 4px;
+}
+.ch-bars .bar i {
+  display: block;
+  height: 100%;
+  background: #1f7a4d;
+}
+.ch-bars .bar.ota i {
+  background: var(--accent);
+}
+.ch-bars .v {
+  font-family: var(--font);
+  font-weight: 700;
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.ch-note {
+  font-size: 11.5px;
+  color: var(--muted);
+  line-height: 1.7;
+  margin: 0;
+}
+.ch-note b {
+  color: var(--text);
+  font-family: var(--font);
+  font-weight: 800;
+}
+
+.ch-close {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.ch-close span {
+  font-size: 11px;
+  padding: 3px 7px;
+  background: var(--accent-100);
+  border: 1px solid var(--accent-200);
+  color: var(--accent-700);
+}
+.ch-close .more {
+  background: var(--n100);
+  border-color: var(--divider);
+  color: var(--muted);
+}
+
+/* payload จริงที่จะถูกส่ง */
+.ch-json {
+  margin: 0;
+  padding: 14px 16px;
+  background: var(--text);
+  color: #d6efe0;
+  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+  font-size: 11.5px;
+  line-height: 1.65;
+  overflow-x: auto;
+  max-height: 46vh;
+}
+
+/* ตารางห้องว่าง+ราคาที่จะส่ง — ใช้โครงเดียวกับปฏิทินห้อง */
+.ch-grid tbody td {
+  height: 40px;
+  text-align: center;
+  background: var(--paper);
+}
+.ch-grid tbody td b {
+  display: block;
+  font-family: var(--font);
+  font-weight: 800;
+  font-size: 14px;
+  line-height: 1.2;
+}
+.ch-grid tbody td i {
+  display: block;
+  font-style: normal;
+  font-size: 10px;
+  color: var(--faint);
+  font-variant-numeric: tabular-nums;
+}
+.ch-grid tbody td.full {
+  background: var(--accent-100);
+}
+.ch-grid tbody td.full b {
+  color: var(--accent);
+}
+.ch-grid thead th .dow {
+  font-size: 9px;
+}
+
+.ch-gap {
+  border: 1px solid var(--line-strong);
+  border-left: 3px solid var(--text);
+  padding: 14px 16px;
+  background: var(--surface);
+}
+.ch-gap strong {
+  display: block;
+  font-family: var(--font);
+  font-weight: 800;
+  font-size: 13px;
+  margin-bottom: 9px;
+}
+.ch-gap ul {
+  margin: 0 0 10px;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.ch-gap li {
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: var(--muted);
+}
+.ch-gap li b {
+  color: var(--text);
+  font-weight: 700;
+}
+.ch-gap p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--muted);
+  padding-top: 10px;
+  border-top: 1px solid var(--divider);
+}

@@ -1,0 +1,438 @@
+/* ══ Staff mobile — gloves-on ergonomics ═════════════════════════════
+   Mockup rule: primary buttons >= 52px tall, Thai throughout, offline-first. */
+
+.st-bar {
+  flex: none;
+  background: var(--text);
+  color: var(--bg);
+  padding: 11px 16px 12px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+.st-bar .who .k {
+  color: var(--accent-400);
+}
+.st-bar .who strong {
+  display: block;
+  font-family: var(--font);
+  font-weight: 800;
+  font-size: 15px;
+  margin-top: 2px;
+}
+.st-back {
+  color: var(--bg);
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  margin-left: -6px;
+  flex: none;
+}
+.st-back:hover {
+  background: rgba(243, 242, 242, 0.14);
+}
+
+/* role switch — แม่บ้าน / หัวหน้า */
+.st-roles {
+  flex: none;
+  display: flex;
+  gap: 1px;
+  background: rgba(243, 242, 242, 0.2);
+  padding: 0;
+}
+.st-roles button {
+  flex: 1;
+  background: var(--text);
+  color: rgba(243, 242, 242, 0.55);
+  padding: 10px 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+.st-roles button.on {
+  background: var(--accent);
+  color: #fff;
+}
+.st-roles .pill {
+  font-family: var(--font);
+  font-weight: 800;
+  font-size: 10px;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 2px 6px;
+}
+
+/* connectivity strip */
+.st-net {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  font-size: 11.5px;
+  background: var(--ok-bg);
+  color: #14603a;
+  border-bottom: 1px solid #bfe3cc;
+}
+.st-net.off {
+  background: #fff4e2;
+  color: #8a5a06;
+  border-bottom-color: #f0d9ac;
+}
+.st-net button {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 700;
+  text-decoration: underline;
+  color: inherit;
+  flex: none;
+}
+
+/* toast banner inside the phone */
+.st-banner {
+  flex: none;
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 11px 14px;
+  background: var(--text);
+  color: var(--bg);
+  font-size: 12.5px;
+  animation: stpop 0.24s ease both;
+}
+.st-banner .ic {
+  color: #6ad39a;
+  flex: none;
+  margin-top: 1px;
+}
+.st-banner button {
+  margin-left: auto;
+  color: rgba(243, 242, 242, 0.6);
+  flex: none;
+}
+@keyframes stpop {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* shift summary */
+.st-sum {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--divider);
+  border: 1px solid var(--divider);
+}
+.st-sum div {
+  background: var(--paper);
+  padding: 10px 12px;
+}
+.st-sum .n {
+  font-family: var(--font);
+  font-weight: 800;
+  font-size: 22px;
+  line-height: 1.15;
+  margin-top: 3px;
+}
+.st-sum .k {
+  color: var(--faint);
+}
+
+/* job card — big tap target */
+.jobcd {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  padding: 14px;
+  min-height: 76px;
+  border: 1px solid var(--divider);
+  border-left: 3px solid var(--n400);
+  background: var(--paper);
+}
+.jobcd:hover {
+  border-color: var(--line-strong);
+}
+.jobcd .rm {
+  font-family: var(--font);
+  font-weight: 800;
+  font-size: 22px;
+  line-height: 1;
+  min-width: 46px;
+}
+.jobcd .meta strong {
+  font-size: 13.5px;
+}
+.jobcd .meta .sub {
+  display: block;
+  font-size: 11.5px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.jobcd .go {
+  margin-left: auto;
+  color: var(--faint);
+  flex: none;
+}
+.jobcd.todo {
+  border-left-color: var(--accent);
+}
+.jobcd.doing {
+  border-left-color: #d68a1e;
+}
+.jobcd.review {
+  border-left-color: #2f6fd0;
+}
+.jobcd.rejected {
+  border-left-color: var(--accent-700);
+  background: var(--accent-100);
+}
+.jobcd.done {
+  border-left-color: #2f9e63;
+  opacity: 0.72;
+}
+
+.st-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font);
+  font-weight: 800;
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 7px;
+  margin-top: 6px;
+}
+.st-tag.warn {
+  background: var(--accent-100);
+  color: var(--accent-700);
+  border: 1px solid var(--accent-200);
+}
+.st-tag.ok {
+  background: var(--ok-bg);
+  color: #14603a;
+  border: 1px solid #bfe3cc;
+}
+.st-tag.wait {
+  background: #eaf1fb;
+  color: #235699;
+  border: 1px solid #c5d8f2;
+}
+
+/* checklist rows — 52px tap targets */
+.ck {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  min-height: 54px;
+  padding: 10px 13px;
+  border: 1px solid var(--divider);
+  background: var(--paper);
+  font-size: 13.5px;
+}
+.ck + .ck {
+  border-top: 0;
+}
+.ck .box {
+  width: 26px;
+  height: 26px;
+  border: 1.8px solid var(--line-strong);
+  flex: none;
+  display: grid;
+  place-items: center;
+  color: transparent;
+}
+.ck.on .box {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.ck.on {
+  background: var(--accent-100);
+}
+
+/* 3-angle photo capture */
+.shots {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.shot {
+  aspect-ratio: 3 / 4;
+  border: 1.5px dashed var(--line-strong);
+  background: var(--n100);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 11px;
+  position: relative;
+  overflow: hidden;
+}
+.shot .lbl {
+  font-weight: 600;
+}
+.shot.taken {
+  border-style: solid;
+  border-color: var(--text);
+  color: #fff;
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.55)),
+    repeating-linear-gradient(135deg, #6d6560 0 9px, #837a74 9px 18px);
+  justify-content: flex-end;
+}
+.shot.taken .stamp {
+  font-family: var(--font);
+  font-weight: 700;
+  font-size: 9.5px;
+  background: rgba(0, 0, 0, 0.45);
+  padding: 2px 6px;
+}
+.shot .hint {
+  font-size: 10px;
+  color: var(--faint);
+  line-height: 1.45;
+}
+
+/* review photo strip (supervisor) */
+.revshots {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+.revshot {
+  aspect-ratio: 4 / 3;
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.06), rgba(0, 0, 0, 0.5)),
+    repeating-linear-gradient(135deg, #6d6560 0 9px, #837a74 9px 18px);
+  display: flex;
+  align-items: flex-end;
+  padding: 6px;
+  color: #fff;
+  font-family: var(--font);
+  font-weight: 700;
+  font-size: 9.5px;
+}
+
+/* defect chooser */
+.defects {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.defect {
+  min-height: 52px;
+  border: 1px solid var(--line-strong);
+  background: var(--paper);
+  font-size: 13px;
+  padding: 10px;
+}
+.defect.on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* big primary action for gloved hands */
+.bigbtn {
+  width: 100%;
+  min-height: 54px;
+  font-size: 15px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  border: 1px solid var(--text);
+  background: var(--paper);
+}
+.bigbtn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.bigbtn.ok {
+  background: #1f7a4d;
+  border-color: #1f7a4d;
+  color: #fff;
+}
+.bigbtn.dark {
+  background: var(--text);
+  color: var(--bg);
+}
+.bigbtn:disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.st-note {
+  font-size: 11.5px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+/* issue chips */
+.issues {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.issue {
+  min-height: 42px;
+  padding: 8px 12px;
+  border: 1px solid var(--line-strong);
+  background: var(--paper);
+  font-size: 12.5px;
+}
+.issue:hover {
+  background: var(--surface);
+}
+
+.wo {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 12px;
+  background: #fff4e2;
+  border: 1px solid #f0d9ac;
+  color: #8a5a06;
+  font-size: 12px;
+}
+
+/* ปุ่มลงเวลาบนแถบหัวจอพนักงาน */
+.st-clock {
+  margin-left: auto;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 11px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--bg);
+  border: 1px solid rgba(243, 242, 242, 0.32);
+}
+.st-clock:hover { background: rgba(243, 242, 242, 0.14); }
+.st-clock[aria-pressed="true"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
