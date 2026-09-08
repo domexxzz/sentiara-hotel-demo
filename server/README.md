@@ -94,7 +94,7 @@ python -m pytest -q                     # 46 เทส
 ใช้ตรวจตัวเลขให้ครบก่อนต่อสายจริง
 
 ```bash
-export LEDGER_URL=http://localhost:3111    # ที่อยู่ของโปรแกรมบัญชี
+export LEDGER_URL=http://localhost:3111    # ⚠ ที่อยู่สมมุติ ยังไม่ได้ยืนยันกับเอกสารจริง
 export LEDGER_KEY=...                      # กุญแจ (ถ้ามี)
 export LEDGER_DRY_RUN=0                    # ยิงออกจริง
 ```
