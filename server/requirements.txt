@@ -1,0 +1,13 @@
+# หลังบ้าน PMS — ลงด้วย  pip install -r requirements.txt
+#
+# ตัวเลขคือขั้นต่ำ ไม่ใช่ล็อกตาย เผื่อเครื่องปลายทางมีของอยู่แล้ว
+# ชุดที่ทดสอบจริงบนเครื่องต้นทาง: Python 3.12.10 · fastapi 0.139.2 ·
+# uvicorn 0.51.0 · sqlalchemy 2.0.51 · httpx 0.28.1 · pytest 9.1.1
+#
+# ต้องใช้ Python 3.10 ขึ้นไป เพราะโค้ดใช้ไวยากรณ์ `int | None`
+
+fastapi>=0.110
+uvicorn>=0.27
+sqlalchemy>=2.0
+httpx>=0.27          # ใช้ทั้งตอนยิงไป Ledger Bridge และตอนเทส
+pytest>=8.0

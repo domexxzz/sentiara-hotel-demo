@@ -12,7 +12,7 @@
 
 ```bash
 cd server
-pip install fastapi uvicorn sqlalchemy httpx pytest
+pip install -r requirements.txt
 python -m pms.seed                      # ผังห้อง 43 ห้อง + ตัวอย่างที่กดต่อได้ทันที
 uvicorn pms.app:app --reload --port 8900
 ```
