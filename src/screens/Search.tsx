@@ -20,7 +20,7 @@ export function Search() {
   const toggle = (p: Panel) => setPanel((cur) => (cur === p ? "none" : p));
 
   const pick = (roomId: string) => {
-    const room = roomsFor(hotel.mode).find((r) => r.id === roomId);
+    const room = roomsFor(hotel.mode, hotel.settings).find((r) => r.id === roomId);
     if (!room) return;
     dispatch({ type: "SELECT_ROOM", room });
     dispatch({ type: "GOTO", step: "confirm" });
@@ -174,7 +174,7 @@ export function Search() {
           ห้องว่าง · {fmtRange(state.checkIn, state.checkOut)} · {nights} คืน
         </div>
 
-        {roomsFor(hotel.mode).map((r) => {
+        {roomsFor(hotel.mode, hotel.settings).map((r) => {
           const free = hotel.availableRooms(state.checkIn, state.checkOut, r.name).length;
           const capacity = r.id === "dorm" ? 1 : r.id === "superior" ? 3 : 4;
           // ความจุคิดต่อห้อง — 4 คน 2 ห้องคือห้องละ 2 ไม่ใช่ยัดห้องเดียว

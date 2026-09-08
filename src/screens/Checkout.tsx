@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { GUEST, HOTEL, money } from "../data";
 import { useBooking } from "../store";
+import { useHotel } from "../hotel/hotelStore";
+import { TODAY } from "../lib/date";
 import { Rail } from "../components/PhoneFrame";
 import { Icon } from "../components/Icon";
 
 export function Checkout() {
   const { state, dispatch, settle, bill, billTotal, depositAmount, balanceDue } = useBooking();
+  const hotel = useHotel();
   const [paid, setPaid] = useState(false);
   const [rating, setRating] = useState(0);
   const room = state.assigned ?? GUEST.room;
@@ -113,7 +116,19 @@ export function Checkout() {
                 <button
                   key={n}
                   className={n <= rating ? "lit" : ""}
-                  onClick={() => setRating(n)}
+                  onClick={() => {
+                    setRating(n);
+                    // เก็บเข้าประวัติลูกค้าจริง — ไม่งั้นคะแนนหายไปทันทีที่ปิดหน้า
+                    // และจอเจ้าของจะไม่มีวันเห็นว่าแขกคิดอย่างไร
+                    const g = hotel.guestByName(GUEST.name);
+                    if (g) {
+                      hotel.dispatch({
+                        type: "ADD_FEEDBACK",
+                        guestId: g.id,
+                        feedback: { score: n, at: TODAY, room },
+                      });
+                    }
+                  }}
                   aria-label={`${n} ดาว`}
                 >
                   <Icon name="star" size={30} stroke={1.5} />

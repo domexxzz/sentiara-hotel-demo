@@ -7,6 +7,9 @@ import { useHotel } from "../hotel/hotelStore";
 import { canOpenOwnerTab } from "../lib/roles";
 import { Overview } from "./Overview";
 import { Channels } from "./Channels";
+import { Finance } from "./Finance";
+import { Guests } from "./Guests";
+import { Settings } from "./Settings";
 import { Assistant } from "./Assistant";
 import { Approvals } from "./Approvals";
 import { DoorLog } from "./DoorLog";
@@ -15,16 +18,25 @@ import { Icon, type IconName } from "../components/Icon";
 
 const NAV: { tab: OwnerTab; label: string; icon: IconName }[] = [
   { tab: "overview", label: "ภาพรวม & รายได้", icon: "receipt" },
+  { tab: "finance", label: "รายจ่าย & กำไรขาดทุน", icon: "tag" },
+  { tab: "guests", label: "ลูกค้า & แต้ม", icon: "star" },
   { tab: "channels", label: "ช่องทางขาย & OTA", icon: "tag" },
   { tab: "door", label: "ประตู & บัตร", icon: "key" },
   { tab: "energy", label: "ค่าไฟ & IoT", icon: "wifi" },
   { tab: "ai", label: "ถาม AI ผู้ช่วย", icon: "sparkle" },
   { tab: "approvals", label: "รออนุมัติ", icon: "shield" },
+  { tab: "settings", label: "ตั้งค่าระบบ", icon: "key" },
 ];
 
 function OwnerRouter() {
   const { state } = useOwner();
   switch (state.tab) {
+    case "finance":
+      return <Finance />;
+    case "guests":
+      return <Guests />;
+    case "settings":
+      return <Settings />;
     case "channels":
       return <Channels />;
     case "ai":

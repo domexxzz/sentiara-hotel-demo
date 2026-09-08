@@ -1,11 +1,18 @@
-import { createContext, useContext, useMemo, useReducer, type ReactNode } from "react";
+import {
+  createContext, useContext, useEffect, useMemo, useReducer, type ReactNode,
+} from "react";
 import { ROOM_RACK, type DeskRoom, type RoomStatus } from "../desk/deskData";
 import { TODAY, addDays, nightsBetween } from "../lib/date";
 import { HOTEL } from "../data";
-import { stayTotal, rateForNight } from "../lib/rates";
+import { stayTotal, rateForNight, setWeekendPct } from "../lib/rates";
+import { setVatPct } from "../lib/tax";
 import { decide, emptyFacts, type Decision, type GroundedFacts } from "../lib/replyGuard";
 import { STAFF, staffByCard, type Staff } from "../lib/roles";
 import { LONGSTAY_TIER, TIERS, tierIndexOf, type PropertyMode } from "../lib/property";
+import { DEFAULT_SETTINGS, rateOf, type Settings } from "../lib/settings";
+import { type Expense, type Receivable } from "../lib/finance";
+import { pointsFor, type Feedback, type Guest } from "../lib/loyalty";
+import { canPersist, load, save, wipe } from "../lib/persist";
 
 // ── Types ─────────────────────────────────────────────────────────────
 export type BookingStatus = "confirmed" | "inhouse" | "checkedout";
@@ -111,6 +118,15 @@ type State = {
   messages: ChatMessage[];
   /** ใบงานช่าง — แม่บ้าน เคาน์เตอร์ และเจ้าของสั่งได้หมด ช่างเห็นที่เดียว */
   workOrders: WorkOrder[];
+  /** ค่าที่เจ้าของแก้เองได้ — ราคา เรตวันหยุด VAT มัดจำ */
+  settings: Settings;
+  expenses: Expense[];
+  /** บิลที่ปิดแล้วแต่เก็บเงินไม่ครบ */
+  receivables: Receivable[];
+  /** ลูกค้าเดิม พร้อมประวัติเข้าพัก แต้ม และรีวิว */
+  guests: Guest[];
+  /** พนักงาน — แก้ไขได้จริง ไม่ใช่ค่าคงที่ในโค้ดเหมือนเดิม */
+  staff: Staff[];
 };
 
 type Action =
@@ -134,6 +150,16 @@ type Action =
   | { type: "CARD_TAP"; room: string; who: string; staff?: boolean }
   | { type: "ADD_WO"; wo: Omit<WorkOrder, "status" | "photos" | "parts" | "cost"> }
   | { type: "WO_PATCH"; id: string; patch: Partial<WorkOrder> }
+  | { type: "SET_SETTINGS"; patch: Partial<Settings> }
+  | { type: "ADD_EXPENSE"; expense: Omit<Expense, "id"> }
+  | { type: "PATCH_EXPENSE"; id: string; patch: Partial<Expense> }
+  | { type: "DEL_EXPENSE"; id: string }
+  | { type: "SETTLE_RECEIVABLE"; id: string }
+  | { type: "ADD_STAFF"; staff: Omit<Staff, "id"> }
+  | { type: "PATCH_STAFF"; id: string; patch: Partial<Staff> }
+  | { type: "DEL_STAFF"; id: string }
+  | { type: "ADD_FEEDBACK"; guestId: string; feedback: Feedback }
+  | { type: "REDEEM"; guestId: string; rewardId: string; cost: number; label: string }
   | { type: "RESET" };
 
 // ── Seed ──────────────────────────────────────────────────────────────
@@ -331,6 +357,54 @@ const SEED_CHAT: ChatMessage[] = [
   { id: "m7", convId: "cv3", direction: "in", text: "Merci! See you tomorrow", at: "11:05" },
 ];
 
+// ── รายจ่ายเดือนนี้ · ตัวเลขระดับโรงแรม 39 ห้อง ────────────────────────
+// จงใจให้บางรายการยังไม่จ่าย เพื่อให้เห็นความต่างระหว่าง "กำไร" กับ "เงินสดที่ออกจริง"
+const SEED_EXPENSES: Expense[] = [
+  { id: "EX-801", at: addDays(TODAY, -6), cat: "payroll", label: "ค่าแรงพนักงาน 12 คน · 7 คืน", amount: 78400, paid: true, note: "รวมโอทีคืนศุกร์–เสาร์ที่คนเยอะ" },
+  { id: "EX-802", at: addDays(TODAY, -5), cat: "utility", label: "ค่าไฟ · เฉลี่ยตามมิเตอร์รายห้อง", amount: 24600, paid: true, note: "ห้อง 210 สูงผิดปกติ — ดูแท็บค่าไฟ & IoT" },
+  { id: "EX-803", at: addDays(TODAY, -5), cat: "utility", label: "ค่าน้ำ + อินเทอร์เน็ต", amount: 6600, paid: true },
+  { id: "EX-804", at: addDays(TODAY, -4), cat: "supplies", label: "ผ้าปู ผ้าเช็ดตัว ของใช้ในห้อง", amount: 12300, paid: true },
+  { id: "EX-805", at: addDays(TODAY, -3), cat: "supplies", label: "วัตถุดิบครัว · ใบสั่งซื้อจาก POS", amount: 7300, paid: true, auto: true, note: "ระบบสร้างเองจากสต็อกที่ต่ำกว่าจุดสั่งซื้อ" },
+  { id: "EX-806", at: addDays(TODAY, -2), cat: "ota", label: "ค่าคอมมิชชัน Agoda + Booking.com", amount: 24800, paid: false, due: addDays(TODAY, 14), auto: true, note: "หักจากยอดจองผ่านเว็บจองในช่วงนี้" },
+  { id: "EX-807", at: addDays(TODAY, -3), cat: "maintenance", label: "ซ่อมแอร์ห้อง 210 + อะไหล่", amount: 4200, paid: true },
+  { id: "EX-808", at: addDays(TODAY, -1), cat: "maintenance", label: "ล้างแอร์ 6 เครื่อง", amount: 5200, paid: false, due: addDays(TODAY, 9) },
+  { id: "EX-809", at: addDays(TODAY, -6), cat: "marketing", label: "โฆษณา Facebook + ส่วนลดจองตรง", amount: 6300, paid: true },
+  { id: "EX-810", at: addDays(TODAY, -6), cat: "finance", label: "ดอกเบี้ยเงินกู้ปรับปรุงอาคาร · สัดส่วน 7 คืน", amount: 19800, paid: true },
+  { id: "EX-811", at: addDays(TODAY, -1), cat: "other", label: "ค่าเก็บขยะ + ค่าธรรมเนียมท้องถิ่น", amount: 5600, paid: false, due: addDays(TODAY, 21) },
+];
+
+// ── ลูกหนี้ · บิลที่ปิดแล้วแต่ยังเก็บเงินไม่ครบ ────────────────────────
+const SEED_RECEIVABLES: Receivable[] = [
+  { id: "AR-114", guest: "บริษัท ล้านนา ทัวร์ จำกัด", room: "301–304", amount: 46800, since: addDays(TODAY, -38), reason: "วางบิลเครดิต 30 วัน · เลยกำหนดแล้ว" },
+  { id: "AR-118", guest: "คุณธีรพงษ์ วัฒนกุล", room: "205", amount: 3200, since: addDays(TODAY, -11), reason: "มินิบาร์ค้างจ่าย · บัตรถูกปฏิเสธตอนเช็กเอาต์" },
+  { id: "AR-121", guest: "สำนักงานเขตพื้นที่การศึกษา", room: "401–408", amount: 88400, since: addDays(TODAY, -6), reason: "รอเบิกงบราชการ · ปกติ 45 วัน" },
+];
+
+// ── ลูกค้าเดิม · ประวัติเข้าพัก แต้ม และรีวิว ──────────────────────────
+const SEED_GUESTS: Guest[] = [
+  { id: "G-01", name: "คุณอนันต์ ศรีสุข", phone: "081-234-5678", birthday: "08-16", since: "2023-08-16", stays: 7, spend: 61400, points: 3070, lastStay: addDays(TODAY, -41),
+    feedback: [{ score: 5, text: "พนักงานจำได้ว่าชอบห้องชั้นสูง ประทับใจมาก", at: addDays(TODAY, -41), room: "512" }] },
+  { id: "G-02", name: "มณีรัตน์ พงศ์ไพบูลย์", phone: "089-777-1122", birthday: "09-02", since: "2024-02-11", stays: 4, spend: 28900, points: 1445, lastStay: addDays(TODAY, -22),
+    feedback: [{ score: 4, text: "ห้องดีแต่เสียงจากถนนดังตอนเช้า", at: addDays(TODAY, -22), room: "203" }] },
+  { id: "G-03", name: "Tanaka Hiroshi", foreign: true, since: "2025-01-08", stays: 3, spend: 19350, points: 967, lastStay: TODAY, feedback: [] },
+  { id: "G-04", name: "สุชาติ เรืองโรจน์", phone: "086-555-9090", birthday: "11-20", since: "2022-11-20", stays: 11, spend: 142600, points: 7130, lastStay: addDays(TODAY, -9),
+    feedback: [
+      { score: 5, text: "มาประจำทุกไตรมาส ไม่เคยผิดหวัง", at: addDays(TODAY, -9), room: "512" },
+      { score: 3, text: "รอบนี้เช็กอินช้าไปหน่อย คนเยอะ", at: addDays(TODAY, -104), room: "310" },
+    ] },
+  { id: "G-05", name: "ปิยะดา แก้วมงคล", phone: "092-330-4411", since: "2024-06-30", stays: 2, spend: 9800, points: 490, lastStay: addDays(TODAY, -219),
+    feedback: [{ score: 2, text: "แอร์ห้องเสียงดัง แจ้งแล้วแก้ช้า", at: addDays(TODAY, -219), room: "210" }] },
+  { id: "G-06", name: "K. Wilson", foreign: true, since: "2025-12-02", stays: 2, spend: 15200, points: 760, lastStay: addDays(TODAY, -195), feedback: [] },
+  // มาครั้งเดียวแล้วหายไป — ต้องมีในฐานข้อมูลด้วย ไม่งั้น "ลูกค้ากลับมาซ้ำ 100%"
+  // ซึ่งเป็นตัวเลขที่ไม่มีโรงแรมไหนทำได้ และทำให้ทั้งหน้าดูเป็นของปลอม
+  { id: "G-07", name: "ณัฐพล จันทร์เพ็ญ", phone: "084-201-7788", since: addDays(TODAY, -63), stays: 1, spend: 3600, points: 180, lastStay: addDays(TODAY, -63),
+    feedback: [{ score: 4, at: addDays(TODAY, -63), room: "108" }] },
+  { id: "G-08", name: "Chen Wei", foreign: true, since: addDays(TODAY, -31), stays: 1, spend: 5100, points: 255, lastStay: addDays(TODAY, -31), feedback: [] },
+  { id: "G-09", name: "วรรณา ทองอยู่", since: addDays(TODAY, -17), stays: 1, spend: 2700, points: 135, lastStay: addDays(TODAY, -17),
+    feedback: [{ score: 3, text: "ที่จอดรถเต็มตอนเย็น", at: addDays(TODAY, -17), room: "305" }] },
+  { id: "G-10", name: "Emily Carter", foreign: true, since: addDays(TODAY, -8), stays: 1, spend: 7200, points: 360, lastStay: addDays(TODAY, -8), feedback: [] },
+];
+
 const initial: State = {
   rooms: ROOM_RACK,
   bookings: [...SEED_BOOKINGS, ...derivedBookings()],
@@ -343,7 +417,15 @@ const initial: State = {
   conversations: SEED_CONVS,
   messages: SEED_CHAT,
   workOrders: SEED_WO,
+  settings: DEFAULT_SETTINGS,
+  expenses: SEED_EXPENSES,
+  receivables: SEED_RECEIVABLES,
+  guests: SEED_GUESTS,
+  staff: STAFF,
 };
+
+/** โหลดของที่เคยบันทึกไว้ทับค่าตั้งต้น · ไม่คืนสถานะล็อกอิน — เปิดใหม่ต้องแตะบัตรใหม่ */
+const boot = (): State => ({ ...load<State>("hotel", initial), session: null });
 
 let seq = 2431;
 let cardSeq = 100;
@@ -356,6 +438,9 @@ const stamp = () => {
   return `${String(Math.floor(t / 60) % 24).padStart(2, "0")}:${String(t % 60).padStart(2, "0")}`;
 };
 let woSeq = 1182;
+let expenseSeq = 811;
+let staffSeq = 6;
+let guestSeq = 10;
 const CLOCK = ["13:04", "13:19", "13:36", "13:48", "14:07", "14:22", "14:41"];
 let lineSeq = 0;
 const nextBooking = () => "B-" + ++seq;
@@ -449,8 +534,40 @@ function reducer(state: State, action: Action): State {
       );
       const rest = { ...state.bills };
       delete rest[action.room];
+      const spend = lines.reduce((s, l) => s + l.price * l.qty, 0);
+      const who = b?.guest ?? state.rooms.find((r) => r.no === action.room)?.guest ?? "—";
+      // จับคู่กับลูกค้าเดิมด้วยชื่อ · ไม่เจอก็สร้างประวัติใหม่ให้เลย
+      // ถ้าไม่ทำตรงนี้ แต้มกับประวัติเข้าพักจะไม่มีวันเพิ่มขึ้นเอง
+      const known = state.guests.find((g) => g.name === who);
+      const guests: Guest[] = known
+        ? state.guests.map((g) =>
+            g.id === known.id
+              ? {
+                  ...g,
+                  stays: g.stays + 1,
+                  spend: g.spend + spend,
+                  points: g.points + pointsFor(spend),
+                  lastStay: TODAY,
+                }
+              : g,
+          )
+        : [
+            ...state.guests,
+            {
+              id: "G-" + ++guestSeq,
+              name: who,
+              since: b?.checkIn ?? TODAY,
+              stays: 1,
+              spend,
+              points: pointsFor(spend),
+              lastStay: TODAY,
+              feedback: [],
+              foreign: b?.foreign,
+            },
+          ];
       return {
         ...state,
+        guests,
         bills: rest,
         closed: [
           ...state.closed,
@@ -747,7 +864,82 @@ function reducer(state: State, action: Action): State {
       };
     }
 
+    // ── ตั้งค่าระบบ ────────────────────────────────────────────
+    case "SET_SETTINGS":
+      return { ...state, settings: { ...state.settings, ...action.patch } };
+
+    // ── รายจ่าย ────────────────────────────────────────────────
+    case "ADD_EXPENSE":
+      return {
+        ...state,
+        expenses: [{ ...action.expense, id: "EX-" + ++expenseSeq }, ...state.expenses],
+      };
+
+    case "PATCH_EXPENSE":
+      return {
+        ...state,
+        expenses: state.expenses.map((e) =>
+          e.id === action.id ? { ...e, ...action.patch } : e,
+        ),
+      };
+
+    case "DEL_EXPENSE":
+      return { ...state, expenses: state.expenses.filter((e) => e.id !== action.id) };
+
+    case "SETTLE_RECEIVABLE":
+      return {
+        ...state,
+        receivables: state.receivables.filter((r) => r.id !== action.id),
+      };
+
+    // ── พนักงาน ────────────────────────────────────────────────
+    case "ADD_STAFF":
+      return { ...state, staff: [...state.staff, { ...action.staff, id: "s-" + ++staffSeq }] };
+
+    case "PATCH_STAFF":
+      return {
+        ...state,
+        staff: state.staff.map((x) => (x.id === action.id ? { ...x, ...action.patch } : x)),
+        // ถ้าแก้คนที่กำลังล็อกอินอยู่ ต้องอัปเดตสิทธิ์ทันที ไม่ใช่รอออกแล้วเข้าใหม่
+        session:
+          state.session?.id === action.id
+            ? { ...state.session, ...action.patch }
+            : state.session,
+      };
+
+    case "DEL_STAFF":
+      return {
+        ...state,
+        staff: state.staff.filter((x) => x.id !== action.id),
+        // ลบคนที่ล็อกอินอยู่ = เตะออกทันที ไม่ปล่อยให้ใช้สิทธิ์ของคนที่ไม่มีแล้ว
+        session: state.session?.id === action.id ? null : state.session,
+      };
+
+    // ── ลูกค้า · รีวิวและแต้ม ──────────────────────────────────
+    case "ADD_FEEDBACK":
+      return {
+        ...state,
+        guests: state.guests.map((g) =>
+          g.id === action.guestId
+            ? { ...g, feedback: [action.feedback, ...g.feedback] }
+            : g,
+        ),
+      };
+
+    case "REDEEM":
+      return {
+        ...state,
+        guests: state.guests.map((g) =>
+          // แต้มไม่พอแลกไม่ได้ — กันไว้ที่นี่ด้วย ไม่ใช่เชื่อว่าหน้าจอกันให้แล้ว
+          g.id === action.guestId && g.points >= action.cost
+            ? { ...g, points: g.points - action.cost }
+            : g,
+        ),
+      };
+
     case "RESET":
+      // ล้างที่เก็บด้วย ไม่งั้นรีเฟรชแล้วของเดิมกลับมาทั้งที่กด "เริ่มใหม่" ไปแล้ว
+      wipe();
       return initial;
 
     default:
@@ -792,12 +984,45 @@ type Ctx = {
     dirty: number;
   };
   nextWoId: () => string;
+  /** ราคาต่อคืนของประเภทห้อง อ่านจากหน้าตั้งค่า ไม่ใช่ตัวเลขฝังในโค้ด */
+  rateFor: (type: string) => number;
+  settings: Settings;
+  /** สรุปการเงิน — รายได้ รายจ่าย กำไร และเงินสดที่ออกจริง */
+  money: {
+    revenueRoom: number;
+    revenueFnb: number;
+    expense: number;
+    unpaidExpense: number;
+    owed: number;
+  };
+  guestByName: (name: string) => Guest | undefined;
+  /** บันทึกลงเบราว์เซอร์เครื่องนี้ได้จริงไหม — ใช้บอกผู้ใช้ตามจริง */
+  persisted: boolean;
 };
 
 const HotelContext = createContext<Ctx | null>(null);
 
 export function HotelProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(reducer, initial);
+  const [state, dispatch] = useReducer(reducer, undefined, boot);
+
+  // บันทึกทุกครั้งที่สถานะเปลี่ยน — ไม่เก็บ session เพราะเปิดใหม่ต้องแตะบัตรใหม่
+  useEffect(() => {
+    const { session: _drop, ...rest } = state;
+    save("hotel", rest);
+  }, [state]);
+
+  // ส่งค่าจากหน้าตั้งค่าไปให้โมดูลที่คิดราคาและภาษี
+  //
+  // ทำระหว่างเรนเดอร์ ไม่ใช่ใน useEffect — เพราะ effect ทำงาน *หลัง* ลูกวาดเสร็จ
+  // เปิดหน้าใหม่ทั้งที่โหลดค่าที่บันทึกไว้แล้ว จอแรกจะยังใช้เรตเก่าจนกว่าจะรีเรนเดอร์
+  // (เจอจริงตอนทดสอบ: บันทึกเรตวันหยุด 35% แล้วรีเฟรช การ์ดห้องยังคิด 20%)
+  // การเขียนทับค่าเดิมด้วยค่าเดิมไม่มีผลข้างเคียง จึงปลอดภัยที่จะทำตรงนี้
+  setWeekendPct(state.settings.weekendPct);
+  setVatPct(state.settings.vatPct);
+  HOTEL.depositPct = state.settings.depositPct;
+  HOTEL.name = state.settings.hotelName;
+  HOTEL.city = state.settings.city;
+  HOTEL.phone = state.settings.phone;
 
   const value = useMemo<Ctx>(() => {
     /** สองช่วงวันชนกันเมื่อเริ่มก่อนอีกช่วงจบ และจบหลังอีกช่วงเริ่ม (วันเช็กเอาท์ไม่นับว่าชน) */
@@ -824,7 +1049,9 @@ export function HotelProvider({ children }: { children: ReactNode }) {
       const to = addDays(TODAY, 1);
       const free = state.rooms.filter((r) => r.status !== "ooo" && isRoomFree(r.no, from, to));
       return {
-        figures: [...new Set(free.map((r) => rateForNight(RATE_OF[r.type] ?? 1350, from)))],
+        figures: [
+          ...new Set(free.map((r) => rateForNight(rateOf(state.settings, r.type), from))),
+        ],
         available: free.length,
         range: "คืนนี้",
       };
@@ -859,8 +1086,32 @@ export function HotelProvider({ children }: { children: ReactNode }) {
       msgsOf: (convId) => state.messages.filter((m) => m.convId === convId),
       unreadChats: state.conversations.reduce((t, c) => t + c.unread, 0),
       session: state.session,
-      staffList: STAFF,
+      staffList: state.staff,
       mode: state.mode,
+      settings: state.settings,
+      rateFor: (type: string) => rateOf(state.settings, type),
+      guestByName: (name: string) => state.guests.find((g) => g.name === name),
+      persisted: canPersist(),
+      money: {
+        // รายได้ห้องของบิลที่ยังเปิดอยู่ + ที่ปิดไปแล้ววันนี้ — แยกค่าห้องกับร้านอาหาร
+        revenueRoom: [
+          ...Object.values(state.bills).flat(),
+          ...state.closed.flatMap((c) => c.lines),
+        ]
+          .filter((l) => l.kind === "room")
+          .reduce((t, l) => t + l.price * l.qty, 0),
+        revenueFnb: [
+          ...Object.values(state.bills).flat(),
+          ...state.closed.flatMap((c) => c.lines),
+        ]
+          .filter((l) => l.kind !== "room")
+          .reduce((t, l) => t + l.price * l.qty, 0),
+        expense: state.expenses.reduce((t, e) => t + e.amount, 0),
+        unpaidExpense: state.expenses
+          .filter((e) => !e.paid)
+          .reduce((t, e) => t + e.amount, 0),
+        owed: state.receivables.reduce((t, r) => t + r.amount, 0),
+      },
 
       botReply: (convId, incoming, wrong) => {
         const conv = state.conversations.find((c) => c.id === convId);

@@ -3,11 +3,14 @@ import { APPROVALS, WEEK, type Approval } from "./ownerData";
 
 export type OwnerTab =
   | "overview"
+  | "finance"
+  | "guests"
   | "channels"
   | "door"
   | "energy"
   | "ai"
-  | "approvals";
+  | "approvals"
+  | "settings";
 
 export type AuditEntry = {
   id: string;

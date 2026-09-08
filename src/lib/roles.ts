@@ -72,8 +72,11 @@ const DESK_NEEDS: Record<string, Perm> = {
 /** แท็บในจอเจ้าของที่ต้องมีสิทธิ์เพิ่ม */
 const OWNER_NEEDS: Record<string, Perm> = {
   overview: "revenue",
+  finance: "revenue",
   channels: "revenue",
   approvals: "approve",
+  // ตั้งค่าระบบแก้ราคาและสิทธิ์คนอื่นได้ — ต้องเป็นระดับที่แก้เรตได้เท่านั้น
+  settings: "rate",
 };
 
 const PERMS_OF: Record<Role, Perm[]> = {

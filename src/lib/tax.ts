@@ -6,7 +6,12 @@
  * จำนวนภาษี "แยกออกจากมูลค่าของสินค้าและหรือของบริการให้ชัดแจ้ง"
  * จึงต้องถอด VAT ออกจากยอดรวม ไม่ใช่บวกเพิ่มจากยอดที่แขกเห็น
  */
-export const VAT_PCT = 7;
+export let VAT_PCT = 7;
+
+/** เรียกจาก HotelProvider เมื่อเจ้าของแก้ค่าในหน้าตั้งค่า — โรงแรมที่ยังไม่จด VAT ตั้ง 0 ได้ */
+export const setVatPct = (pct: number) => {
+  VAT_PCT = Math.max(0, Math.min(30, Math.round(pct)));
+};
 
 /** ถอด VAT ออกจากยอดที่รวมภาษีแล้ว — ฐานภาษี + ภาษี = ยอดที่แขกจ่ายเสมอ */
 export const splitVat = (gross: number) => {

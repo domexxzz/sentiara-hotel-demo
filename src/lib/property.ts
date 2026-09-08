@@ -1,4 +1,5 @@
 import { ROOMS, type Room } from "../data";
+import { otaOf, rateOf, type Settings } from "./settings";
 
 /**
  * โหมดประเภทธุรกิจ — โรงแรม หรือ คอนโดปล่อยเช่ารายวัน
@@ -33,12 +34,19 @@ export const PROPERTY: Record<
   condo: { name: "Sentiara Residence", kind: "คอนโดให้เช่ารายวัน", city: "กรุงเทพฯ", unitWord: "ยูนิต" },
 };
 
-/** ห้องที่เปิดขายรายวันในโหมดนั้น — ฝั่งแขกเห็นเท่านี้ */
-export function roomsFor(mode: PropertyMode): Room[] {
-  if (mode === "hotel") return ROOMS;
+/**
+  * ห้องที่เปิดขายรายวันในโหมดนั้น — ฝั่งแขกเห็นเท่านี้
+  * ราคาทับด้วยค่าจากหน้าตั้งค่าเสมอ ไม่งั้นแก้ราคาแล้วฝั่งแขกไม่เปลี่ยนตาม
+  */
+export function roomsFor(mode: PropertyMode, cfg?: Settings): Room[] {
+  const priced = (r: Room, typeName: string): Room =>
+    cfg
+      ? { ...r, price: rateOf(cfg, typeName), ota: otaOf(cfg, typeName) }
+      : r;
+  if (mode === "hotel") return ROOMS.map((r) => priced(r, r.name));
   return [
     {
-      ...ROOMS[0],
+      ...priced(ROOMS[0], ROOMS[0].name),
       name: TIERS.condo[0],
       bed: "1 ห้องนอนแยก · เตียงควีน + โซฟา",
       sqm: 42,
@@ -46,7 +54,7 @@ export function roomsFor(mode: PropertyMode): Room[] {
       photos: ["/condo/onebed-1.jpg", "/condo/onebed-2.jpg", "/condo/onebed-3.jpg"],
     },
     {
-      ...ROOMS[1],
+      ...priced(ROOMS[1], ROOMS[1].name),
       name: TIERS.condo[1],
       bed: "สตูดิโอ · เตียงควีน + มุมนั่งเล่น",
       sqm: 28,
