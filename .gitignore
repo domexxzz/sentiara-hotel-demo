@@ -29,3 +29,8 @@ dist-ssr
 # เครื่องมือ/ของชั่วคราวที่ไม่ควรขึ้น repo
 _logs
 _update-notifier-last-checked
+
+# หลังบ้าน PMS
+server/data/
+server/**/__pycache__/
+server/.pytest_cache/
