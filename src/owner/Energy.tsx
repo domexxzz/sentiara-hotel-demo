@@ -1,6 +1,12 @@
 import { useHotel } from "../hotel/hotelStore";
 import { money } from "../lib/format";
 import { Icon } from "../components/Icon";
+import {
+  FIRE_DEVICES,
+  FIRE_KIND,
+  FIRE_TEST_DAYS,
+  ZONE_OCCUPANCY,
+} from "../lib/security";
 
 /** มิเตอร์ไฟรายห้อง 16 จุด — หน่วยเป็น kWh ของเมื่อคืน */
 const METERS: { room: string; kwh: number; nights?: number }[] = [
@@ -159,6 +165,60 @@ export function Energy() {
         เซ็นเซอร์ไม่ได้แค่เตือน — กดปุ่มเดียวใบงานวิ่งเข้ามือถือช่างทันที ช่างถ่ายรูปก่อน–หลัง
         ปิดงานแล้วห้องเข้าคิวแม่บ้านเอง และต้นทุนซ่อมเข้ารายงานเดือนโดยไม่มีใครต้องจด
       </p>
+
+      {/* ── ระบบแจ้งเหตุเพลิงไหม้ ──────────────────────────────────── */}
+      <section className="led-sec">
+        <span className="k">Fire Alarm System · {FIRE_DEVICES.length} จุด</span>
+        <h3>สถานะอุปกรณ์แจ้งเหตุทุกตัว</h3>
+
+        {/* ข้อนี้ต้องพูดก่อนอย่างอื่น ไม่ใช่หมายเหตุท้ายจอ —
+            ถ้าลูกค้าเข้าใจว่าชีวิตคนแขวนอยู่กับ PMS แล้วเราไม่แก้ ถือว่าเราผิด */}
+        <div className="led-callout bad">
+          <Icon name="shield" />
+          <span>
+            <b>ระบบแจ้งเหตุเพลิงไหม้ทำงานแยกจาก PMS โดยสิ้นเชิง</b> — เป็นระบบที่ผ่าน
+            การรับรองและต้องดังได้แม้ไฟดับ เน็ตหลุด หรือ PMS ล่ม · จอนี้{" "}
+            <b>อ่านสถานะมาแสดงเท่านั้น สั่งการอะไรไม่ได้</b> สิ่งที่เพิ่มเข้ามาคือ
+            รู้ว่าโซนที่มีเหตุมีใครพักอยู่บ้าง ซึ่งเป็นตัวเลขที่ต้องรู้ทันทีตอนอพยพ
+          </span>
+        </div>
+
+        <ul className="sec-devices">
+          {FIRE_DEVICES.map((d) => {
+            const occ = ZONE_OCCUPANCY[d.zone];
+            const label =
+              d.status === "ok" ? "ปกติ" : d.status === "fault" ? "ต้องแก้" : "เลยกำหนดทดสอบ";
+            return (
+              <li key={d.id} className={d.status === "ok" ? "ok" : "no"}>
+                <div style={{ padding: "10px 14px", display: "grid",
+                              gridTemplateColumns: "1fr auto", gap: "4px 12px",
+                              alignItems: "center" }}>
+                  <span className="sec-dev">
+                    <b>{d.zone}</b>
+                    <span className="sec-meta">
+                      {FIRE_KIND[d.kind]} · {d.id}
+                      {d.battery !== null && ` · แบตเตอรี่ ${d.battery}%`}
+                      {" · ทดสอบล่าสุด "}
+                      {d.testedOn}
+                    </span>
+                    {occ && (
+                      <span className="sec-meta">
+                        โซนนี้มีคนพัก <b>{occ.guests} คน</b> · ห้อง {occ.rooms.join(" · ")}
+                      </span>
+                    )}
+                  </span>
+                  <span className={`led-badge ${d.status === "ok" ? "ok" : "bad"}`}>{label}</span>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+        <p className="owner-note">
+          ต้องทดสอบอย่างน้อยทุก {FIRE_TEST_DAYS} วัน — จุดที่เลยกำหนดขึ้นเป็นสีแดง
+          เหมือนอุปกรณ์เสีย เพราะ <b>เครื่องที่ไม่เคยถูกทดสอบ กับเครื่องที่เสีย
+          เชื่อถือได้เท่ากันคือไม่ได้เลย</b>
+        </p>
+      </section>
     </>
   );
 }

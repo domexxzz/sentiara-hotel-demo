@@ -8,6 +8,7 @@ import {
   CONTRACTS,
   daysToNotice,
   DEVICES,
+  TRAIL,
   FIRMWARE_CUTOFF,
   type Answer,
   type CamEvent,
@@ -261,6 +262,41 @@ export function Security() {
           สัญญาที่ไม่บอกล่วงหน้าตามกำหนดจะ <b>ต่ออายุอัตโนมัติอีกหนึ่งปี</b> —
           เป็นค่าใช้จ่ายที่หลุดไปโดยไม่มีใครตัดสินใจ
         </p>
+      </section>
+
+      {/* ── ร่องรอยการตรวจสอบ ───────────────────────────────────── */}
+      <section className="led-sec">
+        <span className="k">Audit Trail · ม.35 พ.ร.บ.โรงแรม กำหนดให้ตรวจย้อนได้</span>
+        <h3>ใครเปลี่ยนอะไร เมื่อไร และทำไม</h3>
+        <p className="led-note">
+          <b>“เหตุผล” เป็นช่องบังคับ</b> — รู้ว่าใครเปลี่ยนอะไรแต่ไม่รู้ว่าทำไม
+          ยังตอบคำถามที่คนตรวจถามจริง ๆ ไม่ได้ · แถวในนี้{" "}
+          <b>ไม่มีเส้นทางไหนลบหรือแก้ได้</b> ซึ่งเป็นทั้งหมดของเรื่อง
+        </p>
+        <ul className="sec-trail">
+          {TRAIL.map((t, i) => (
+            <li key={i}>
+              <span className="sec-tr-when">{t.at}</span>
+              <span className="sec-tr-what">
+                <b>{t.action}</b>
+                <span className="sec-meta">{t.target}</span>
+              </span>
+              <span className="sec-tr-diff">
+                <s>{t.before}</s> → <b>{t.after}</b>
+              </span>
+              <span className="sec-tr-who">{t.actor}</span>
+              <span className="sec-tr-why">{t.reason}</span>
+            </li>
+          ))}
+        </ul>
+        <div className="led-callout">
+          <Icon name="shield" />
+          <span>
+            หลังบ้านตัวจริงเก็บลงตาราง <code>audit_log</code> ที่{" "}
+            <b>ไม่มีเส้นทาง API ให้ลบหรือแก้</b> — เอกสารทางกฎหมายที่แก้ได้
+            โดยไม่ทิ้งร่องรอย เท่ากับไม่มีค่าตอนถูกตรวจ
+          </span>
+        </div>
       </section>
     </>
   );

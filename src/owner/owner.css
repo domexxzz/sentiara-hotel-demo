@@ -1127,3 +1127,76 @@
 /* ไม่ตอบก็เป็นคำตอบที่ถูก — ทำให้ดูเป็นผลลัพธ์ปกติ ไม่ใช่ข้อผิดพลาด */
 .sec-answer.none { border-left-color: var(--n500); background: var(--n100); }
 .sec-hot { color: var(--accent); font-weight: 700; }
+
+/* ══ จอทีมงานและคลังของใช้ ═══════════════════════════════════════════ */
+/* ตัวเลขความเร็วกับตัวเลขงานที่ถูกตีกลับต้องอยู่ในสายตาเดียวกัน
+   ถ้าแยกคนละกล่อง คนจะมองแค่กล่องความเร็วแล้วชมคนที่เร็วที่สุด          */
+.tm-kpis { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 1px; background: var(--divider); border: 1px solid var(--divider); }
+.tm-kpis > li { background: var(--paper); padding: 12px 14px; display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; justify-content: space-between; }
+.tm-kpis > li.warn { border-left: 3px solid var(--accent); }
+.tm-kpis > li.good { border-left: 3px solid var(--ok); }
+.tm-kpi-who { display: flex; flex-direction: column; gap: 2px; min-width: 200px; }
+.tm-kpi-who b { font: 600 13.5px/1.4 var(--th); }
+.tm-kpi-who span { font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+.tm-kpis > li.warn .tm-kpi-who span { color: var(--accent-700); }
+.tm-kpi-nums { display: flex; flex-wrap: wrap; gap: 16px; }
+.tm-kpi-nums span { font-size: 12px; color: var(--muted); display: flex; flex-direction: column; }
+.tm-kpi-nums i { font: 800 20px/1.2 var(--font); font-style: normal; color: var(--text); font-variant-numeric: tabular-nums; }
+.tm-kpi-nums .hot i { color: var(--accent); }
+
+/* ── ตรวจมาตรฐานห้อง ───────────────────────────────────────────── */
+.tm-checks { list-style: none; margin: 12px 0; padding: 0; display: grid; gap: 1px; background: var(--divider); border: 1px solid var(--divider); }
+.tm-checks > li {
+  background: var(--paper); padding: 11px 14px;
+  display: grid; grid-template-columns: 70px minmax(200px, 1fr) minmax(180px, auto) 120px;
+  gap: 4px 14px; align-items: center;
+}
+.tm-checks > li.passed { border-left: 3px solid var(--ok); }
+.tm-checks > li.bounced { border-left: 3px solid var(--accent); }
+.tm-checks > li.waiting { border-left: 3px solid var(--n300); }
+.tm-checks b { font: 600 13.5px/1.4 var(--th); }
+.tm-angles { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; color: var(--accent); }
+.tm-angles span.on { color: var(--muted); }
+.tm-status { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; }
+.tm-reason { font-size: 12px; color: var(--muted); }
+.tm-by { font-size: 12px; color: var(--muted); text-align: right; }
+
+/* ── ใบสั่งซื้อที่ร่างไว้ ────────────────────────────────────────── */
+.tm-drafts { margin-top: 14px; border: 1px solid var(--divider); border-left: 3px solid var(--accent); background: var(--paper); padding: 12px 14px; display: grid; gap: 8px; }
+.tm-draft { display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: center; justify-content: space-between; }
+.tm-draft + .tm-draft { border-top: 1px solid var(--divider); padding-top: 8px; }
+.tm-draft > div { display: flex; flex-direction: column; gap: 2px; }
+.tm-draft b { font: 600 13.5px/1.4 var(--th); }
+.tm-draft span { font-size: 12.5px; color: var(--muted); }
+.tm-amt { font: 800 17px/1 var(--font) !important; font-variant-numeric: tabular-nums; }
+
+/* ── คู่มือ ─────────────────────────────────────────────────────── */
+.tm-sops { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 1px; background: var(--divider); border: 1px solid var(--divider); }
+.tm-sops > li { background: var(--paper); }
+.tm-sops > li > button {
+  width: 100%; text-align: left; background: none; border: 0; cursor: pointer;
+  padding: 11px 14px; display: flex; gap: 12px; align-items: center;
+  justify-content: space-between; font: inherit; color: inherit;
+}
+.tm-sops > li > button:hover { background: var(--n100); }
+.tm-sops > li > button > span:first-child { display: flex; flex-direction: column; gap: 2px; }
+.tm-sops b { font: 600 13.5px/1.4 var(--th); }
+.tm-steps { margin: 0; padding: 4px 14px 14px 34px; border-top: 1px solid var(--divider); display: grid; gap: 5px; }
+.tm-steps li { font: 400 13px/1.6 var(--th); padding-top: 6px; }
+
+/* ── ร่องรอยการตรวจสอบ ─────────────────────────────────────────── */
+.sec-trail { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 1px; background: var(--divider); border: 1px solid var(--divider); }
+.sec-trail > li {
+  background: var(--paper); padding: 11px 14px;
+  display: grid; grid-template-columns: 120px minmax(160px, 1fr) minmax(120px, auto) minmax(150px, auto);
+  gap: 4px 14px; align-items: center;
+}
+.sec-tr-when { font: 500 12px/1.4 var(--font); font-variant-numeric: tabular-nums; color: var(--muted); }
+.sec-tr-what { display: flex; flex-direction: column; gap: 1px; }
+.sec-tr-what b { font: 600 13.5px/1.4 var(--th); }
+.sec-tr-diff { font-variant-numeric: tabular-nums; font-size: 13px; }
+.sec-tr-diff s { color: var(--muted); }
+.sec-tr-diff b { color: var(--accent-700); }
+.sec-tr-who { font-size: 12px; color: var(--muted); text-align: right; }
+/* เหตุผลกินเต็มแถว เพราะเป็นช่องที่คนตรวจอ่านจริง ไม่ใช่ของประดับ */
+.sec-tr-why { grid-column: 1 / -1; font-size: 12.5px; line-height: 1.6; color: var(--text); border-left: 2px solid var(--divider); padding-left: 10px; margin-top: 2px; }

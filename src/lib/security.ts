@@ -207,3 +207,81 @@ export function ask(q: string): Answer {
     };
   return { found: true, source: hit, note: "ตอบจากตัวบทโดยตรง กดดูมาตราเต็มได้" };
 }
+
+/* ── ร่องรอยการตรวจสอบ ─────────────────────────────────────────────── */
+
+/**
+ * ทุกการแก้ไขมีชื่อคน เวลา และเหตุผล
+ *
+ * **ไม่มีเส้นทางไหนลบหรือแก้แถวในนี้ได้** ซึ่งเป็นทั้งหมดของเรื่อง —
+ * เอกสารที่แก้ได้โดยไม่ทิ้งร่องรอย เท่ากับไม่มีค่าตอนถูกตรวจ
+ * และ "เหตุผล" เป็นช่องบังคับ เพราะรู้ว่าใครเปลี่ยนอะไรแต่ไม่รู้ว่าทำไม
+ * ยังตอบคำถามที่คนตรวจถามจริง ๆ ไม่ได้
+ */
+export type Trail = {
+  at: string;
+  actor: string;
+  action: string;
+  target: string;
+  before: string;
+  after: string;
+  reason: string;
+};
+
+export const TRAIL: Trail[] = [
+  {
+    at: "2026-09-08 21:14", actor: "คุณนภา · พนักงานต้อนรับ",
+    action: "แก้ราคาห้อง", target: "BK-7C41A9 · ห้อง 208",
+    before: "1,650", after: "1,485", reason: "ลูกค้าเก่า ส่วนลด 10% ตามนโยบาย",
+  },
+  {
+    at: "2026-09-08 22:02", actor: "คุณดวงพร · เจ้าของกิจการ",
+    action: "อนุมัติคืนเงิน", target: "BK-2F80B3 · ห้อง 210",
+    before: "—", after: "800", reason: "แอร์เสียคืนแรก ย้ายห้องไม่ได้เพราะเต็ม",
+  },
+  {
+    at: "2026-09-09 08:31", actor: "คุณดวงพร · เจ้าของกิจการ",
+    action: "แก้ค่ามัดจำ", target: "ตั้งค่าระบบ",
+    before: "30%", after: "20%", reason: "ปรับให้แข่งกับ OTA ช่วงโลว์ซีซัน",
+  },
+  {
+    at: "2026-09-09 09:05", actor: "ระบบ · งานปิดยอดรายคืน",
+    action: "ส่งเข้าโปรแกรมบัญชี", target: "วันทำการ 2026-09-08",
+    before: "รอส่ง", after: "ส่งแล้ว 4 รายการ", reason: "งานตามเวลา ทุกวัน 02:00",
+  },
+];
+
+/* ── ระบบแจ้งเหตุเพลิงไหม้ ─────────────────────────────────────────── */
+
+export type FireDevice = {
+  id: string;
+  zone: string;
+  kind: "smoke" | "heat" | "manual" | "panel";
+  battery: number | null;
+  testedOn: string;
+  status: "ok" | "fault" | "due";
+};
+
+/** ต้องทดสอบอย่างน้อยทุกกี่วัน */
+export const FIRE_TEST_DAYS = 180;
+
+export const FIRE_DEVICES: FireDevice[] = [
+  { id: "F-P1", zone: "ตู้ควบคุมกลาง ล็อบบี้", kind: "panel", battery: null, testedOn: "2026-08-14", status: "ok" },
+  { id: "F-201", zone: "ทางเดินชั้น 2", kind: "smoke", battery: 91, testedOn: "2026-08-14", status: "ok" },
+  { id: "F-301", zone: "ทางเดินชั้น 3", kind: "smoke", battery: 18, testedOn: "2026-08-14", status: "fault" },
+  { id: "F-K1", zone: "ครัว", kind: "heat", battery: 76, testedOn: "2026-02-02", status: "due" },
+  { id: "F-M1", zone: "บันไดหนีไฟ ชั้น 1", kind: "manual", battery: null, testedOn: "2026-08-14", status: "ok" },
+];
+
+export const FIRE_KIND: Record<FireDevice["kind"], string> = {
+  smoke: "ตรวจจับควัน",
+  heat: "ตรวจจับความร้อน",
+  manual: "จุดแจ้งเหตุด้วยมือ",
+  panel: "ตู้ควบคุม",
+};
+
+/** ห้องที่มีคนพักอยู่ตอนนี้ในแต่ละโซน — ตัวเลขที่ต้องรู้ทันทีตอนต้องอพยพ */
+export const ZONE_OCCUPANCY: Record<string, { rooms: string[]; guests: number }> = {
+  "ทางเดินชั้น 2": { rooms: ["208", "210", "212"], guests: 5 },
+  "ทางเดินชั้น 3": { rooms: ["301", "305"], guests: 3 },
+};

@@ -6,6 +6,7 @@ export type OwnerTab =
   | "finance"
   | "ledger"
   | "guests"
+  | "team"
   | "chivago"
   | "channels"
   | "door"
