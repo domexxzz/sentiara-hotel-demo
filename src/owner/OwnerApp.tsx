@@ -8,6 +8,7 @@ import { canOpenOwnerTab } from "../lib/roles";
 import { Overview } from "./Overview";
 import { Channels } from "./Channels";
 import { Finance } from "./Finance";
+import { Ledger } from "./Ledger";
 import { Guests } from "./Guests";
 import { Settings } from "./Settings";
 import { Assistant } from "./Assistant";
@@ -19,6 +20,7 @@ import { Icon, type IconName } from "../components/Icon";
 const NAV: { tab: OwnerTab; label: string; icon: IconName }[] = [
   { tab: "overview", label: "ภาพรวม & รายได้", icon: "receipt" },
   { tab: "finance", label: "รายจ่าย & กำไรขาดทุน", icon: "tag" },
+  { tab: "ledger", label: "บัญชีคู่ & ส่งเข้าโปรแกรมบัญชี", icon: "receipt" },
   { tab: "guests", label: "ลูกค้า & แต้ม", icon: "star" },
   { tab: "channels", label: "ช่องทางขาย & OTA", icon: "tag" },
   { tab: "door", label: "ประตู & บัตร", icon: "key" },
@@ -33,6 +35,8 @@ function OwnerRouter() {
   switch (state.tab) {
     case "finance":
       return <Finance />;
+    case "ledger":
+      return <Ledger />;
     case "guests":
       return <Guests />;
     case "settings":
