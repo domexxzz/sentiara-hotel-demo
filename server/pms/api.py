@@ -14,7 +14,9 @@ from sqlalchemy.orm import Session
 
 from pms import booking as bk
 from pms import folio as fo
-from pms.db import EXPENSE_CATEGORIES, Booking, Expense, Folio, LedgerOutbox, Room, RoomType
+from pms import housekeeping as hk
+from pms.db import (EXPENSE_CATEGORIES, Booking, Expense, Folio, HousekeepingTask,
+                    LedgerOutbox, Room, RoomType)
 from pms.auth import AuthError, current_staff, login, logout, record, require
 from pms.db import Staff
 from pms.events import EventError, night_audit_events
@@ -75,6 +77,7 @@ def list_rooms(db: Session = Depends(get_db)):
     return {"rooms": [
         {"no": r.no, "type": r.room_type.name, "type_code": r.room_type.code,
          "floor": r.floor, "out_of_order": r.out_of_order,
+         "housekeeping": r.housekeeping, "sellable": hk.sellable(r),
          "rate": _b(r.room_type.rate_satang)}
         for r in rooms
     ]}
@@ -201,6 +204,65 @@ def _booking_out(db: Session, b: Booking) -> dict:
             "paid": _b(t.paid), "balance": _b(t.balance),
         },
     }
+
+
+
+# ── งานแม่บ้าน ───────────────────────────────────────────────────────
+class HkOpenIn(BaseModel):
+    room_no: str
+    kind: str = Field(default="checkout", pattern="^(checkout|stayover|deep|maintenance)$")
+    note: str = ""
+
+
+class HkMoveIn(BaseModel):
+    to: str = Field(pattern="^(doing|inspect|done|cancelled)$")
+    reason: str = ""
+    photos: int | None = None
+
+
+@router.get("/housekeeping", summary="คิวงานแม่บ้าน · เรียงตามลำดับที่ควรทำจริง",
+            dependencies=[Depends(require("housekeeping"))])
+def hk_board(db: Session = Depends(get_db)):
+    return {"tasks": hk.board(db)}
+
+
+@router.post("/housekeeping", status_code=201, summary="เปิดงานให้ห้องหนึ่ง",
+             dependencies=[Depends(require("housekeeping"))])
+def hk_open(body: HkOpenIn, staff: Staff = Depends(current_staff),
+            db: Session = Depends(get_db)):
+    try:
+        t = hk.open_task(db, body.room_no, kind=body.kind, note=body.note)
+    except hk.HousekeepingError as e:
+        raise HTTPException(400, str(e)) from None
+    record(db, staff, "hk.open", "room", body.room_no, body.kind)
+    db.commit()
+    return {"ref": t.ref, "room": body.room_no, "status": t.status, "priority": t.priority}
+
+
+@router.post("/housekeeping/{ref}", summary="ขยับงานไปสถานะถัดไป")
+def hk_move(ref: str, body: HkMoveIn, staff: Staff = Depends(current_staff),
+            db: Session = Depends(get_db)):
+    """ผ่านหรือตีกลับต้องมีสิทธิ์ `inspect` — ห้องกลับไปขายได้ตรงนี้
+
+    คนที่ทำงานเป็นคนตรวจงานตัวเองเมื่อไร มาตรฐานก็หายไปทันที
+    """
+    from pms.auth import can
+    need = "inspect" if body.to in ("done",) else "housekeeping"
+    # ตีกลับ (inspect → doing) ก็เป็นการตัดสินคุณภาพ ต้องมีสิทธิ์ตรวจเหมือนกัน
+    cur = db.scalar(select(HousekeepingTask).where(HousekeepingTask.ref == ref))
+    if cur is not None and cur.status == "inspect" and body.to == "doing":
+        need = "inspect"
+    if not can(staff.role, need):
+        raise HTTPException(403, f"บทบาทนี้ไม่มีสิทธิ์ {need} — งานนี้ต้องให้หัวหน้าเป็นคนกด")
+
+    try:
+        t = hk.advance(db, ref, body.to, staff=staff, reason=body.reason, photos=body.photos)
+    except hk.HousekeepingError as e:
+        raise HTTPException(400, str(e)) from None
+    record(db, staff, f"hk.{body.to}", "room", t.room.no, body.reason)
+    db.commit()
+    return {"ref": t.ref, "room": t.room.no, "status": t.status,
+            "housekeeping": t.room.housekeeping, "sellable": hk.sellable(t.room)}
 
 
 # ── บิล ──────────────────────────────────────────────────────────────

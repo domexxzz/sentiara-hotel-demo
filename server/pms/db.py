@@ -96,6 +96,12 @@ class Room(Base):
     floor: Mapped[str] = mapped_column(String(8), default="")
     #: ปิดปรับปรุง = ขายไม่ได้ แต่ยังอยู่ในผังให้แม่บ้านและช่างเห็น
     out_of_order: Mapped[bool] = mapped_column(Boolean, default=False)
+    #: clean | dirty | cleaning | inspect
+    #:
+    #: แยกจาก out_of_order เพราะเป็นคนละคำถาม — "ขายได้ไหม" กับ "สะอาดหรือยัง"
+    #: ห้องที่ปิดซ่อมก็ยังต้องทำความสะอาดหลังช่างเสร็จ และห้องสกปรกก็ไม่ได้
+    #: แปลว่าเสีย · รวมสองอย่างเป็นฟิลด์เดียวเมื่อไร จะมีสถานะที่แสดงไม่ได้
+    housekeeping: Mapped[str] = mapped_column(String(16), default="clean")
 
     room_type: Mapped[RoomType] = relationship(back_populates="rooms")
 
@@ -283,6 +289,46 @@ class LedgerOutbox(Base):
     sent_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
     __table_args__ = ({"sqlite_autoincrement": True},)
+
+
+# ── งานแม่บ้าน ───────────────────────────────────────────────────────
+class HousekeepingTask(Base):
+    """งานทำความสะอาดหนึ่งใบ
+
+    เกิดเองตอนเช็กเอาต์ ไม่ต้องมีใครสั่ง — ห้องที่แขกออกแล้วแต่ไม่มีใครรู้ว่า
+    ต้องทำ คือห้องที่ขายไม่ได้ทั้งที่ว่าง ซึ่งเป็นรายได้ที่หายไปเงียบ ๆ
+
+    เส้นทางของงานหนึ่งใบ
+    ---------------------
+        open → doing → inspect → done        แม่บ้านทำ หัวหน้าตรวจแล้วผ่าน
+                         └──→ doing          หัวหน้าตีกลับพร้อมเหตุผล
+
+    ห้องกลับไปขายได้ **ตอนหัวหน้าอนุมัติ** ไม่ใช่ตอนแม่บ้านกดว่าเสร็จ —
+    คนที่ทำงานเป็นคนตรวจงานตัวเองเมื่อไร มาตรฐานก็หายไปทันที
+    """
+
+    __tablename__ = "housekeeping_task"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    ref: Mapped[str] = mapped_column(String(24), unique=True, index=True,
+                                     default=lambda: new_ref("HK"))
+    room_id: Mapped[int] = mapped_column(ForeignKey("room.id"), index=True)
+    #: checkout | stayover | deep | maintenance
+    kind: Mapped[str] = mapped_column(String(16), default="checkout")
+    #: open | doing | inspect | done | cancelled
+    status: Mapped[str] = mapped_column(String(16), default="open", index=True)
+    #: ยิ่งเลขน้อยยิ่งด่วน · ห้องที่มีแขกรอเข้าวันนี้ต้องมาก่อนห้องที่ยังไม่มีคนจอง
+    priority: Mapped[int] = mapped_column(Integer, default=5, index=True)
+    assigned_to: Mapped[int | None] = mapped_column(ForeignKey("staff.id"), nullable=True)
+    note: Mapped[str] = mapped_column(String(300), default="")
+    #: เหตุผลที่หัวหน้าตีกลับ · ต้องบอกเสมอ ไม่งั้นแม่บ้านไม่รู้ว่าต้องแก้อะไร
+    reject_reason: Mapped[str] = mapped_column(String(300), default="")
+    #: จำนวนรูปที่ถ่ายส่ง · มาตรฐานคือสามมุม มุมรวม เตียง ห้องน้ำ
+    photos: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=clock.now, index=True)
+    done_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+    room: Mapped["Room"] = relationship()
 
 
 # ── ผู้ใช้ สิทธิ์ และร่องรอย ─────────────────────────────────────────

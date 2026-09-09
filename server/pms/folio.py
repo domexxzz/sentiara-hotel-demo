@@ -107,6 +107,13 @@ def close_folio(db: Session, folio: Folio) -> FolioTotals:
     b.status = "checkedout"
     # คืนของการเข้าพักที่จบแล้วต้องอยู่ต่อ ไม่ลบทิ้ง — ไม่งั้นประวัติหายและ
     # ปฏิทินย้อนหลังจะโล่งทั้งที่มีคนพักจริง
+
+    # ห้องเข้าคิวแม่บ้านเอง ไม่ต้องมีใครสั่ง — ห้องที่แขกออกแล้วแต่ไม่มีใครรู้
+    # ว่าต้องทำ คือห้องที่ขายไม่ได้ทั้งที่ว่าง รายได้หายโดยไม่มีตัวเลขไหนติดลบ
+    from pms.housekeeping import open_task
+    open_task(db, b.room.no, kind="checkout",
+              note=f"เช็กเอาต์ {b.guest_name}")
+
     db.commit()
     return t
 
