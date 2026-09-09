@@ -361,15 +361,16 @@ const SEED_CHAT: ChatMessage[] = [
 // จงใจให้บางรายการยังไม่จ่าย เพื่อให้เห็นความต่างระหว่าง "กำไร" กับ "เงินสดที่ออกจริง"
 const SEED_EXPENSES: Expense[] = [
   { id: "EX-801", at: addDays(TODAY, -6), cat: "payroll", label: "ค่าแรงพนักงาน 12 คน · 7 คืน", amount: 78400, paid: true, note: "รวมโอทีคืนศุกร์–เสาร์ที่คนเยอะ" },
-  { id: "EX-802", at: addDays(TODAY, -5), cat: "utility", label: "ค่าไฟ · เฉลี่ยตามมิเตอร์รายห้อง", amount: 24600, paid: true, note: "ห้อง 210 สูงผิดปกติ — ดูแท็บค่าไฟ & IoT" },
-  { id: "EX-803", at: addDays(TODAY, -5), cat: "utility", label: "ค่าน้ำ + อินเทอร์เน็ต", amount: 6600, paid: true },
+  { id: "EX-802", at: addDays(TODAY, -5), cat: "electricity", label: "ค่าไฟ · เฉลี่ยตามมิเตอร์รายห้อง", amount: 24600, paid: true, note: "ห้อง 210 สูงผิดปกติ — ดูแท็บค่าไฟ & IoT" },
+  { id: "EX-803", at: addDays(TODAY, -5), cat: "water", label: "ค่าน้ำประปา", amount: 2400, paid: true },
+  { id: "EX-804", at: addDays(TODAY, -5), cat: "telecom", label: "อินเทอร์เน็ต + โทรศัพท์", amount: 4200, paid: true },
   { id: "EX-804", at: addDays(TODAY, -4), cat: "supplies", label: "ผ้าปู ผ้าเช็ดตัว ของใช้ในห้อง", amount: 12300, paid: true },
   { id: "EX-805", at: addDays(TODAY, -3), cat: "supplies", label: "วัตถุดิบครัว · ใบสั่งซื้อจาก POS", amount: 7300, paid: true, auto: true, note: "ระบบสร้างเองจากสต็อกที่ต่ำกว่าจุดสั่งซื้อ" },
   { id: "EX-806", at: addDays(TODAY, -2), cat: "ota", label: "ค่าคอมมิชชัน Agoda + Booking.com", amount: 24800, paid: false, due: addDays(TODAY, 14), auto: true, note: "หักจากยอดจองผ่านเว็บจองในช่วงนี้" },
   { id: "EX-807", at: addDays(TODAY, -3), cat: "maintenance", label: "ซ่อมแอร์ห้อง 210 + อะไหล่", amount: 4200, paid: true },
   { id: "EX-808", at: addDays(TODAY, -1), cat: "maintenance", label: "ล้างแอร์ 6 เครื่อง", amount: 5200, paid: false, due: addDays(TODAY, 9) },
   { id: "EX-809", at: addDays(TODAY, -6), cat: "marketing", label: "โฆษณา Facebook + ส่วนลดจองตรง", amount: 6300, paid: true },
-  { id: "EX-810", at: addDays(TODAY, -6), cat: "finance", label: "ดอกเบี้ยเงินกู้ปรับปรุงอาคาร · สัดส่วน 7 คืน", amount: 19800, paid: true },
+  { id: "EX-810", at: addDays(TODAY, -6), cat: "interest", label: "ดอกเบี้ยเงินกู้ปรับปรุงอาคาร · สัดส่วน 7 คืน", amount: 19800, paid: true },
   { id: "EX-811", at: addDays(TODAY, -1), cat: "other", label: "ค่าเก็บขยะ + ค่าธรรมเนียมท้องถิ่น", amount: 5600, paid: false, due: addDays(TODAY, 21) },
 ];
 

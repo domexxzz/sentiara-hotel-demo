@@ -8,35 +8,54 @@
  * เพราะ VAT ไม่ใช่รายได้ของโรงแรม เป็นเงินที่เก็บแทนสรรพากร
  */
 
+/**
+ * หมวดรายจ่าย — ละเอียดพอแมปกับผังบัญชีของโปรแกรมบัญชีได้ตัวต่อตัว
+ *
+ * เดิมมี "utility" ก้อนเดียวและ "finance" ก้อนเดียว ซึ่งหยาบกว่าผังบัญชีจริง —
+ * ค่าไฟ ค่าน้ำ ค่าเน็ต อยู่คนละบัญชีกัน และดอกเบี้ยจ่ายอยู่คนละกลุ่มงบกับ
+ * ค่าธรรมเนียมธนาคาร รวมไว้แล้วนักบัญชีต้องมานั่งแยกเองทุกเดือน
+ * ซึ่งเป็นงานที่ระบบควรทำให้ตั้งแต่ตอนบันทึก
+ *
+ * ต้องตรงกับ EXPENSE_CATEGORIES ใน server/pms/db.py
+ */
 export type ExpenseCat =
   | "payroll"
-  | "utility"
+  | "electricity"
+  | "water"
+  | "telecom"
   | "supplies"
   | "ota"
   | "maintenance"
   | "marketing"
-  | "finance"
+  | "bankfee"
+  | "interest"
   | "other";
 
 export const CAT: Record<ExpenseCat, { label: string; hint: string }> = {
   payroll: { label: "เงินเดือน & ค่าแรง", hint: "รวมโอทีและประกันสังคม" },
-  utility: { label: "ค่าน้ำ ค่าไฟ อินเทอร์เน็ต", hint: "ผูกกับมิเตอร์รายห้องได้" },
+  electricity: { label: "ค่าไฟฟ้า", hint: "ผูกกับมิเตอร์รายห้องได้" },
+  water: { label: "ค่าน้ำประปา", hint: "มิเตอร์รวมของอาคาร" },
+  telecom: { label: "โทรศัพท์ & อินเทอร์เน็ต", hint: "เน็ตห้องพักและสำนักงาน" },
   supplies: { label: "ของใช้ & วัตถุดิบ", hint: "ผ้า สบู่ ของในห้อง วัตถุดิบครัว" },
   ota: { label: "ค่าคอมมิชชัน OTA", hint: "หักจากยอดจองผ่านเว็บจอง" },
   maintenance: { label: "ซ่อมบำรุง", hint: "งานช่างและอะไหล่" },
   marketing: { label: "การตลาด", hint: "โฆษณา ส่วนลด โปรโมชัน" },
-  finance: { label: "ดอกเบี้ย & ค่าธรรมเนียม", hint: "เงินกู้ ค่าธรรมเนียมธนาคาร" },
+  bankfee: { label: "ค่าธรรมเนียมธนาคาร", hint: "ค่าโอน ค่าธรรมเนียมบัตรเครดิต" },
+  interest: { label: "ดอกเบี้ยจ่าย", hint: "ดอกเบี้ยเงินกู้ — คนละกลุ่มงบกับค่าธรรมเนียม" },
   other: { label: "อื่น ๆ", hint: "ที่ไม่เข้าหมวดไหน" },
 };
 
 export const CAT_ORDER: ExpenseCat[] = [
   "payroll",
-  "utility",
+  "electricity",
+  "water",
+  "telecom",
   "supplies",
   "ota",
   "maintenance",
   "marketing",
-  "finance",
+  "bankfee",
+  "interest",
   "other",
 ];
 
