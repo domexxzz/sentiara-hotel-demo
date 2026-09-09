@@ -14,8 +14,9 @@ from sqlalchemy.orm import Session
 
 from pms import booking as bk
 from pms import folio as fo
-from pms.db import Booking, Expense, Folio, LedgerPost, Room, RoomType
-from pms.ledger import LedgerClient, entry_for_expense, entry_for_folio
+from pms.db import EXPENSE_CATEGORIES, Booking, Expense, Folio, LedgerOutbox, Room, RoomType
+from pms.events import EventError, night_audit_events
+from pms.ledger import LedgerClient, collect, outbox_summary
 from pms.money import baht_text, to_baht
 from pms.session import get_db, settings
 
@@ -223,7 +224,8 @@ def tax_invoice(ref: str, body: InvoiceIn, db: Session = Depends(get_db)):
 # ── รายจ่าย ──────────────────────────────────────────────────────────
 class ExpenseIn(BaseModel):
     at: date
-    category: str = Field(pattern="^(payroll|utility|supplies|ota|maintenance|marketing|finance|other)$")
+    #: สร้างจาก EXPENSE_CATEGORIES ที่เดียว — เพิ่มหมวดแล้วไม่ต้องตามแก้ regex ตรงนี้
+    category: str = Field(pattern="^(" + "|".join(EXPENSE_CATEGORIES) + ")$")
     label: str = Field(min_length=1, max_length=200)
     amount: float = Field(gt=0)
     paid: bool = True
@@ -252,33 +254,45 @@ def list_expenses(db: Session = Depends(get_db)):
 
 
 # ── บัญชี ────────────────────────────────────────────────────────────
-@router.get("/ledger/preview/{ref}", summary="ดูรายการบัญชีของบิลก่อนส่ง")
-def preview(ref: str, db: Session = Depends(get_db)):
+#
+# หมายเหตุสำคัญ: เราส่ง **เหตุการณ์** ไม่ได้ส่งรายการบัญชี — PMS ไม่รู้ผังบัญชี
+# ของโรงแรมนั้นและไม่ควรรู้ การแปลงเป็นเดบิต/เครดิตเป็นหน้าที่ของกฎลงบัญชี
+# ที่นักบัญชีตั้งและเซ็นรับที่ปลายทาง
+@router.get("/ledger/preview", summary="ดูเหตุการณ์ของวันทำการหนึ่งก่อนส่ง")
+def preview(business_date: date | None = None, db: Session = Depends(get_db)):
+    from pms import clock
+    day = business_date or clock.today()
     try:
-        f = fo.get_folio(db, ref)
-        e = entry_for_folio(db, f, settings.vat_pct)
-    except Exception as ex:
+        events = night_audit_events(db, day, settings.vat_pct)
+    except EventError as ex:
         raise HTTPException(400, str(ex))
     return {
-        "idempotency_key": e.idem_key, "reference": e.reference,
-        "balanced": e.balanced,
-        "debit_total": _b(e.debit_total), "credit_total": _b(e.credit_total),
-        "lines": [{"account": l.account, "debit": _b(l.debit),
-                   "credit": _b(l.credit), "memo": l.memo} for l in e.lines],
+        "business_date": day.isoformat(),
+        "count": len(events),
+        # seq จริงมาจากคิวตอนบันทึก · ตรงนี้ใส่ 0 เพราะเป็นแค่ตัวอย่างให้ดู
+        "events": [e.envelope(0) for e in events],
     }
 
 
-@router.post("/ledger/send", summary="ส่งทุกอย่างที่ยังไม่เคยส่งเข้าระบบบัญชี")
+@router.post("/ledger/collect", summary="กวาดเหตุการณ์ของวันทำการเข้าคิว (night audit)")
+def collect_events(business_date: date | None = None, db: Session = Depends(get_db)):
+    return collect(db, business_date, settings.vat_pct)
+
+
+@router.post("/ledger/send", summary="ส่งคิวที่ยังไม่เคยส่งสำเร็จ")
 def send_ledger(db: Session = Depends(get_db)):
-    client = LedgerClient()
-    return client.send_pending(db, settings.vat_pct)
+    return LedgerClient().send_pending(db)
 
 
-@router.get("/ledger/posts", summary="ประวัติการส่งเข้าระบบบัญชี")
-def ledger_posts(db: Session = Depends(get_db)):
-    rows = db.scalars(select(LedgerPost).order_by(LedgerPost.id.desc()))
-    return {"posts": [
-        {"idem_key": p.idem_key, "status": p.status, "attempts": p.attempts,
-         "response": p.response, "sent_at": p.sent_at}
-        for p in rows
-    ]}
+@router.get("/ledger/outbox", summary="คิวส่งออกและสถานะของแต่ละรายการ")
+def ledger_outbox(db: Session = Depends(get_db)):
+    rows = db.scalars(select(LedgerOutbox).order_by(LedgerOutbox.seq.desc()))
+    return {
+        "summary": outbox_summary(db),
+        "rows": [
+            {"seq": r.seq, "event_id": r.event_id, "event_type": r.event_type,
+             "business_date": r.business_date, "status": r.status,
+             "attempts": r.attempts, "response": r.response, "sent_at": r.sent_at}
+            for r in rows
+        ],
+    }

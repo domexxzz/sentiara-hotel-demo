@@ -14,6 +14,16 @@
 """
 from __future__ import annotations
 
+import sys
+
+# หน้าต่างคำสั่งของวินโดวส์ไทยใช้โค้ดเพจ 874 ซึ่งพิมพ์จุดกลาง (·) ไม่ได้
+# ถ้าไม่ตั้งบรรทัดนี้ สคริปต์จะพังตอน print ทั้งที่สร้างข้อมูลสำเร็จไปแล้ว
+# ซึ่งชวนให้เข้าใจผิดว่า seed ไม่ผ่าน (ดักไว้เผื่อ stdout ถูกแทนที่ตอนเรียกจากที่อื่น)
+try:
+    sys.stdout.reconfigure(encoding="utf-8")
+except (AttributeError, ValueError):
+    pass
+
 import argparse
 from datetime import timedelta
 
@@ -22,7 +32,7 @@ from sqlalchemy import delete, select
 from pms import booking as bk
 from pms import clock
 from pms import folio as fo
-from pms.db import (Booking, Charge, Expense, Folio, LedgerPost, Payment, Room,
+from pms.db import (Booking, Charge, Expense, Folio, LedgerOutbox, Payment, Room,
                     RoomNight, RoomType, TaxInvoice)
 from pms.money import baht
 from pms.session import session_factory, settings
@@ -45,7 +55,7 @@ FLOORS = [
 
 def wipe(db) -> None:
     """ล้างของเดิม — ลบเรียงจากลูกไปหาแม่ ไม่งั้นคีย์นอกจะขวาง"""
-    for model in (LedgerPost, TaxInvoice, Payment, Charge, Folio,
+    for model in (LedgerOutbox, TaxInvoice, Payment, Charge, Folio,
                   RoomNight, Booking, Expense, Room, RoomType):
         db.execute(delete(model))
     db.commit()
@@ -111,7 +121,7 @@ def seed_demo(db) -> None:
     # ── รายจ่าย · ครบทั้งจ่ายแล้วและยังค้าง ─────────────────────────
     for at, cat, label, amount, paid, due in [
         (today - timedelta(days=5), "payroll", "เงินเดือนพนักงาน", 84000, True, None),
-        (today - timedelta(days=4), "utility", "ค่าไฟฟ้า", 18500, True, None),
+        (today - timedelta(days=4), "electricity", "ค่าไฟฟ้า", 18500, True, None),
         (today - timedelta(days=2), "ota", "ค่าคอมมิชชัน OTA", 6200, False,
          today + timedelta(days=25)),
         (today - timedelta(days=1), "supplies", "ผ้าปูและของใช้ในห้อง", 9800, False,

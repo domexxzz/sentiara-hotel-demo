@@ -19,7 +19,6 @@ from pms import booking as bk
 from pms import folio as fo
 from pms.app import create_app
 from pms.db import Expense, Room, RoomType
-from pms.ledger import LedgerClient, entry_for_expense, entry_for_folio
 from pms.money import add_vat, baht, baht_text, split_vat, to_baht
 from pms.rates import nightly_rates, stay_total
 from pms.session import session_factory
@@ -272,107 +271,6 @@ def test_invoice_numbers_do_not_skip(c):
     assert seq == list(range(seq[0], seq[0] + 3))
 
 
-# ══ บัญชี ════════════════════════════════════════════════════════════
-def test_journal_entry_balances(c, db):
-    ref = _stay(c)
-    c.post(f"{API}/folios/{ref}/charges",
-           json={"kind": "fnb", "label": "อาหาร", "amount": 500})
-    c.post(f"{API}/folios/{ref}/payments", json={"method": "cash", "amount": 3800})
-    c.post(f"{API}/folios/{ref}/close")
-
-    e = entry_for_folio(db, fo.get_folio(db, ref), 7)
-    assert e.balanced, f"เดบิต {e.debit_total} เครดิต {e.credit_total}"
-    assert e.idem_key == f"folio:{fo.get_folio(db, ref).id}"
-
-
-def test_preview_shows_balanced_entry(c):
-    ref = _stay(c)
-    c.post(f"{API}/folios/{ref}/payments", json={"method": "cash", "amount": 3300})
-    c.post(f"{API}/folios/{ref}/close")
-    p = c.get(f"{API}/ledger/preview/{ref}").json()
-    assert p["balanced"] is True
-    assert p["debit_total"] == p["credit_total"] == 3300.0
-
-
-def test_unbalanced_entry_never_leaves(db):
-    """สร้างรายการที่ไม่ลงตัวแล้วต้องส่งไม่ออก"""
-    from pms.ledger import JournalEntry, LedgerError, Line
-    e = JournalEntry(idem_key="x", entry_date="2026-09-14", reference="X", memo="",
-                     lines=[Line("A", debit=100), Line("B", credit=99)])
-    with pytest.raises(LedgerError):
-        e.to_payload()
-
-
-def test_sending_twice_does_not_duplicate(c, db):
-    ref = _stay(c)
-    c.post(f"{API}/folios/{ref}/payments", json={"method": "cash", "amount": 3300})
-    c.post(f"{API}/folios/{ref}/close")
-
-    client = LedgerClient(dry_run=True)
-    entry = entry_for_folio(db, fo.get_folio(db, ref), 7)
-    first = client.send(db, entry)
-    second = client.send(db, entry)
-    assert first.id == second.id
-    assert second.attempts == 1          # ครั้งที่สองไม่ยิงซ้ำ
-
-
-def test_send_pending_is_idempotent(c, db):
-    ref = _stay(c)
-    c.post(f"{API}/folios/{ref}/payments", json={"method": "cash", "amount": 3300})
-    c.post(f"{API}/folios/{ref}/close")
-    db.add(Expense(at=MON, category="utility", label="ค่าไฟ", amount_satang=baht(24600)))
-    db.commit()
-
-    client = LedgerClient(dry_run=True)
-    a = client.send_pending(db, 7)
-    b = client.send_pending(db, 7)
-    assert a["sent"] == 2 and a["failed"] == 0
-    assert b["sent"] == 0 and b["skipped"] == 2       # ไม่ส่งซ้ำ
-
-
-def test_expense_entry_uses_ap_when_unpaid(db):
-    e = Expense(id=1, at=MON, category="ota", label="ค่าคอม",
-                amount_satang=baht(24800), paid=False)
-    j = entry_for_expense(db, e)
-    assert j.balanced
-    assert any("เจ้าหนี้" in l.account for l in j.lines)
-
-
-def test_open_folio_cannot_be_posted(c, db):
-    ref = _stay(c)
-    from pms.ledger import LedgerError
-    with pytest.raises(LedgerError):
-        entry_for_folio(db, fo.get_folio(db, ref), 7)
-
-
-def test_health(c):
-    h = c.get("/health").json()
-    assert h["ok"] and h["vat_pct"] == 7 and h["ledger_dry_run"] is True
-
-def test_invoice_vat_matches_journal_vat(c, db):
-    """ใบกำกับภาษีกับสมุดบัญชีต้องรายงาน VAT ตรงกันเป๊ะ
-
-    เคยไม่ตรงเพราะเดบิตส่วนลดเต็มจำนวนโดยไม่ถอด VAT — ต่างกันเท่ากับ VAT ของส่วนลด
-    ฝ่ายบัญชีจะกระทบยอดไม่ลงและหาสาเหตุยากมาก เพราะเอกสารสองใบขัดกันเอง
-    """
-    ref = _stay(c)
-    c.post(f"{API}/folios/{ref}/charges",
-           json={"kind": "discount", "label": "ส่วนลด", "amount": 200})
-    c.post(f"{API}/folios/{ref}/payments", json={"method": "cash", "amount": 3100})
-    c.post(f"{API}/folios/{ref}/close")
-
-    inv = c.post(f"{API}/folios/{ref}/tax-invoice",
-                 json={"buyer_name": "บริษัท ก"}).json()
-    e = entry_for_folio(db, fo.get_folio(db, ref), 7)
-    journal_vat = sum(l.credit for l in e.lines if "ภาษีขาย" in l.account)
-
-    assert e.balanced
-    assert to_baht(journal_vat) == inv["vat"], "VAT สองที่ต้องตรงกัน"
-    journal_rev = sum(l.credit for l in e.lines if l.account.startswith("40"))
-    journal_disc = sum(l.debit for l in e.lines if "ส่วนลด" in l.account)
-    assert to_baht(journal_rev - journal_disc) == inv["base"], "ฐานภาษีสองที่ต้องตรงกัน"
-
-
 # ══ นาฬิกา — กฎเหล็กของ Ledger Bridge ════════════════════════════════
 def test_clock_is_thai_time_not_utc():
     """งาน night audit ตอนตีสองต้องได้วันที่ของ 'วันนี้' ไม่ใช่เมื่อวาน
@@ -387,13 +285,18 @@ def test_clock_is_thai_time_not_utc():
 
 
 def test_closed_folio_is_dated_in_thai_time(c, db):
-    """วันที่ในใบสำคัญที่ส่งเข้าบัญชีต้องเป็นวันตามเวลาไทย"""
+    """วันทำการของเหตุการณ์ที่ส่งเข้าบัญชีต้องเป็นวันตามเวลาไทย
+
+    ปลายทางใช้ businessDate หางวดบัญชี · ถ้าอ่านเป็น UTC งาน night audit
+    ตอนตีสองจะไปตกงวดของเมื่อวาน
+    """
+    from pms import clock
+    from pms.events import folio_close_event
     ref = _stay(c)
     c.post(f"{API}/folios/{ref}/payments", json={"method": "cash", "amount": 3300})
     c.post(f"{API}/folios/{ref}/close")
-    from pms import clock
-    e = entry_for_folio(db, fo.get_folio(db, ref), 7)
-    assert e.entry_date == clock.today().isoformat()
+    e = folio_close_event(db, fo.get_folio(db, ref), 7)
+    assert e.business_date == clock.today()
 
 
 @pytest.mark.parametrize("gross,pct,want", [

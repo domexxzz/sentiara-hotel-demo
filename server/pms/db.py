@@ -19,6 +19,7 @@
 from __future__ import annotations
 
 import os
+import secrets
 from datetime import date, datetime
 
 from sqlalchemy import (
@@ -33,6 +34,43 @@ DB_URL = os.environ.get("PMS_DB", "sqlite:///./data/pms.db")
 
 class Base(DeclarativeBase):
     pass
+
+
+def new_ref(prefix: str) -> str:
+    """รหัสอ้างอิงสาธารณะของแถว — สุ่ม ไม่ใช่เลขเรียง
+
+    ทำไมไม่ใช้ `id`
+    ----------------
+    `eventId` ที่ส่งเข้าระบบบัญชีต้องไม่ซ้ำ **ตลอดอายุของกิจการ** ไม่ใช่แค่ใน
+    ฐานข้อมูลก้อนปัจจุบัน ถ้าผูก eventId กับ `id` ที่เป็นเลขเรียง แล้ววันหนึ่ง
+    seed ฐานใหม่หรือย้ายเครื่อง เลขจะวนกลับมาเป็น 1, 2, 3 ชนกับของที่ส่งไปแล้ว
+    ปลายทางจะปฏิเสธเงียบ ๆ ว่า "ซ้ำ" ทั้งที่เป็นคนละรายการ — เงินหายจากบัญชี
+    โดยไม่มีอะไรฟ้อง
+
+    64 บิตสุ่มพอสำหรับปริมาณระดับโรงแรม และอ่านออกเสียงได้ตอนโทรคุยกัน
+    """
+    return f"{prefix}-{secrets.token_hex(4).upper()}"
+
+
+#: หมวดรายจ่าย — ละเอียดพอที่จะแมปกับผังบัญชีจริงได้ตัวต่อตัว
+#:
+#: เดิมมี "utility" ก้อนเดียวและ "finance" ก้อนเดียว ซึ่งหยาบกว่าผังบัญชีของ
+#: โปรแกรมบัญชีปลายทาง — ค่าไฟ ค่าน้ำ ค่าเน็ต อยู่คนละบัญชีกัน และดอกเบี้ยจ่าย
+#: อยู่คนละกลุ่มงบกับค่าธรรมเนียมธนาคาร รวมไว้แล้วนักบัญชีต้องมานั่งแยกเองทุกเดือน
+#: ซึ่งเป็นงานที่ระบบควรทำให้ตั้งแต่ตอนบันทึก
+EXPENSE_CATEGORIES = (
+    "payroll",       # เงินเดือนและค่าแรง
+    "electricity",   # ค่าไฟฟ้า
+    "water",         # ค่าน้ำประปา
+    "telecom",       # ค่าโทรศัพท์และอินเทอร์เน็ต
+    "supplies",      # วัสดุสิ้นเปลือง
+    "ota",           # ค่าคอมมิชชัน OTA
+    "maintenance",   # ค่าซ่อมแซมและบำรุงรักษา
+    "marketing",     # ค่าโฆษณาและส่งเสริมการขาย
+    "bankfee",       # ค่าธรรมเนียมธนาคาร
+    "interest",      # ดอกเบี้ยจ่าย
+    "other",         # เบ็ดเตล็ด
+)
 
 
 # ── ห้องและราคา ──────────────────────────────────────────────────────
@@ -157,6 +195,9 @@ class Payment(Base):
     __tablename__ = "payment"
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    #: รหัสอ้างอิงสาธารณะ · ใช้ประกอบ eventId ตอนส่งเข้าระบบบัญชี (ดู new_ref)
+    ref: Mapped[str] = mapped_column(String(24), unique=True, index=True,
+                                     default=lambda: new_ref("PY"))
     folio_id: Mapped[int] = mapped_column(ForeignKey("folio.id"), index=True)
     #: cash | card | transfer | deposit
     method: Mapped[str] = mapped_column(String(16))
@@ -188,8 +229,11 @@ class Expense(Base):
     __tablename__ = "expense"
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    #: รหัสอ้างอิงสาธารณะ · ใช้ประกอบ eventId ตอนส่งเข้าระบบบัญชี (ดู new_ref)
+    ref: Mapped[str] = mapped_column(String(24), unique=True, index=True,
+                                     default=lambda: new_ref("EX"))
     at: Mapped[date] = mapped_column(Date)
-    #: payroll | utility | supplies | ota | maintenance | marketing | finance | other
+    #: หนึ่งใน EXPENSE_CATEGORIES · แมปกับผังบัญชีปลายทางแบบตัวต่อตัว
     category: Mapped[str] = mapped_column(String(24), index=True)
     label: Mapped[str] = mapped_column(String(200))
     amount_satang: Mapped[int] = mapped_column(Integer)
@@ -197,29 +241,48 @@ class Expense(Base):
     due: Mapped[date | None] = mapped_column(Date, nullable=True)
 
 
-# ── การส่งเข้าระบบบัญชี ──────────────────────────────────────────────
-class LedgerPost(Base):
-    """บันทึกว่ารายการไหนถูกส่งเข้าระบบบัญชีไปแล้ว
+# ── คิวส่งออกไปยังระบบบัญชี (outbox) ─────────────────────────────────
+class LedgerOutbox(Base):
+    """เหตุการณ์ที่รอส่งเข้าโปรแกรมบัญชี · หนึ่งแถว = หนึ่งเหตุการณ์
 
-    `idem_key` ไม่ซ้ำ = **ส่งซ้ำไม่ได้แม้เน็ตหลุดแล้วลองใหม่**
-    นี่คือคำถามข้อแรกที่เราถาม Ledger Bridge ไป — เราต้องกันฝั่งเราเองด้วย
-    ไม่ใช่ฝากความถูกต้องไว้กับปลายทางฝ่ายเดียว
+    ทำไมต้องมี outbox ไม่ยิงตรง
+    ----------------------------
+    ปลายทางกำหนดว่า `seq` ของทุกเหตุการณ์ต้อง **เพิ่มขึ้นเรื่อย ๆ และไม่ซ้ำ**
+    และต้องมาจากคิวของผู้ส่ง ไม่ใช่สร้างใหม่ทุกครั้งที่ยิง เพราะถ้าสร้างใหม่จาก
+    เลขที่ปลายทางบอกว่ารับถึงไหนแล้ว พอส่งสำเร็จบางส่วนแล้วส่งรอบใหม่
+    เลขจะเลื่อนไม่ตรงกับของเดิม แล้วของที่ตกค้างจะถูกทิ้งเงียบ ๆ
+
+    เก็บลงตารางก่อนแล้วค่อยส่ง ยังได้ผลพลอยได้อีกข้อ — เน็ตหลุดกลางดึกแล้ว
+    ของยังอยู่ ส่งซ้ำพรุ่งนี้ได้ ไม่ต้องไปไล่สร้างใหม่จากบิลย้อนหลัง
+
+    กับดักของ SQLite ที่ต้องระวัง
+    ------------------------------
+    `INTEGER PRIMARY KEY` เฉย ๆ คือ rowid ซึ่ง **เอาเลขที่ถูกลบแล้วกลับมาใช้ซ้ำได้**
+    (เลขใหม่ = max ปัจจุบัน + 1 · ลบแถวท้ายทิ้งแล้วเลขถอยหลัง) เมื่อ seq ถอยหลัง
+    ปลายทางจะถือว่าต่ำกว่าที่รับไปแล้วและ**ทิ้งทั้งชุดโดยไม่แจ้ง**
+    `sqlite_autoincrement` บังคับให้ใช้ตาราง sqlite_sequence ซึ่งไม่เคยย้อนเลข
+    (ย้ายไป PostgreSQL แล้ว SEQUENCE เพิ่มขึ้นเสมอโดยธรรมชาติ ไม่ต้องทำอะไรเพิ่ม)
     """
 
-    __tablename__ = "ledger_post"
+    __tablename__ = "ledger_outbox"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
-    idem_key: Mapped[str] = mapped_column(String(80), unique=True, index=True)
-    #: folio | expense
-    source_kind: Mapped[str] = mapped_column(String(16))
-    source_id: Mapped[int] = mapped_column(Integer)
-    #: pending | sent | failed
-    status: Mapped[str] = mapped_column(String(16), default="pending")
+    #: นี่คือ `seq` ที่ส่งออกไปตรง ๆ — ไม่ได้คิดใหม่ตอนส่ง
+    seq: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    #: คงที่ตลอดอายุของเหตุการณ์ · ส่งซ้ำกี่ครั้งปลายทางก็ลงบัญชีครั้งเดียว
+    event_id: Mapped[str] = mapped_column(String(80), unique=True, index=True)
+    #: NA | DEP | STL | EXP | ADJ
+    event_type: Mapped[str] = mapped_column(String(16), index=True)
+    #: วันทำการของโรงแรม ไม่ใช่วันที่ระบบ — ปลายทางใช้ค่านี้หางวดบัญชี
+    business_date: Mapped[date] = mapped_column(Date, index=True)
     payload_json: Mapped[str] = mapped_column(String)
-    response: Mapped[str] = mapped_column(String(600), default="")
+    #: pending | sent | failed
+    status: Mapped[str] = mapped_column(String(16), default="pending", index=True)
     attempts: Mapped[int] = mapped_column(Integer, default=0)
+    response: Mapped[str] = mapped_column(String(600), default="")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=clock.now)
     sent_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+    __table_args__ = ({"sqlite_autoincrement": True},)
 
 
 # ── engine ───────────────────────────────────────────────────────────
