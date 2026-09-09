@@ -270,7 +270,10 @@
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
 }
-.shot {
+/* ชื่อเดิมคือ .shot ซึ่งหลุดคอนเวนชัน st- ของไฟล์นี้ และเพราะ CSS ทุกไฟล์
+   โหลดรวมกันทั้งแอป มันจึงไปทับ .gal.shot ของแกลเลอรีรูปห้องฝั่งแขก —
+   aspect-ratio 3/4 คูณกับความสูง 176px บีบรูปห้องเหลือกว้าง 132px */
+.st-shot {
   aspect-ratio: 3 / 4;
   border: 1.5px dashed var(--line-strong);
   background: var(--n100);
@@ -286,10 +289,10 @@
   position: relative;
   overflow: hidden;
 }
-.shot .lbl {
+.st-shot .lbl {
   font-weight: 600;
 }
-.shot.taken {
+.st-shot.taken {
   border-style: solid;
   border-color: var(--text);
   color: #fff;
@@ -298,14 +301,14 @@
     repeating-linear-gradient(135deg, #6d6560 0 9px, #837a74 9px 18px);
   justify-content: flex-end;
 }
-.shot.taken .stamp {
+.st-shot.taken .stamp {
   font-family: var(--font);
   font-weight: 700;
   font-size: 9.5px;
   background: rgba(0, 0, 0, 0.45);
   padding: 2px 6px;
 }
-.shot .hint {
+.st-shot .hint {
   font-size: 10px;
   color: var(--faint);
   line-height: 1.45;

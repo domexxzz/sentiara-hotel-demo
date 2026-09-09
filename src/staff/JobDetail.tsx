@@ -54,7 +54,7 @@ export function JobDetail() {
           return (
             <button
               key={a.id}
-              className={`shot ${taken ? "taken" : ""}`}
+              className={`st-shot ${taken ? "taken" : ""}`}
               onClick={() => dispatch({ type: "PHOTO", room: active.room, angle: a.id })}
             >
               {taken ? (

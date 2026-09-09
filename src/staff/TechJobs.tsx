@@ -63,7 +63,7 @@ export function TechJobs() {
                 return (
                   <button
                     key={a.id}
-                    className={`shot ${taken ? "taken" : ""}`}
+                    className={`st-shot ${taken ? "taken" : ""}`}
                     disabled={locked}
                     onClick={() => wp(w.id, { photos: [...w.photos, a.id] })}
                   >
