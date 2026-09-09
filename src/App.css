@@ -1336,3 +1336,71 @@
 .idmode button:hover { background: var(--n100); }
 .idmode button.on { background: var(--text); color: var(--bg); }
 @media (max-width: 620px) { .idmode button { padding: 5px 8px; font-size: 11px; } }
+
+/* ── แถบบอกโหมด และหน้าแตะบัตรเข้าระบบ ─────────────────────────────
+   ระบบเดียวกันทำงานได้ทั้งกับข้อมูลสาธิตและข้อมูลจริงของโรงแรม
+   สองอย่างนี้หน้าตาเหมือนกันเป๊ะ ถ้าไม่บอกให้ชัดว่ากำลังดูอะไรอยู่
+   วันหนึ่งจะมีคนสั่งงานจากตัวเลขสาธิต                                */
+.conn {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 14px; margin: 0 0 12px;
+  border: 1px solid var(--divider); background: var(--paper);
+  font-size: 13px; line-height: 1.45;
+}
+.conn .txt { display: flex; flex-direction: column; flex: 1 1 auto; min-width: 0; }
+.conn .txt b { font-weight: 700; }
+.conn .txt span { color: var(--muted); font-size: 12px; }
+.conn .ic { flex: 0 0 auto; }
+.conn .dot {
+  width: 8px; height: 8px; border-radius: 50%; flex: 0 0 auto;
+  background: var(--muted);
+}
+.conn.live { border-color: #2c6b4c; background: #eef5f1; }
+.conn.live .dot { background: #2c6b4c; }
+.conn.locked { border-color: #96650c; background: #fbf4e4; }
+.conn.probing { color: var(--muted); }
+.conn .out {
+  flex: 0 0 auto; font-size: 12px; font-weight: 600;
+  padding: 5px 11px; border: 1px solid var(--divider); background: transparent;
+}
+.conn .out:hover { border-color: var(--ink); }
+
+.signin { display: flex; justify-content: center; padding: 8px 0 32px; }
+.signin .card {
+  width: min(420px, 100%); padding: 26px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.signin .k {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--accent);
+}
+.signin h2 { font-size: 22px; font-weight: 800; margin: 0; }
+.signin .lead { margin: 0; font-size: 13px; color: var(--muted); line-height: 1.6; }
+.signin label { display: flex; flex-direction: column; gap: 4px; }
+.signin label span { font-size: 12px; font-weight: 600; color: var(--muted); }
+.signin input {
+  padding: 10px 12px; border: 1px solid var(--divider); background: var(--paper);
+  font: inherit; font-size: 15px;
+}
+.signin input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.signin .err {
+  padding: 9px 12px; font-size: 13px;
+  border-left: 3px solid var(--accent); background: #fdeeea; color: #8f2312;
+}
+.signin .go {
+  padding: 11px; font-weight: 700; font-size: 15px;
+  background: var(--accent); color: #fff; border: 0;
+}
+.signin .go:disabled { opacity: 0.45; }
+.signin .cards {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  padding-top: 12px; border-top: 1px solid var(--divider);
+}
+.signin .cards .lbl { flex: 1 0 100%; font-size: 11px; color: var(--muted); }
+.signin .chip {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 1px;
+  padding: 6px 10px; font-size: 11px; color: var(--muted);
+  border: 1px solid var(--divider); background: transparent; text-align: left;
+}
+.signin .chip b { font-size: 12px; color: var(--ink); }
+.signin .chip:hover { border-color: var(--ink); }

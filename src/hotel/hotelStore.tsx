@@ -1,5 +1,6 @@
 import {
-  createContext, useContext, useEffect, useMemo, useReducer, type ReactNode,
+  createContext, useCallback, useContext, useEffect, useMemo, useReducer,
+  useState, type ReactNode,
 } from "react";
 import { ROOM_RACK, type DeskRoom, type RoomStatus } from "../desk/deskData";
 import { TODAY, addDays, nightsBetween } from "../lib/date";
@@ -13,6 +14,9 @@ import { DEFAULT_SETTINGS, rateOf, type Settings } from "../lib/settings";
 import { type Expense, type Receivable } from "../lib/finance";
 import { pointsFor, type Feedback, type Guest } from "../lib/loyalty";
 import { canPersist, load, save, wipe } from "../lib/persist";
+import { useBackend } from "../lib/backend";
+import { ApiError } from "../lib/api";
+import { pull, push } from "./sync";
 
 // ── Types ─────────────────────────────────────────────────────────────
 export type BookingStatus = "confirmed" | "inhouse" | "checkedout";
@@ -160,7 +164,9 @@ type Action =
   | { type: "DEL_STAFF"; id: string }
   | { type: "ADD_FEEDBACK"; guestId: string; feedback: Feedback }
   | { type: "REDEEM"; guestId: string; rewardId: string; cost: number; label: string }
-  | { type: "RESET" };
+  | { type: "RESET" }
+  /** เทข้อมูลจากหลังบ้านทับของเดิมทั้งชุด · เซิร์ฟเวอร์เป็นแหล่งความจริง */
+  | { type: "HYDRATE"; rooms: DeskRoom[]; bookings: Booking[]; bills: Record<string, BillLine[]> };
 
 // ── Seed ──────────────────────────────────────────────────────────────
 const SEED_BOOKINGS: Booking[] = [
@@ -453,6 +459,21 @@ const setRoom = (rooms: DeskRoom[], no: string, patch: Partial<DeskRoom>) =>
 // ── Reducer ───────────────────────────────────────────────────────────
 function reducer(state: State, action: Action): State {
   switch (action.type) {
+    case "HYDRATE": {
+      /* เทของจากหลังบ้านทับ ไม่ใช่ผสาน — ถ้าผสาน ของที่ถูกลบบนเซิร์ฟเวอร์
+         จะค้างอยู่บนจอนี้ตลอดไปโดยไม่มีใครรู้
+
+         ส่วนที่หลังบ้านยังไม่มี (แม่บ้าน แชท ใบงานช่าง แต้ม ตั้งค่า) คงไว้
+         ตามเดิม เพราะยังไม่มีของจริงมาแทน — และหน้าจอบอกผู้ใช้ตรง ๆ
+         ว่าส่วนไหนยังเป็นข้อมูลสาธิต */
+      return {
+        ...state,
+        rooms: action.rooms,
+        bookings: action.bookings,
+        bills: action.bills,
+      };
+    }
+
     case "CREATE_BOOKING": {
       const id = action.booking.id ?? nextBooking();
       const booking: Booking = { ...action.booking, id, status: "confirmed" };
@@ -999,18 +1020,79 @@ type Ctx = {
   guestByName: (name: string) => Guest | undefined;
   /** บันทึกลงเบราว์เซอร์เครื่องนี้ได้จริงไหม — ใช้บอกผู้ใช้ตามจริง */
   persisted: boolean;
+  /** กำลังทำงานกับฐานข้อมูลจริง ไม่ใช่ข้อมูลสาธิต */
+  live: boolean;
+  /** กำลังคุยกับหลังบ้านอยู่ — ใช้ปิดปุ่มกันกดซ้ำ */
+  syncing: boolean;
+  /** เหตุผลที่หลังบ้านปฏิเสธรายการล่าสุด · ว่าง = ไม่มีปัญหา */
+  syncError: string;
+  /** ปิดข้อความผิดพลาดหลังผู้ใช้อ่านแล้ว */
+  clearSyncError: () => void;
 };
 
 const HotelContext = createContext<Ctx | null>(null);
 
 export function HotelProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(reducer, undefined, boot);
+  const [state, rawDispatch] = useReducer(reducer, undefined, boot);
+  const { mode } = useBackend();
+  const live = mode === "live";
+  const [syncing, setSyncing] = useState(false);
+  const [syncError, setSyncError] = useState("");
+
+  /* เทข้อมูลจริงลงจอทุกครั้งที่เข้าโหมดจริง และหลังทุกรายการที่หลังบ้านรับไป */
+  const refresh = useCallback(async () => {
+    try {
+      const snap = await pull();
+      rawDispatch({ type: "HYDRATE", ...snap });
+    } catch (e) {
+      setSyncError(e instanceof ApiError ? e.message : "ดึงข้อมูลจากหลังบ้านไม่สำเร็จ");
+    }
+  }, []);
+
+  useEffect(() => {
+    if (live) void refresh();
+  }, [live, refresh]);
+
+  /**
+   * ชั้นกลางเหนือ dispatch — หน้าจอทุกจอยังเรียกเหมือนเดิม ไม่ต้องแก้สักบรรทัด
+   *
+   * โหมดสาธิต  ส่งตรงเข้ารีดิวเซอร์ เหมือนที่เคยเป็นมา
+   * โหมดจริง    ยิงหลังบ้านก่อน สำเร็จแล้วค่อยดึงภาพใหม่มาทั้งชุด
+   *             ล้มเหลวก็ไม่แตะสถานะในเครื่องเลย — เซิร์ฟเวอร์เป็นแหล่งความจริง
+   *             และการวาดไปก่อนแล้วค่อยรู้ว่าถูกปฏิเสธ คือครู่ที่พนักงาน
+   *             เผลอบอกแขกไปแล้วว่าจองได้
+   */
+  const dispatch = useCallback<React.Dispatch<Action>>(
+    (action) => {
+      if (!live) {
+        rawDispatch(action);
+        return;
+      }
+      setSyncError("");
+      setSyncing(true);
+      void (async () => {
+        try {
+          const handled = await push(action as never);
+          if (handled) await refresh();
+          else rawDispatch(action);   // เรื่องที่หลังบ้านยังไม่รู้จัก ทำในเครื่องต่อไป
+        } catch (e) {
+          setSyncError(e instanceof ApiError ? e.message : "หลังบ้านปฏิเสธรายการนี้");
+        } finally {
+          setSyncing(false);
+        }
+      })();
+    },
+    [live, refresh],
+  );
 
   // บันทึกทุกครั้งที่สถานะเปลี่ยน — ไม่เก็บ session เพราะเปิดใหม่ต้องแตะบัตรใหม่
   useEffect(() => {
+    // โหมดจริงไม่บันทึกลงเบราว์เซอร์ — แหล่งความจริงอยู่ที่เซิร์ฟเวอร์
+    // ถ้าบันทึกด้วย เปิดเครื่องใหม่แล้วของเก่าจะทับของจริงชั่วครู่ก่อนโหลดเสร็จ
+    if (live) return;
     const { session: _drop, ...rest } = state;
     save("hotel", rest);
-  }, [state]);
+  }, [state, live]);
 
   // ส่งค่าจากหน้าตั้งค่าไปให้โมดูลที่คิดราคาและภาษี
   //
@@ -1093,6 +1175,10 @@ export function HotelProvider({ children }: { children: ReactNode }) {
       rateFor: (type: string) => rateOf(state.settings, type),
       guestByName: (name: string) => state.guests.find((g) => g.name === name),
       persisted: canPersist(),
+      live,
+      syncing,
+      syncError,
+      clearSyncError: () => setSyncError(""),
       money: {
         // รายได้ห้องของบิลที่ยังเปิดอยู่ + ที่ปิดไปแล้ววันนี้ — แยกค่าห้องกับร้านอาหาร
         revenueRoom: [
@@ -1182,7 +1268,7 @@ export function HotelProvider({ children }: { children: ReactNode }) {
         occupancy: Math.round((sold / sellable) * 100),
       },
     };
-  }, [state]);
+  }, [state, dispatch, live, syncing, syncError]);
 
   return <HotelContext.Provider value={value}>{children}</HotelContext.Provider>;
 }

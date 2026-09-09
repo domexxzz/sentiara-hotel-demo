@@ -8,6 +8,7 @@ from __future__ import annotations
 import os
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from pms.api import router
 from pms.session import settings, setup
@@ -25,6 +26,14 @@ def create_app(db_url: str | None = None) -> FastAPI:
             "และส่งรายการเข้าระบบบัญชี\n\n"
             "**กันจองซ้ำที่ระดับฐานข้อมูล** ไม่ใช่เช็กด้วยโค้ด"
         ),
+    )
+    # หน้าจอรันคนละที่อยู่กับ API จึงต้องอนุญาตข้ามต้นทาง
+    # ค่าเริ่มต้นเปิดเฉพาะเครื่องตัวเอง · ตั้ง PMS_ORIGINS เมื่อขึ้นเครื่องจริง
+    origins = [o.strip() for o in os.environ.get(
+        "PMS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173").split(",") if o.strip()]
+    app.add_middleware(
+        CORSMiddleware, allow_origins=origins, allow_credentials=False,
+        allow_methods=["GET", "POST"], allow_headers=["authorization", "content-type"],
     )
     app.include_router(router, prefix=API_PREFIX)
 

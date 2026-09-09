@@ -135,6 +135,32 @@ def create_booking(body: BookIn, db: Session = Depends(get_db)):
     return _booking_out(db, b)
 
 
+@router.get("/bookings", summary="รายการจอง · ใช้เติมผังห้องและปฏิทิน",
+             dependencies=[Depends(require("booking"))])
+def list_bookings(
+    status: str | None = None,
+    since: date | None = None,
+    until: date | None = None,
+    db: Session = Depends(get_db),
+):
+    """ค่าเริ่มต้นคืนเฉพาะที่ยังไม่จบ — หน้าจอต้องการของที่ยังขายอยู่
+
+    ยกเลิกแล้วไม่ส่งกลับมาเลย เพราะคืนที่กันไว้ถูกคืนให้ขายต่อแล้ว
+    ถ้าส่งไปด้วยหน้าจอจะวาดว่ามีคนจองทั้งที่ห้องว่าง
+    """
+    q = select(Booking).order_by(Booking.check_in, Booking.id)
+    if status:
+        q = q.where(Booking.status == status)
+    else:
+        q = q.where(Booking.status != "cancelled")
+    if since:
+        q = q.where(Booking.check_out > since)
+    if until:
+        q = q.where(Booking.check_in < until)
+    rows = list(db.scalars(q))
+    return {"count": len(rows), "bookings": [_booking_out(db, b) for b in rows]}
+
+
 @router.get("/bookings/{ref}", summary="ดูการจอง",
              dependencies=[Depends(require("booking"))])
 def get_booking(ref: str, db: Session = Depends(get_db)):

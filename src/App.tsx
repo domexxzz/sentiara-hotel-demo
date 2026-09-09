@@ -16,6 +16,8 @@ import { Icon, type IconName } from "./components/Icon";
 import { HotelProvider, useHotel } from "./hotel/hotelStore";
 import { Identity } from "./components/Identity";
 import { canOpen, denyReason } from "./lib/roles";
+import { BackendProvider, useBackend } from "./lib/backend";
+import { ConnectionBar, SignIn } from "./components/Connection";
 
 type Flow = "guest" | "desk" | "staff" | "owner" | "pos";
 
@@ -71,6 +73,7 @@ function GuestRouter() {
 
 function Stage() {
   const [flow, setFlow] = useState<Flow>("guest");
+  const backend = useBackend();
   const head = HEADINGS[flow];
   const { session } = useHotel();
   // ยังไม่แตะบัตร = โหมดสาธิต เปิดได้ทุกจอ · แตะแล้วบังคับสิทธิ์จริง
@@ -86,8 +89,13 @@ function Stage() {
           <p>{head.note}</p>
         </header>
 
+        <ConnectionBar />
         <Identity />
 
+        {backend.mode === "locked" ? (
+          <SignIn />
+        ) : (
+        <>
         <div className="flowpick" role="tablist" aria-label="เลือกเส้นทางสาธิต">
           {FLOWS.map((f) => {
             const ok = allowed(f.id);
@@ -134,6 +142,8 @@ function Stage() {
             {flow === "pos" && <PosApp />}
           </>
         )}
+        </>
+        )}
       </div>
     </div>
   );
@@ -141,10 +151,12 @@ function Stage() {
 
 export default function App() {
   return (
-    <HotelProvider>
-      <BookingProvider>
-        <Stage />
-      </BookingProvider>
-    </HotelProvider>
+    <BackendProvider>
+      <HotelProvider>
+        <BookingProvider>
+          <Stage />
+        </BookingProvider>
+      </HotelProvider>
+    </BackendProvider>
   );
 }
