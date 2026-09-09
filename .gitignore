@@ -34,3 +34,8 @@ _update-notifier-last-checked
 server/data/
 server/**/__pycache__/
 server/.pytest_cache/
+
+# ชุดทดสอบ Ledger Bridge — มีกุญแจกับรหัสผ่านอยู่ข้างใน และหนัก 152MB
+# เอกสารเขาระบุว่า "กุญแจที่หลุดขึ้น git ต้องถือว่ารั่วถาวร ให้เพิกถอนแล้วออกใหม่"
+# ตรวจแล้วว่ายังไม่เคยขึ้น git — บรรทัดนี้กันไม่ให้ git add -A เผลอลากขึ้นไป
+server/doc_ledger/
