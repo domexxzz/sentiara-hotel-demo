@@ -291,6 +291,42 @@ class LedgerOutbox(Base):
     __table_args__ = ({"sqlite_autoincrement": True},)
 
 
+# ── ทะเบียนผู้พัก ────────────────────────────────────────────────────
+class GuestRegister(Base):
+    """บัตรทะเบียนผู้พัก ร.ร.3 หนึ่งใบ · รวมกันเป็นทะเบียน ร.ร.4
+
+    ม.35 พ.ร.บ.โรงแรม พ.ศ. 2547 บังคับให้จัดทำ **ทันทีที่รับผู้พัก**
+    และ ม.38 พ.ร.บ.คนเข้าเมือง บังคับให้แจ้งคนต่างด้าวภายใน 24 ชั่วโมง
+
+    หนึ่งการจองหนึ่งใบ — คีย์ไม่ซ้ำบน booking_id กันลงทะเบียนซ้ำที่ฐานข้อมูล
+    ไม่ใช่ที่โค้ด เพราะพนักงานสองคนกดพร้อมกันได้จริงตอนแขกเข้าเป็นกลุ่ม
+    """
+
+    __tablename__ = "guest_register"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    booking_id: Mapped[int] = mapped_column(ForeignKey("booking.id"), unique=True, index=True)
+    full_name: Mapped[str] = mapped_column(String(200))
+    nationality: Mapped[str] = mapped_column(String(64), default="ไทย")
+    #: thai_id | passport
+    id_type: Mapped[str] = mapped_column(String(16))
+    id_number: Mapped[str] = mapped_column(String(32), index=True)
+    birth_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    address: Mapped[str] = mapped_column(String(400), default="")
+    #: เดินทางมาจากที่ใด — ช่องบังคับในแบบ ตม.30
+    arrived_from: Mapped[str] = mapped_column(String(160), default="")
+    phone: Mapped[str] = mapped_column(String(32), default="")
+    #: ตัดสินจากสัญชาติ ไม่ใช่จากชนิดเอกสาร — คนไทยที่ถือพาสปอร์ตมาเช็กอิน
+    #: ก็ยังเป็นคนไทย ไม่ต้องแจ้ง ตม.30
+    foreign: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
+    #: ครบกำหนดแจ้ง ตม.30 · นับจากเวลาที่เข้าพัก ไม่ใช่เวลาที่กรอกฟอร์ม
+    tm30_due: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, index=True)
+    tm30_sent_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    #: เลขรับเรื่องจากระบบราชการ — เก็บไว้ให้ตรวจย้อนได้ว่าแจ้งจริง
+    tm30_receipt: Mapped[str] = mapped_column(String(64), default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=clock.now)
+
+
 # ── งานแม่บ้าน ───────────────────────────────────────────────────────
 class HousekeepingTask(Base):
     """งานทำความสะอาดหนึ่งใบ

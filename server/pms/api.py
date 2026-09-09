@@ -15,6 +15,7 @@ from sqlalchemy.orm import Session
 from pms import booking as bk
 from pms import folio as fo
 from pms import housekeeping as hk
+from pms import registry as reg
 from pms.db import (EXPENSE_CATEGORIES, Booking, Expense, Folio, HousekeepingTask,
                     LedgerOutbox, Room, RoomType)
 from pms.auth import AuthError, current_staff, login, logout, record, require
@@ -358,6 +359,75 @@ def tax_invoice(ref: str, body: InvoiceIn, db: Session = Depends(get_db)):
         "gross": _b(inv.gross_satang), "vat_pct": inv.vat_pct,
         "in_words": baht_text(inv.gross_satang),
     }
+
+
+
+# ── ทะเบียนผู้พัก ────────────────────────────────────────────────────
+class RegisterIn(BaseModel):
+    full_name: str = Field(min_length=1, max_length=200)
+    nationality: str = Field(default="ไทย", max_length=64)
+    id_type: str = Field(pattern="^(thai_id|passport)$")
+    id_number: str = Field(min_length=1, max_length=32)
+    birth_date: date | None = None
+    address: str = ""
+    arrived_from: str = ""
+    phone: str = ""
+
+
+@router.post("/bookings/{ref}/register", status_code=201,
+             summary="ลงทะเบียนผู้พัก ร.ร.3 · ม.35 พ.ร.บ.โรงแรม 2547",
+             dependencies=[Depends(require("register"))])
+def guest_register(ref: str, body: RegisterIn, staff: Staff = Depends(current_staff),
+                   db: Session = Depends(get_db)):
+    try:
+        row = reg.register(db, ref, **body.model_dump())
+    except reg.RegistryError as e:
+        raise HTTPException(400, str(e)) from None
+    record(db, staff, "register.create", "booking", ref, row.full_name)
+    db.commit()
+    return {
+        "ref": ref, "name": row.full_name, "nationality": row.nationality,
+        "foreign": row.foreign, "tm30_due": row.tm30_due,
+        "note": ("ต้องแจ้ง ตม.30 ภายใน 24 ชั่วโมง" if row.foreign
+                 else "ผู้พักสัญชาติไทย ไม่ต้องแจ้ง ตม.30"),
+    }
+
+
+@router.get("/register", summary="ทะเบียนผู้พัก ร.ร.4 · เล่มที่นายทะเบียนขอดู",
+            dependencies=[Depends(require("register"))])
+def rr4(since: date, until: date, db: Session = Depends(get_db)):
+    return {"since": since, "until": until, "rows": reg.rr4(db, since, until)}
+
+
+@router.get("/register/tm30", summary="คนต่างด้าวที่ยังไม่ได้แจ้ง · ใกล้ครบกำหนดขึ้นก่อน",
+            dependencies=[Depends(require("register"))])
+def tm30_list(db: Session = Depends(get_db)):
+    rows = reg.tm30_pending(db)
+    return {
+        "pending": len(rows),
+        "overdue": sum(1 for r in rows if r["overdue"]),
+        "urgent": sum(1 for r in rows if r["urgent"]),
+        "rows": rows,
+    }
+
+
+class Tm30In(BaseModel):
+    receipt: str = ""
+
+
+@router.post("/register/{ref}/tm30", summary="บันทึกว่าแจ้ง ตม.30 แล้ว",
+             dependencies=[Depends(require("register"))])
+def tm30_sent(ref: str, body: Tm30In, staff: Staff = Depends(current_staff),
+              db: Session = Depends(get_db)):
+    """⚠ บันทึกสถานะในเครื่องเท่านั้น — ยังไม่ได้ยิงเข้าระบบ ตม. จริง"""
+    try:
+        row = reg.mark_tm30_sent(db, ref, body.receipt)
+    except reg.RegistryError as e:
+        raise HTTPException(400, str(e)) from None
+    record(db, staff, "register.tm30", "booking", ref, body.receipt)
+    db.commit()
+    return {"ref": ref, "sent_at": row.tm30_sent_at, "receipt": row.tm30_receipt,
+            "note": "บันทึกในระบบแล้ว — การส่งเข้าระบบ ตม. จริงยังต้องทำแยก"}
 
 
 # ── รายจ่าย ──────────────────────────────────────────────────────────
