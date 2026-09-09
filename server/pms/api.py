@@ -14,7 +14,9 @@ from sqlalchemy.orm import Session
 
 from pms import booking as bk
 from pms import folio as fo
-from pms.db import EXPENSE_CATEGORIES, Booking, Expense, Folio, LedgerOutbox, Room, RoomType
+from pms import registry as reg
+from pms.db import (EXPENSE_CATEGORIES, AuditLog, Booking, Expense, Folio,
+                    GuestRegistration, LedgerOutbox, Room, RoomType)
 from pms.events import EventError, night_audit_events
 from pms.ledger import LedgerClient, collect, outbox_summary
 from pms.money import baht_text, to_baht
@@ -230,17 +232,25 @@ class ExpenseIn(BaseModel):
     amount: float = Field(gt=0)
     paid: bool = True
     due: date | None = None
+    #: ประเภทการหักภาษี ณ ที่จ่าย · "none" = ซื้อสินค้า ไม่ต้องหัก
+    wht_kind: str = Field(default="none",
+                          pattern="^(none|service|rent|professional|advertising|transport)$")
 
 
 @router.post("/expenses", status_code=201, summary="บันทึกรายจ่าย")
 def add_expense(body: ExpenseIn, db: Session = Depends(get_db)):
     from pms.money import baht
+    from pms.money import withhold
+    # หักจากฐานก่อน VAT เสมอ · หักจากยอดรวม VAT คือความผิดที่กลายเป็นค่าปรับ
+    w = withhold(baht(body.amount), body.wht_kind)
     e = Expense(at=body.at, category=body.category, label=body.label,
-                amount_satang=baht(body.amount), paid=body.paid, due=body.due)
+                amount_satang=w.base, paid=body.paid, due=body.due,
+                wht_kind=body.wht_kind, wht_satang=w.tax)
     db.add(e)
     db.commit()
     db.refresh(e)
-    return {"id": e.id, "amount": _b(e.amount_satang)}
+    return {"id": e.id, "ref": e.ref, "amount": _b(e.amount_satang),
+            "withholding_tax": _b(e.wht_satang), "net_payable": _b(e.net_payable_satang)}
 
 
 @router.get("/expenses", summary="รายจ่ายทั้งหมด")
@@ -248,7 +258,9 @@ def list_expenses(db: Session = Depends(get_db)):
     rows = db.scalars(select(Expense).order_by(Expense.at.desc()))
     return {"expenses": [
         {"id": e.id, "at": e.at, "category": e.category, "label": e.label,
-         "amount": _b(e.amount_satang), "paid": e.paid, "due": e.due}
+         "amount": _b(e.amount_satang), "paid": e.paid, "due": e.due,
+         "wht_kind": e.wht_kind, "withholding_tax": _b(e.wht_satang),
+         "net_payable": _b(e.net_payable_satang)}
         for e in rows
     ]}
 
@@ -295,4 +307,103 @@ def ledger_outbox(db: Session = Depends(get_db)):
              "attempts": r.attempts, "response": r.response, "sent_at": r.sent_at}
             for r in rows
         ],
+    }
+
+
+# ── ทะเบียนผู้พัก · ร.ร.3 / ร.ร.4 / ตม.30 ────────────────────────────
+class RegisterIn(BaseModel):
+    full_name: str = Field(min_length=1, max_length=160)
+    nationality: str = Field(default="TH", min_length=2, max_length=2)
+    id_number: str = Field(min_length=1, max_length=40)
+    id_kind: str = Field(default="", pattern="^(national_id|passport|)$")
+    occupation: str = ""
+    address: str = ""
+    came_from: str = ""
+    going_to: str = ""
+
+
+@router.post("/bookings/{ref}/guests", status_code=201,
+             summary="ลงทะเบียนผู้พักหนึ่งคน (ม.35 พ.ร.บ.โรงแรม)")
+def register_guest(ref: str, body: RegisterIn, db: Session = Depends(get_db)):
+    b = db.scalar(select(Booking).where(Booking.ref == ref))
+    if b is None:
+        raise HTTPException(404, f"ไม่พบการจอง {ref}")
+    try:
+        g = reg.register_guest(db, b, **body.model_dump())
+    except reg.RegistryError as e:
+        raise HTTPException(400, str(e))
+    return _reg_out(g)
+
+
+@router.post("/registrations/{rid}/sign-rr3", summary="ผู้พักลงลายมือชื่อบัตร ร.ร.3")
+def sign_rr3(rid: int, db: Session = Depends(get_db)):
+    g = db.get(GuestRegistration, rid)
+    if g is None:
+        raise HTTPException(404, "ไม่พบทะเบียนผู้พักรายนี้")
+    try:
+        return _reg_out(reg.sign_rr3(db, g))
+    except reg.RegistryError as e:
+        raise HTTPException(400, str(e))
+
+
+class Tm30In(BaseModel):
+    receipt: str = Field(min_length=1, max_length=80)
+
+
+@router.post("/registrations/{rid}/tm30", summary="บันทึกการแจ้ง ตม.30 พร้อมเลขรับ")
+def file_tm30(rid: int, body: Tm30In, db: Session = Depends(get_db)):
+    g = db.get(GuestRegistration, rid)
+    if g is None:
+        raise HTTPException(404, "ไม่พบทะเบียนผู้พักรายนี้")
+    try:
+        return _reg_out(reg.file_tm30(db, g, body.receipt))
+    except reg.RegistryError as e:
+        raise HTTPException(400, str(e))
+
+
+@router.post("/registry/file-rr4", summary="ส่ง ร.ร.4 ของวันหนึ่งให้นายทะเบียน")
+def file_rr4(day: date | None = None, db: Session = Depends(get_db)):
+    return reg.file_rr4(db, day)
+
+
+@router.get("/registry/due", summary="ใครยังทำเอกสารไม่ครบ และเหลือเวลาเท่าไร")
+def registry_due(db: Session = Depends(get_db)):
+    rows = reg.outstanding(db)
+    return {
+        "overdue": sum(1 for d in rows if d.overdue),
+        "urgent": sum(1 for d in rows if d.urgent),
+        "items": [{
+            "id": d.reg.id, "name": d.reg.full_name, "room": d.reg.booking.room.no,
+            "nationality": d.reg.nationality, "needs": d.needs,
+            "deadline": d.deadline, "hours_left": d.hours_left,
+            "overdue": d.overdue, "urgent": d.urgent,
+        } for d in rows],
+    }
+
+
+@router.get("/registry/book", summary="เล่มทะเบียนผู้พัก · เก็บไม่น้อยกว่า 1 ปี")
+def registry_book(since: date | None = None, db: Session = Depends(get_db)):
+    return {"rows": [_reg_out(g) for g in reg.rr4_book(db, since)]}
+
+
+@router.get("/audit", summary="ร่องรอยการตรวจสอบ · เขียนอย่างเดียว ลบไม่ได้")
+def audit_log(limit: int = 200, db: Session = Depends(get_db)):
+    rows = db.scalars(select(AuditLog).order_by(AuditLog.id.desc()).limit(limit))
+    return {"rows": [
+        {"at": r.at, "actor": r.actor, "action": r.action,
+         "entity": r.entity, "entity_id": r.entity_id, "detail": r.detail}
+        for r in rows
+    ]}
+
+
+def _reg_out(g) -> dict:
+    return {
+        "id": g.id, "booking": g.booking.ref, "room": g.booking.room.no,
+        "name": g.full_name, "nationality": g.nationality,
+        "id_kind": g.id_kind, "occupation": g.occupation,
+        "arrived_at": g.arrived_at,
+        "rr3_signed_at": g.rr3_signed_at,
+        "rr4_filed_at": g.rr4_filed_at, "rr4_batch": g.rr4_batch,
+        "tm30_required": g.nationality != "TH",
+        "tm30_filed_at": g.tm30_filed_at, "tm30_receipt": g.tm30_receipt,
     }

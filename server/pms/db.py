@@ -240,6 +240,90 @@ class Expense(Base):
     paid: Mapped[bool] = mapped_column(Boolean, default=True)
     due: Mapped[date | None] = mapped_column(Date, nullable=True)
 
+    #: ประเภทการหักภาษี ณ ที่จ่าย · หนึ่งใน WHT_RATES ของ money.py
+    #: "none" = ซื้อสินค้า ไม่ต้องหัก — ภาษีหัก ณ ที่จ่ายใช้กับ *บริการ*
+    wht_kind: Mapped[str] = mapped_column(String(16), default="none")
+    #: ยอดที่หักไว้และต้องนำส่งสรรพากรภายในวันที่ 7 ของเดือนถัดไป (ภ.ง.ด.3/53)
+    wht_satang: Mapped[int] = mapped_column(Integer, default=0)
+    #: เลขที่หนังสือรับรองการหักภาษี ณ ที่จ่ายที่ออกให้ผู้รับเงิน
+    wht_cert_no: Mapped[str] = mapped_column(String(40), default="")
+
+    @property
+    def net_payable_satang(self) -> int:
+        """ยอดที่จ่ายเจ้าหนี้จริง — หลังหักภาษี ณ ที่จ่ายแล้ว"""
+        return self.amount_satang - (self.wht_satang or 0)
+
+
+# ── ทะเบียนผู้พัก · งานที่กฎหมายบังคับ ──────────────────────────────
+class GuestRegistration(Base):
+    """ผู้พักหนึ่งคนต่อหนึ่งแถว — **ไม่ใช่หนึ่งการจองต่อหนึ่งแถว**
+
+    ม.35 พ.ร.บ.โรงแรม พ.ศ. 2547 บังคับให้ผู้ประกอบธุรกิจโรงแรมจัดให้มีทะเบียนผู้พัก
+    บันทึกให้แล้วเสร็จ **ภายใน 24 ชั่วโมง** นับแต่เวลาที่เข้าพัก และเก็บไว้ไม่น้อยกว่าหนึ่งปี
+
+    กฎหมายลงทะเบียน "ผู้พัก" ไม่ใช่ "ผู้จอง" — การจองที่มีผู้ใหญ่สองคนต้องมีสองแถว
+    ไม่ใช่แถวเดียวตามชื่อคนจอง ตรงนี้คือจุดที่ระบบส่วนใหญ่ทำผิดแล้วตรวจไม่ผ่าน
+
+    สองแบบที่ต้องแยกให้ออก
+      ร.ร.3  บัตรทะเบียนผู้พัก — ผู้พักกรอกและ **ลงลายมือชื่อทันทีที่เข้าพัก**
+      ร.ร.4  ทะเบียนผู้พัก — โรงแรมบันทึกและส่งนายทะเบียนภายใน 24 ชม.
+
+    แขกต่างชาติมีอีกชั้นคือ **ตม.30** ตาม ม.38 พ.ร.บ.คนเข้าเมือง พ.ศ. 2522
+    เจ้าบ้านต้องแจ้งพนักงานเจ้าหน้าที่ภายใน 24 ชั่วโมง ไม่แจ้งมีโทษปรับ
+    """
+
+    __tablename__ = "guest_registration"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    booking_id: Mapped[int] = mapped_column(ForeignKey("booking.id"), index=True)
+
+    full_name: Mapped[str] = mapped_column(String(160))
+    #: รหัสประเทศสองตัวตาม ISO 3166-1 · TH = ไทย
+    nationality: Mapped[str] = mapped_column(String(2), default="TH", index=True)
+    #: เลขประจำตัวประชาชน (ไทย) หรือเลขหนังสือเดินทาง (ต่างชาติ)
+    id_number: Mapped[str] = mapped_column(String(40), default="")
+    #: national_id | passport
+    id_kind: Mapped[str] = mapped_column(String(16), default="national_id")
+    occupation: Mapped[str] = mapped_column(String(80), default="")
+    address: Mapped[str] = mapped_column(String(300), default="")
+    came_from: Mapped[str] = mapped_column(String(160), default="")
+    going_to: Mapped[str] = mapped_column(String(160), default="")
+
+    arrived_at: Mapped[datetime] = mapped_column(DateTime, default=clock.now)
+    departed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+    #: ร.ร.3 — เวลาที่ผู้พักลงลายมือชื่อ · None = ยังไม่ได้เซ็น
+    rr3_signed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    #: ร.ร.4 — เวลาที่ส่งนายทะเบียน
+    rr4_filed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    rr4_batch: Mapped[str] = mapped_column(String(40), default="")
+    #: ตม.30 — ใช้เฉพาะแขกต่างชาติ
+    tm30_filed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    tm30_receipt: Mapped[str] = mapped_column(String(80), default="")
+
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=clock.now)
+
+    booking: Mapped["Booking"] = relationship()
+
+
+class AuditLog(Base):
+    """ร่องรอยการตรวจสอบ — เขียนอย่างเดียว ไม่มีเส้นทาง API ให้ลบหรือแก้
+
+    เอกสารทางกฎหมายที่แก้ได้โดยไม่ทิ้งร่องรอย เท่ากับไม่มีค่าตอนถูกตรวจ
+    ทุกการแก้ทะเบียนผู้พักและทุกการยื่นเอกสารเขียนลงที่นี่ก่อนเสมอ
+    """
+
+    __tablename__ = "audit_log"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    at: Mapped[datetime] = mapped_column(DateTime, default=clock.now, index=True)
+    #: ใครทำ · ยังไม่มีระบบผู้ใช้ จึงเป็น "system" ไปก่อน (ดูข้อจำกัดใน README)
+    actor: Mapped[str] = mapped_column(String(80), default="system")
+    action: Mapped[str] = mapped_column(String(60), index=True)
+    entity: Mapped[str] = mapped_column(String(40))
+    entity_id: Mapped[str] = mapped_column(String(60))
+    detail: Mapped[str] = mapped_column(String(600), default="")
+
 
 # ── คิวส่งออกไปยังระบบบัญชี (outbox) ─────────────────────────────────
 class LedgerOutbox(Base):

@@ -355,6 +355,12 @@ def expense_event(expense: Expense) -> Event:
             "amount": money(expense.amount_satang),
             "paid": expense.paid,
             "dueDate": expense.due.isoformat() if expense.due else None,
+            # ภาษีหัก ณ ที่จ่าย — ปลายทางต้องรู้ทั้งสามยอด เพราะกฎลงบัญชี
+            # ต้องแยกเป็นเจ้าหนี้ (netPayable) กับภาษีค้างนำส่ง (withholdingTax)
+            # ส่งไปเสมอแม้เป็นศูนย์ กฎจะได้ไม่ต้องเดาว่าไม่มีช่องหรือไม่ได้หัก
+            "withholdingKind": expense.wht_kind,
+            "withholdingTax": money(expense.wht_satang or 0),
+            "netPayable": money(expense.net_payable_satang),
         },
     )
 
