@@ -34,3 +34,9 @@ _update-notifier-last-checked
 server/data/
 server/**/__pycache__/
 server/.pytest_cache/
+
+# ของที่เกิดจากการแพ็กและสำรอง
+server/backups/
+server/dist/
+server/build/
+server/.venv/

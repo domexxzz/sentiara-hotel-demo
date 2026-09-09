@@ -46,3 +46,14 @@ def get_db() -> Iterator[Session]:
         yield db
     finally:
         db.close()
+
+
+def dispose() -> None:
+    """ปิดการเชื่อมต่อทั้งหมดและปล่อยไฟล์ฐานข้อมูล
+
+    จำเป็นตอนกู้คืน — บนวินโดวส์ไฟล์ที่ยังมีคนเปิดอยู่ เขียนทับไม่ได้เลย
+    แล้วจะได้ PermissionError ที่อ่านไม่ออกว่าเกิดจากอะไร
+    """
+    global _engine, _factory
+    if _engine is not None:
+        _engine.dispose()
