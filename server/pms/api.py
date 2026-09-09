@@ -362,6 +362,44 @@ def tax_invoice(ref: str, body: InvoiceIn, db: Session = Depends(get_db)):
 
 
 
+
+class CreditNoteIn(BaseModel):
+    reason: str = Field(min_length=1, max_length=300)
+    amount: float = Field(gt=0)
+
+
+@router.post("/folios/{ref}/credit-note", status_code=201,
+             summary="ออกใบลดหนี้ ม.86/10 · ต้องอ้างใบกำกับภาษีใบเดิม",
+             dependencies=[Depends(require("invoice"))])
+def credit_note(ref: str, body: CreditNoteIn, staff: Staff = Depends(current_staff),
+                db: Session = Depends(get_db)):
+    from pms.money import baht
+    try:
+        cn = fo.issue_credit_note(db, ref, reason=body.reason,
+                                  amount_satang=baht(body.amount))
+    except fo.FolioError as e:
+        raise HTTPException(400, str(e)) from None
+    record(db, staff, "creditnote.issue", "booking", ref,
+           f"{cn.number} · {body.reason}")
+    db.commit()
+    return {
+        "number": cn.number, "reason": cn.reason,
+        "base": _b(cn.base_satang), "vat": _b(cn.vat_satang),
+        "gross": _b(cn.gross_satang), "vat_pct": cn.vat_pct,
+        "in_words": baht_text(cn.gross_satang),
+    }
+
+
+@router.get("/folios/{ref}/credit-notes", summary="ใบลดหนี้ทั้งหมดของบิลนี้",
+            dependencies=[Depends(require("invoice"))])
+def list_credit_notes(ref: str, db: Session = Depends(get_db)):
+    rows = fo.credit_notes(db, ref)
+    return {"credit_notes": [
+        {"number": c.number, "reason": c.reason, "gross": _b(c.gross_satang),
+         "vat": _b(c.vat_satang), "issued_at": c.issued_at} for c in rows
+    ]}
+
+
 # ── ทะเบียนผู้พัก ────────────────────────────────────────────────────
 class RegisterIn(BaseModel):
     full_name: str = Field(min_length=1, max_length=200)

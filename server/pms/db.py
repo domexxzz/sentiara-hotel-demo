@@ -230,6 +230,33 @@ class TaxInvoice(Base):
     issued_at: Mapped[datetime] = mapped_column(DateTime, default=clock.now)
 
 
+# ── ใบลดหนี้ ─────────────────────────────────────────────────────────
+class CreditNote(Base):
+    """ใบลดหนี้ตาม ม.86/10 ประมวลรัษฎากร
+
+    ใบสำคัญที่ลงบัญชีแล้วแก้ไม่ได้และลบไม่ได้ · ลงผิดหรือยกเลิกหลังออกใบกำกับ
+    ภาษีแล้ว ทางเดียวคือออกใบลดหนี้แล้วตั้งรายการกลับ
+
+    **ต้องอ้างใบกำกับภาษีใบเดิมเสมอ** — ใบลดหนี้ที่ลอยอยู่โดยไม่รู้ว่าลดของใบ
+    ไหน คือใบที่สรรพากรตรวจแล้วโยงกลับไม่ได้ และยอดภาษีขายที่ยื่นจะไม่ตรงกับ
+    เอกสารที่ถืออยู่
+    """
+
+    __tablename__ = "credit_note"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    number: Mapped[str] = mapped_column(String(32), unique=True, index=True)
+    #: ใบกำกับภาษีที่ถูกลด · หนึ่งใบกำกับมีใบลดหนี้ได้หลายใบ (ลดทีละส่วนได้)
+    tax_invoice_id: Mapped[int] = mapped_column(ForeignKey("tax_invoice.id"), index=True)
+    #: เหตุผล — ม.82/10 บังคับให้ระบุ · ยกเลิกบริการ ลดราคา คำนวณผิด
+    reason: Mapped[str] = mapped_column(String(300))
+    base_satang: Mapped[int] = mapped_column(Integer)
+    vat_satang: Mapped[int] = mapped_column(Integer)
+    gross_satang: Mapped[int] = mapped_column(Integer)
+    vat_pct: Mapped[int] = mapped_column(Integer)
+    issued_at: Mapped[datetime] = mapped_column(DateTime, default=clock.now)
+
+
 # ── รายจ่าย ──────────────────────────────────────────────────────────
 class Expense(Base):
     __tablename__ = "expense"

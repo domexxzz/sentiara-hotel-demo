@@ -40,8 +40,8 @@ from sqlalchemy.orm import Session
 from pms import clock
 from pms.db import Expense, Folio, LedgerOutbox, Payment
 from pms.events import (
-    Event, EventError, expense_event, folio_close_event, night_audit_events,
-    payment_event,
+    Event, EventError, credit_note_events, expense_event, folio_close_event,
+    night_audit_events, payment_event,
 )
 from pms.ledger_bridge import LedgerBridge, LedgerError as BridgeError
 
@@ -85,7 +85,7 @@ def collect(db: Session, business_date: date | None = None, vat_pct: int = 7) ->
     นี่คืองาน night audit — เรียกวันละครั้งตอนปิดยอด
     """
     day = business_date or clock.today()
-    made = {"NA": 0, "DEP": 0, "STL": 0, "EXP": 0, "skipped": 0, "errors": []}
+    made = {"NA": 0, "DEP": 0, "STL": 0, "EXP": 0, "ADJ": 0, "skipped": 0, "errors": []}
 
     def put(ev: Event) -> None:
         before = db.scalar(
@@ -118,6 +118,10 @@ def collect(db: Session, business_date: date | None = None, vat_pct: int = 7) ->
             put(folio_close_event(db, f, vat_pct))
         except EventError as e:
             made["errors"].append({"folio": f.id, "detail": str(e)})
+
+    # ใบลดหนี้ที่ออกวันนั้น — การกลับรายการต้องมีเอกสารอ้างอิงเสมอ
+    for ev in credit_note_events(db, day):
+        put(ev)
 
     # รายจ่ายที่ลงวันนั้น
     for x in db.scalars(select(Expense).where(Expense.at == day)):

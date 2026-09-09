@@ -39,7 +39,7 @@ from datetime import date
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from pms.db import Booking, Charge, Expense, Folio, Payment, RoomNight
+from pms.db import Booking, Charge, CreditNote, Expense, Folio, Payment, RoomNight, TaxInvoice
 from pms.folio import totals
 from pms.money import split_vat
 
@@ -370,9 +370,8 @@ def adjustment_event(
     ใบสำคัญที่ลงบัญชีแล้ว **แก้ไม่ได้ลบไม่ได้** ปลายทางบังคับด้วยทริกเกอร์ใน
     ฐานข้อมูล ไม่ใช่แค่ไม่มีปุ่มให้กด การแก้จึงมีทางเดียวคือตั้งรายการกลับ
 
-    ⚠ ยังไม่มีใครเรียกตัวนี้ในระบบ — `cancel_booking()` ปัจจุบันคืนคืนที่กันไว้
-    อย่างเดียว ไม่แตะเงิน และเรายังไม่มีระบบใบลดหนี้ ตัวประกอบอยู่ตรงนี้แล้ว
-    เพื่อให้ตอนทำใบลดหนี้เสร็จ ต่อได้ทันทีโดยไม่ต้องออกแบบใหม่
+    ตัวเรียกจริงคือ `credit_note_events()` ข้างล่าง ซึ่งอ่านใบลดหนี้ที่ออกแล้ว
+    มาแปลงเป็นเหตุการณ์ · เรียกตรง ๆ ได้ด้วยสำหรับการกลับรายการที่ไม่มี VAT
     """
     if amount_satang <= 0:
         raise EventError("ยอดที่กลับรายการต้องมากกว่าศูนย์")
@@ -396,3 +395,30 @@ def adjustment_event(
             "memo": memo,
         },
     )
+
+def credit_note_events(db: Session, business_date: date) -> list[Event]:
+    """ใบลดหนี้ที่ออกในวันนั้น → เหตุการณ์ ADJ
+
+    ใบสำคัญที่ลงบัญชีแล้วแก้ไม่ได้ ทางเดียวคือตั้งรายการกลับ — และการกลับ
+    ต้องมีเอกสารอ้างอิงเสมอ ไม่ใช่แค่ยอดติดลบลอย ๆ ที่ผู้สอบบัญชีโยงกลับไม่ได้
+    """
+    rows = db.scalars(select(CreditNote)).all()
+    out: list[Event] = []
+    for cn in rows:
+        if cn.issued_at.date() != business_date:
+            continue
+        inv = db.get(TaxInvoice, cn.tax_invoice_id)
+        folio = db.get(Folio, inv.folio_id) if inv else None
+        b = folio.booking if folio else None
+        out.append(adjustment_event(
+            reason="creditnote",
+            source_ref=cn.number,
+            business_date=business_date,
+            amount_satang=cn.gross_satang,
+            vat_satang=cn.vat_satang,
+            credit_note_no=cn.number,
+            memo=f"ลดหนี้ใบกำกับ {inv.number if inv else '-'}"
+                 f"{' · ' + b.ref if b else ''} · {cn.reason}",
+        ))
+    return out
+

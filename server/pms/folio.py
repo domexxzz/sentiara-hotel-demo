@@ -16,7 +16,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from pms import clock
-from pms.db import Booking, Charge, Folio, Payment, TaxInvoice
+from pms.db import Booking, Charge, CreditNote, Folio, Payment, TaxInvoice
 from pms.money import VatSplit, split_vat
 
 
@@ -172,3 +172,76 @@ def _next_number(db: Session) -> str:
     )
     seq = int(last.rsplit("-", 1)[1]) + 1 if last else 1
     return f"{prefix}{seq:05d}"
+
+# ── ใบลดหนี้ ─────────────────────────────────────────────────────────
+def issue_credit_note(
+    db: Session, ref: str, *,
+    reason: str, amount_satang: int, number: str | None = None,
+) -> CreditNote:
+    """ออกใบลดหนี้ตาม ม.86/10 · ต้องอ้างใบกำกับภาษีใบเดิมเสมอ
+
+    ทำไมต้องมีใบลดหนี้ ไม่ใช่แค่แก้ยอด
+    -----------------------------------
+    ใบกำกับภาษีที่ออกไปแล้วอยู่ในมือลูกค้าและอยู่ในรายงานภาษีขายที่ยื่นไปแล้ว
+    การ "แก้" ฝั่งเราเฉย ๆ ทำให้เอกสารสองใบขัดกัน — ของที่ลูกค้าถือกับของที่
+    เรายื่น · ทางเดียวที่ถูกคือออกเอกสารใหม่ที่หักล้างของเดิมอย่างเปิดเผย
+
+    ยอดที่ลดต้องไม่เกินยอดที่เหลืออยู่ของใบกำกับนั้น — ลดเกินเมื่อไร ภาษีขาย
+    ที่ยื่นจะติดลบ ซึ่งเป็นสัญญาณที่สรรพากรตรวจเจอทันที
+    """
+    inv = db.scalar(
+        select(TaxInvoice).join(Folio).join(Booking).where(Booking.ref == ref)
+    )
+    if inv is None:
+        raise FolioError(
+            f"การจอง {ref} ยังไม่มีใบกำกับภาษี — ใบลดหนี้ต้องอ้างใบกำกับใบเดิมเสมอ"
+        )
+    if not reason.strip():
+        raise FolioError("ต้องระบุเหตุผล — ม.86/10 บังคับ และเป็นสิ่งที่ผู้สอบบัญชีถามข้อแรก")
+    if amount_satang <= 0:
+        raise FolioError("ยอดที่ลดต้องมากกว่าศูนย์")
+
+    already = db.scalar(
+        select(func.coalesce(func.sum(CreditNote.gross_satang), 0))
+        .where(CreditNote.tax_invoice_id == inv.id)
+    ) or 0
+    left = inv.gross_satang - already
+    if amount_satang > left:
+        raise FolioError(
+            f"ลดได้ไม่เกิน {left} สตางค์ (ใบกำกับ {inv.number} ยอด {inv.gross_satang} "
+            f"ลดไปแล้ว {already}) — ลดเกินแล้วภาษีขายที่ยื่นจะติดลบ"
+        )
+
+    # ถอด VAT ด้วยอัตราเดียวกับใบกำกับใบเดิม ไม่ใช่อัตราปัจจุบัน
+    # อัตราเปลี่ยนระหว่างทางแล้วใช้อัตราใหม่ ยอดจะไม่หักล้างกันพอดี
+    v = split_vat(amount_satang, inv.vat_pct)
+    cn = CreditNote(
+        number=number or _next_cn_number(db),
+        tax_invoice_id=inv.id,
+        reason=reason.strip(),
+        base_satang=v.base, vat_satang=v.vat, gross_satang=v.gross,
+        vat_pct=inv.vat_pct,
+    )
+    db.add(cn)
+    db.commit()
+    db.refresh(cn)
+    return cn
+
+
+def _next_cn_number(db: Session) -> str:
+    """เลขที่ใบลดหนี้ · เรียงต่อเนื่องรายปีพุทธศักราชและห้ามข้าม เหมือนใบกำกับ"""
+    year = clock.today().year + 543
+    prefix = f"CN-{year}-"
+    last = db.scalar(
+        select(func.max(CreditNote.number)).where(CreditNote.number.like(prefix + "%"))
+    )
+    seq = int(last.rsplit("-", 1)[1]) + 1 if last else 1
+    return f"{prefix}{seq:05d}"
+
+
+def credit_notes(db: Session, ref: str) -> list[CreditNote]:
+    return list(db.scalars(
+        select(CreditNote).join(TaxInvoice).join(Folio).join(Booking)
+        .where(Booking.ref == ref).order_by(CreditNote.id)
+    ))
+
