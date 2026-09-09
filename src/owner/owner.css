@@ -1066,3 +1066,64 @@
 .cg-partners b { font: 600 13.5px/1.4 var(--th); display: block; }
 .cg-cost { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; justify-content: flex-end; }
 .cg-cost > b { font: 800 17px/1 var(--font); font-variant-numeric: tabular-nums; }
+
+/* ══ จอความปลอดภัยและงานกฎหมาย ═══════════════════════════════════════
+   รายการเหตุการณ์กับรายการอุปกรณ์ใช้โครงเดียวกัน — แถวกดได้แล้วกางรายละเอียด
+   ออกใต้แถวนั้น ไม่ใช่เปิดหน้าต่างใหม่ เพราะคนดูกำลังไล่เทียบหลายแถวพร้อมกัน */
+.sec-events, .sec-devices { list-style: none; margin: 12px 0; padding: 0; display: grid; gap: 1px; background: var(--divider); border: 1px solid var(--divider); }
+.sec-events > li, .sec-devices > li { background: var(--paper); }
+.sec-events > li > button, .sec-devices > li > button {
+  width: 100%; text-align: left; background: none; border: 0; cursor: pointer;
+  padding: 10px 14px; display: grid; gap: 3px 12px; align-items: center;
+  font: inherit; color: inherit;
+}
+.sec-events > li > button:hover, .sec-devices > li > button:hover { background: var(--n100); }
+.sec-events > li.on > button { background: var(--n100); }
+
+/* เหตุการณ์ที่ต้องมีคนดู ทำสันแดงไว้ · ที่บันทึกไว้เฉย ๆ ปล่อยเรียบ
+   ถ้าทุกแถวเด้งเท่ากันหมด สุดท้ายไม่มีใครดูอะไรเลย */
+.sec-events > li.high { border-left: 3px solid var(--accent); }
+.sec-events > li.low { border-left: 3px solid var(--n300); }
+.sec-events > li > button { grid-template-columns: 58px 78px minmax(180px, 1fr) minmax(150px, auto); }
+.sec-time { font: 600 13px/1 var(--font); font-variant-numeric: tabular-nums; }
+.sec-kind { font-size: 11.5px; color: var(--muted); border: 1px solid var(--divider); padding: 3px 7px; text-align: center; }
+.sec-what { font: 600 13.5px/1.45 var(--th); }
+.sec-where { font-size: 12px; color: var(--muted); text-align: right; }
+
+.sec-detail { padding: 0 14px 12px 14px; border-top: 1px solid var(--divider); }
+.sec-detail dl { margin: 10px 0 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 16px; font-size: 13px; }
+.sec-detail dt { color: var(--muted); }
+.sec-detail dd { margin: 0; font-weight: 600; }
+.sec-detail dd.sec-none { font-weight: 400; color: var(--muted); }
+.sec-novideo { margin: 10px 0 0; padding: 9px 12px; background: var(--n100); border-left: 3px solid var(--n500); font-size: 12.5px; line-height: 1.6; }
+
+/* ── อุปกรณ์ ───────────────────────────────────────────────────── */
+.sec-devices > li.ok { border-left: 3px solid var(--ok); }
+.sec-devices > li.no { border-left: 3px solid var(--accent); }
+.sec-devices > li > button { grid-template-columns: 1fr auto; }
+.sec-dev { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.sec-dev b { font: 600 13.5px/1.4 var(--th); }
+.sec-meta { font-size: 12px; color: var(--muted); }
+
+.sec-findings { padding: 0 14px 12px; border-top: 1px solid var(--divider); display: grid; gap: 1px; }
+.sec-find { display: grid; grid-template-columns: 66px 1fr; gap: 11px; padding: 9px 0; align-items: start; }
+.sec-find + .sec-find { border-top: 1px solid var(--divider); }
+.sec-find > div { display: flex; flex-direction: column; gap: 2px; }
+.sec-find b { font: 600 13px/1.4 var(--th); }
+.sec-find span:last-child { font-size: 12.5px; line-height: 1.6; color: var(--muted); }
+.sec-lv { font: 700 11px/1.7 var(--font); letter-spacing: .04em; text-align: center; padding: 2px 0; }
+.sec-find.block .sec-lv { background: var(--accent-100); color: var(--accent-700); }
+.sec-find.warn .sec-lv { background: var(--n200); color: var(--n700); }
+.sec-clean { margin: 10px 0 0; font-size: 13px; color: var(--ok); }
+
+/* ── ผู้ช่วยกฎหมาย ─────────────────────────────────────────────── */
+.sec-ask { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 10px; }
+.sec-ask input { flex: 1 1 280px; font: 400 13.5px/1 var(--th); padding: 10px 12px; border: 1px solid var(--divider); background: var(--paper); }
+.sec-samples { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.sec-samples .btn { padding: 6px 11px; font-size: 12.5px; }
+
+.sec-answer { border: 1px solid var(--divider); border-left: 3px solid var(--ok); background: var(--paper); padding: 13px 15px; display: flex; flex-direction: column; gap: 5px; }
+.sec-answer p { margin: 0; font: 400 13.5px/1.75 var(--th); }
+/* ไม่ตอบก็เป็นคำตอบที่ถูก — ทำให้ดูเป็นผลลัพธ์ปกติ ไม่ใช่ข้อผิดพลาด */
+.sec-answer.none { border-left-color: var(--n500); background: var(--n100); }
+.sec-hot { color: var(--accent); font-weight: 700; }

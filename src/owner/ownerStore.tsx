@@ -9,6 +9,7 @@ export type OwnerTab =
   | "chivago"
   | "channels"
   | "door"
+  | "security"
   | "energy"
   | "ai"
   | "approvals"
