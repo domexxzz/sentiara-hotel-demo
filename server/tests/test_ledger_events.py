@@ -54,7 +54,30 @@ def app(tmp_path):
 
 @pytest.fixture()
 def c(app):
-    return TestClient(app)
+    """ล็อกอินเป็นเจ้าของ — บทบาทเดียวที่มีสิทธิ์ครบทุกข้อ"""
+    return _as(app, "owner")
+
+
+def _as(app, role: str) -> TestClient:
+    """ไคลเอนต์ที่ล็อกอินเป็นบทบาทนั้นแล้ว
+
+    เทสทุกตัวต้องผ่านระบบสิทธิ์เหมือนของจริง — ถ้าเปิดทางลับให้เทสข้ามยาม
+    ยามที่พังจะไม่มีอะไรจับได้เลย
+    """
+    from pms.auth import hash_secret
+    from pms.db import Staff
+    db = session_factory()()
+    if not db.scalar(select(Staff).where(Staff.role == role)):
+        db.add(Staff(name=f"เทส-{role}", title="", role=role,
+                     card=f"T-{role.upper()}", pin_hash=hash_secret("999999")))
+        db.commit()
+    card = db.scalar(select(Staff).where(Staff.role == role)).card
+    db.close()
+    c = TestClient(app)
+    r = c.post(f"{API}/auth/login", json={"card": card, "pin": "999999"})
+    assert r.status_code == 200, r.text
+    c.headers["authorization"] = "Bearer " + r.json()["token"]
+    return c
 
 
 @pytest.fixture()

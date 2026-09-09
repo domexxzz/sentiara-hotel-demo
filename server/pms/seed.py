@@ -32,7 +32,7 @@ from sqlalchemy import delete, select
 from pms import booking as bk
 from pms import clock
 from pms import folio as fo
-from pms.db import (Booking, Charge, Expense, Folio, LedgerOutbox, Payment, Room,
+from pms.db import (Booking, Charge, Expense, Folio, LedgerOutbox, Payment, Room, Staff,
                     RoomNight, RoomType, TaxInvoice)
 from pms.money import baht
 from pms.session import session_factory, settings
@@ -131,6 +131,34 @@ def seed_demo(db) -> None:
                        amount_satang=baht(amount), paid=paid, due=due))
     db.commit()
     print("  รายจ่าย         4 รายการ (จ่ายแล้ว 2 · ค้าง 2)")
+    seed_staff(db)
+
+
+
+def seed_staff(db) -> None:
+    """พนักงานตั้งต้นครบทุกบทบาท พร้อมรหัสที่พิมพ์ออกมาให้ครั้งเดียว
+
+    รหัสในที่นี้เป็นของชุดสาธิต **ห้ามใช้ซ้ำกับโรงแรมจริง** — ตอนติดตั้งจริง
+    เจ้าของตั้งรหัสเองแล้วระบบเก็บแค่แฮช ไม่มีใครอ่านย้อนได้แม้แต่คนทำระบบ
+    """
+    from pms.auth import hash_secret
+    if db.scalar(select(Staff)):
+        return
+    people = [
+        ("คุณดวงพร",  "เจ้าของกิจการ",      "owner",   "OWN-01", "480215"),
+        ("คุณมาลี",    "ผู้จัดการโรงแรม",     "manager", "MGR-07", "715390"),
+        ("สมชาย",      "พนักงานเคาน์เตอร์",   "front",   "FD-14",  "203847"),
+        ("สมศรี",      "หัวหน้าแม่บ้าน",      "hk",      "HK-22",  "661502"),
+        ("วิชัย",      "ช่างประจำโรงแรม",     "tech",    "TC-05",  "938174"),
+        ("น้องแนน",    "พนักงานร้านอาหาร",    "pos",     "PS-09",  "550729"),
+    ]
+    for name, title, role, card, pin in people:
+        db.add(Staff(name=name, title=title, role=role, card=card,
+                     pin_hash=hash_secret(pin)))
+    db.commit()
+    print("  พนักงาน        6 คน · บัตรและรหัสสำหรับชุดสาธิต:")
+    for name, _t, role, card, pin in people:
+        print(f"     {card:<8} {pin}   {role:<8} {name}")
 
 
 def main() -> None:

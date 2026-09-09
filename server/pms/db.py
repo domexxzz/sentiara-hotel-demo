@@ -285,6 +285,67 @@ class LedgerOutbox(Base):
     __table_args__ = ({"sqlite_autoincrement": True},)
 
 
+# ── ผู้ใช้ สิทธิ์ และร่องรอย ─────────────────────────────────────────
+class Staff(Base):
+    """พนักงานหนึ่งคน · บัตร NFC ใบเดียวกับที่ใช้เปิดประตูและลงเวลา"""
+
+    __tablename__ = "staff"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    ref: Mapped[str] = mapped_column(String(24), unique=True, index=True,
+                                     default=lambda: new_ref("ST"))
+    name: Mapped[str] = mapped_column(String(120))
+    title: Mapped[str] = mapped_column(String(120), default="")
+    #: owner | manager | front | hk | tech | pos — ดูผังสิทธิ์ที่ pms/auth.py
+    role: Mapped[str] = mapped_column(String(16), index=True)
+    #: รหัสบัตรที่แตะเข้าระบบ · ไม่ซ้ำกันทั้งโรงแรม
+    card: Mapped[str] = mapped_column(String(32), unique=True, index=True)
+    #: เก็บเฉพาะแฮช ไม่เคยเก็บรหัสจริง · ทำหายแล้วออกใหม่อย่างเดียว
+    pin_hash: Mapped[str] = mapped_column(String(200))
+    #: ลาออกแล้วปิดใช้งาน ไม่ลบทิ้ง — ร่องรอยเก่ายังต้องชี้กลับมาที่คนนี้ได้
+    active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=clock.now)
+
+
+class StaffSession(Base):
+    """เซสชันที่ยังใช้ได้อยู่
+
+    เก็บแค่แฮชของโทเคน — ฐานข้อมูลรั่วแล้วคนที่ได้ไปยังสวมสิทธิ์ใครไม่ได้
+    เพราะย้อนกลับไปเป็นโทเคนจริงไม่ได้
+    """
+
+    __tablename__ = "staff_session"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    staff_id: Mapped[int] = mapped_column(ForeignKey("staff.id"), index=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime, index=True)
+    revoked: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=clock.now)
+
+
+class AuditEvent(Base):
+    """ใครทำอะไรกับอะไรเมื่อไร
+
+    เก็บชื่อคนซ้ำไว้ในแถวด้วย ไม่ใช่อ้างแค่ id — พนักงานลาออกแล้วเปลี่ยนชื่อ
+    หรือถูกปิดใช้งาน ร่องรอยเก่าต้องยังอ่านออกว่าตอนนั้นใครเป็นคนกด
+    """
+
+    __tablename__ = "audit_event"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    at: Mapped[datetime] = mapped_column(DateTime, default=clock.now, index=True)
+    staff_id: Mapped[int | None] = mapped_column(ForeignKey("staff.id"), nullable=True)
+    staff_name: Mapped[str] = mapped_column(String(120), default="")
+    #: auth.login · booking.create · folio.close · invoice.issue …
+    action: Mapped[str] = mapped_column(String(48), index=True)
+    #: ชนิดของสิ่งที่ถูกกระทำ เช่น booking · folio · expense
+    entity: Mapped[str] = mapped_column(String(24), default="")
+    #: รหัสอ้างอิงของสิ่งนั้น เช่น BK-0464FE0F
+    ref: Mapped[str] = mapped_column(String(40), default="", index=True)
+    detail: Mapped[str] = mapped_column(String(400), default="")
+
+
 # ── engine ───────────────────────────────────────────────────────────
 def make_engine(url: str | None = None):
     url = url or DB_URL

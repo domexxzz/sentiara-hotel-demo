@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from datetime import date
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -15,6 +15,8 @@ from sqlalchemy.orm import Session
 from pms import booking as bk
 from pms import folio as fo
 from pms.db import EXPENSE_CATEGORIES, Booking, Expense, Folio, LedgerOutbox, Room, RoomType
+from pms.auth import AuthError, current_staff, login, logout, record, require
+from pms.db import Staff
 from pms.events import EventError, night_audit_events
 from pms.ledger import LedgerClient, collect, outbox_summary
 from pms.money import baht_text, to_baht
@@ -27,8 +29,47 @@ def _b(satang: int) -> float:
     return to_baht(satang)
 
 
+
+# ── เข้าออกระบบ ──────────────────────────────────────────────────────
+class LoginIn(BaseModel):
+    card: str = Field(min_length=1, max_length=32)
+    pin: str = Field(min_length=4, max_length=64)
+
+
+@router.post("/auth/login", summary="แตะบัตรเข้าระบบ · คืนโทเคนที่แสดงครั้งเดียว")
+def auth_login(body: LoginIn, db: Session = Depends(get_db)):
+    try:
+        token, staff = login(db, body.card, body.pin)
+    except AuthError as e:
+        # 401 เสมอ ไม่แยกว่าบัตรผิดหรือรหัสผิด ไม่บอกใบ้ว่าบัตรไหนมีอยู่จริง
+        raise HTTPException(401, str(e)) from None
+    from pms.auth import ROLES
+    return {
+        "token": token, "ref": staff.ref, "name": staff.name,
+        "title": staff.title, "role": staff.role,
+        "permissions": sorted(ROLES[staff.role]),
+    }
+
+
+@router.post("/auth/logout", summary="ออกจากระบบ · เพิกถอนโทเคนใบนี้")
+def auth_logout(authorization: str = Header(default=""), db: Session = Depends(get_db)):
+    if authorization.lower().startswith("bearer "):
+        logout(db, authorization[7:].strip())
+    return {"ok": True}
+
+
+@router.get("/auth/me", summary="ตอนนี้ใช้งานในชื่อใคร มีสิทธิ์อะไรบ้าง")
+def auth_me(staff: Staff = Depends(current_staff)):
+    from pms.auth import ROLES
+    return {
+        "ref": staff.ref, "name": staff.name, "title": staff.title,
+        "role": staff.role, "permissions": sorted(ROLES[staff.role]),
+    }
+
+
 # ── ห้อง ─────────────────────────────────────────────────────────────
-@router.get("/rooms", summary="ผังห้องทั้งหมด")
+@router.get("/rooms", summary="ผังห้องทั้งหมด",
+             dependencies=[Depends(require("booking"))])
 def list_rooms(db: Session = Depends(get_db)):
     rooms = db.scalars(select(Room).order_by(Room.no))
     return {"rooms": [
@@ -39,7 +80,8 @@ def list_rooms(db: Session = Depends(get_db)):
     ]}
 
 
-@router.get("/availability", summary="ห้องว่างในช่วงวันที่กำหนด")
+@router.get("/availability", summary="ห้องว่างในช่วงวันที่กำหนด",
+             dependencies=[Depends(require("booking"))])
 def get_availability(
     check_in: date, check_out: date,
     room_type: str | None = None,
@@ -72,7 +114,8 @@ class BookIn(BaseModel):
     guest_phone: str = ""
 
 
-@router.post("/bookings", status_code=201, summary="จองห้อง")
+@router.post("/bookings", status_code=201, summary="จองห้อง",
+             dependencies=[Depends(require("booking"))])
 def create_booking(body: BookIn, db: Session = Depends(get_db)):
     try:
         b = bk.create_booking(
@@ -92,7 +135,8 @@ def create_booking(body: BookIn, db: Session = Depends(get_db)):
     return _booking_out(db, b)
 
 
-@router.get("/bookings/{ref}", summary="ดูการจอง")
+@router.get("/bookings/{ref}", summary="ดูการจอง",
+             dependencies=[Depends(require("booking"))])
 def get_booking(ref: str, db: Session = Depends(get_db)):
     b = db.scalar(select(Booking).where(Booking.ref == ref))
     if b is None:
@@ -100,7 +144,8 @@ def get_booking(ref: str, db: Session = Depends(get_db)):
     return _booking_out(db, b)
 
 
-@router.post("/bookings/{ref}/check-in", summary="เช็กอิน")
+@router.post("/bookings/{ref}/check-in", summary="เช็กอิน",
+             dependencies=[Depends(require("booking"))])
 def check_in(ref: str, db: Session = Depends(get_db)):
     try:
         return _booking_out(db, bk.check_in_booking(db, ref))
@@ -108,7 +153,8 @@ def check_in(ref: str, db: Session = Depends(get_db)):
         raise HTTPException(400, str(e))
 
 
-@router.post("/bookings/{ref}/cancel", summary="ยกเลิกการจอง · คืนห้องให้ขายต่อได้")
+@router.post("/bookings/{ref}/cancel", summary="ยกเลิกการจอง · คืนห้องให้ขายต่อได้",
+             dependencies=[Depends(require("booking"))])
 def cancel(ref: str, db: Session = Depends(get_db)):
     try:
         return _booking_out(db, bk.cancel_booking(db, ref))
@@ -144,7 +190,8 @@ class PayIn(BaseModel):
     amount: float = Field(gt=0)
 
 
-@router.get("/folios/{ref}", summary="ดูบิล")
+@router.get("/folios/{ref}", summary="ดูบิล",
+             dependencies=[Depends(require("folio"))])
 def get_folio(ref: str, db: Session = Depends(get_db)):
     try:
         f = fo.get_folio(db, ref)
@@ -164,7 +211,8 @@ def get_folio(ref: str, db: Session = Depends(get_db)):
     }
 
 
-@router.post("/folios/{ref}/charges", status_code=201, summary="ลงค่าใช้จ่ายเข้าบิล")
+@router.post("/folios/{ref}/charges", status_code=201, summary="ลงค่าใช้จ่ายเข้าบิล",
+             dependencies=[Depends(require("folio"))])
 def post_charge(ref: str, body: ChargeIn, db: Session = Depends(get_db)):
     from pms.money import baht
     try:
@@ -175,7 +223,8 @@ def post_charge(ref: str, body: ChargeIn, db: Session = Depends(get_db)):
     return {"id": c.id, "total": _b(c.total_satang)}
 
 
-@router.post("/folios/{ref}/payments", status_code=201, summary="รับชำระ")
+@router.post("/folios/{ref}/payments", status_code=201, summary="รับชำระ",
+             dependencies=[Depends(require("folio"))])
 def post_payment(ref: str, body: PayIn, db: Session = Depends(get_db)):
     from pms.money import baht
     try:
@@ -186,7 +235,8 @@ def post_payment(ref: str, body: PayIn, db: Session = Depends(get_db)):
     return {"id": p.id, "amount": _b(p.amount_satang)}
 
 
-@router.post("/folios/{ref}/close", summary="ปิดบิลและเช็กเอาต์")
+@router.post("/folios/{ref}/close", summary="ปิดบิลและเช็กเอาต์",
+             dependencies=[Depends(require("folio"))])
 def close(ref: str, db: Session = Depends(get_db)):
     try:
         f = fo.get_folio(db, ref)
@@ -203,7 +253,8 @@ class InvoiceIn(BaseModel):
     buyer_address: str = ""
 
 
-@router.post("/folios/{ref}/tax-invoice", status_code=201, summary="ออกใบกำกับภาษี ม.86/4")
+@router.post("/folios/{ref}/tax-invoice", status_code=201, summary="ออกใบกำกับภาษี ม.86/4",
+             dependencies=[Depends(require("invoice"))])
 def tax_invoice(ref: str, body: InvoiceIn, db: Session = Depends(get_db)):
     try:
         f = fo.get_folio(db, ref)
@@ -232,7 +283,8 @@ class ExpenseIn(BaseModel):
     due: date | None = None
 
 
-@router.post("/expenses", status_code=201, summary="บันทึกรายจ่าย")
+@router.post("/expenses", status_code=201, summary="บันทึกรายจ่าย",
+             dependencies=[Depends(require("expense"))])
 def add_expense(body: ExpenseIn, db: Session = Depends(get_db)):
     from pms.money import baht
     e = Expense(at=body.at, category=body.category, label=body.label,
@@ -243,7 +295,8 @@ def add_expense(body: ExpenseIn, db: Session = Depends(get_db)):
     return {"id": e.id, "amount": _b(e.amount_satang)}
 
 
-@router.get("/expenses", summary="รายจ่ายทั้งหมด")
+@router.get("/expenses", summary="รายจ่ายทั้งหมด",
+             dependencies=[Depends(require("expense"))])
 def list_expenses(db: Session = Depends(get_db)):
     rows = db.scalars(select(Expense).order_by(Expense.at.desc()))
     return {"expenses": [
@@ -258,7 +311,8 @@ def list_expenses(db: Session = Depends(get_db)):
 # หมายเหตุสำคัญ: เราส่ง **เหตุการณ์** ไม่ได้ส่งรายการบัญชี — PMS ไม่รู้ผังบัญชี
 # ของโรงแรมนั้นและไม่ควรรู้ การแปลงเป็นเดบิต/เครดิตเป็นหน้าที่ของกฎลงบัญชี
 # ที่นักบัญชีตั้งและเซ็นรับที่ปลายทาง
-@router.get("/ledger/preview", summary="ดูเหตุการณ์ของวันทำการหนึ่งก่อนส่ง")
+@router.get("/ledger/preview", summary="ดูเหตุการณ์ของวันทำการหนึ่งก่อนส่ง",
+             dependencies=[Depends(require("ledger"))])
 def preview(business_date: date | None = None, db: Session = Depends(get_db)):
     from pms import clock
     day = business_date or clock.today()
@@ -274,17 +328,20 @@ def preview(business_date: date | None = None, db: Session = Depends(get_db)):
     }
 
 
-@router.post("/ledger/collect", summary="กวาดเหตุการณ์ของวันทำการเข้าคิว (night audit)")
+@router.post("/ledger/collect", summary="กวาดเหตุการณ์ของวันทำการเข้าคิว (night audit)",
+             dependencies=[Depends(require("ledger"))])
 def collect_events(business_date: date | None = None, db: Session = Depends(get_db)):
     return collect(db, business_date, settings.vat_pct)
 
 
-@router.post("/ledger/send", summary="ส่งคิวที่ยังไม่เคยส่งสำเร็จ")
+@router.post("/ledger/send", summary="ส่งคิวที่ยังไม่เคยส่งสำเร็จ",
+             dependencies=[Depends(require("ledger"))])
 def send_ledger(db: Session = Depends(get_db)):
     return LedgerClient().send_pending(db)
 
 
-@router.get("/ledger/outbox", summary="คิวส่งออกและสถานะของแต่ละรายการ")
+@router.get("/ledger/outbox", summary="คิวส่งออกและสถานะของแต่ละรายการ",
+             dependencies=[Depends(require("ledger"))])
 def ledger_outbox(db: Session = Depends(get_db)):
     rows = db.scalars(select(LedgerOutbox).order_by(LedgerOutbox.seq.desc()))
     return {
