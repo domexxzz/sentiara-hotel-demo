@@ -1,0 +1,730 @@
+<title>ฟังก์ชันทั้งระบบ Sentiara</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;800&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap">
+
+<style>
+/* ─────────────────────────────────────────────────────────────
+   โทนสีและตัวอักษรยกมาจาก sentiara-3d-site.vercel.app ทั้งชุด
+   เพื่อให้หน้านี้เป็นแบรนด์เดียวกันเวลาสลับแท็บตอนนำเสนอ
+
+   ตั้งใจล็อกเป็นธีมสว่างธีมเดียว ไม่ทำธีมมืด — หน้านี้ถูกฉายขึ้นจอ
+   ต่อหน้าลูกค้า ถ้าสีสลับตามเครื่องที่หยิบมาใช้ แบรนด์จะเพี้ยน
+   ───────────────────────────────────────────────────────────── */
+:root {
+  --paper:      #fffaf5;
+  --cream:      #f8f0e8;
+  --cream-deep: #efe3d8;
+  --ink:        #241815;
+  --ink-soft:   #33231f;
+  --brown:      #4b332d;
+  --muted:      #786c65;
+  --line:       #d8cbc1;
+  --red:        #c92210;
+  --red-bright: #ff4a2f;
+  --green:      #24765a;
+
+  --display: Archivo, "IBM Plex Sans Thai", Tahoma, sans-serif;
+  --body: "IBM Plex Sans Thai", Archivo, Tahoma, sans-serif;
+
+  --max: 1180px;
+  --pad: max(22px, calc((100vw - var(--max)) / 2));
+  --lift: 0 18px 42px rgba(36, 24, 21, .13);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--cream);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.75;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, .u { font-family: var(--display); text-wrap: balance; margin: 0; }
+a { color: inherit; }
+img { display: block; max-width: 100%; }
+
+:where(a, button):focus-visible { outline: 2.5px solid var(--red); outline-offset: 3px; }
+
+.u {
+  font-size: .7rem; font-weight: 600; letter-spacing: .16em;
+  text-transform: uppercase; color: var(--red);
+}
+
+/* ── แถบนำทาง — มีไว้เพื่อการนำเสนอ กดกระโดดข้ามหัวข้อได้ ────── */
+.rail {
+  position: sticky; top: 0; z-index: 20;
+  background: rgba(255, 250, 245, .94);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+.rail-in {
+  max-width: var(--max); margin: 0 auto; padding: 9px var(--pad);
+  display: flex; align-items: center; gap: 14px;
+}
+.rail .mark {
+  font-family: var(--display); font-weight: 800;
+  font-size: .84rem; letter-spacing: .04em; white-space: nowrap;
+}
+.rail .mark em { color: var(--red); font-style: normal; }
+.rail nav { display: flex; gap: 3px; overflow-x: auto; flex: 1 1 auto; scrollbar-width: none; }
+.rail nav::-webkit-scrollbar { display: none; }
+.rail nav a {
+  font-family: var(--display); font-weight: 600; font-size: .74rem;
+  font-variant-numeric: tabular-nums; padding: 4px 8px; border-radius: 3px;
+  color: var(--muted); text-decoration: none; flex: 0 0 auto;
+  transition: color .15s, background .15s;
+}
+.rail nav a:hover { color: var(--ink); background: var(--cream-deep); }
+.rail nav a[aria-current="true"] { color: var(--paper); background: var(--red); }
+
+.wrap { max-width: var(--max); margin: 0 auto; padding: 0 var(--pad); }
+
+/* ── หัวเรื่อง ─────────────────────────────────────────────── */
+.hero { padding: clamp(34px, 6vw, 64px) 0 clamp(24px, 4vw, 40px); }
+.hero h1 {
+  font-size: clamp(2.1rem, 6vw, 4rem); font-weight: 800;
+  line-height: 1.06; letter-spacing: -.015em; margin: 12px 0 0;
+}
+.hero h1 em { color: var(--red); font-style: normal; }
+.hero .sub {
+  margin: 18px 0 0; max-width: 60ch;
+  font-size: clamp(1rem, 2vw, 1.16rem); color: var(--ink-soft);
+}
+
+.figures {
+  display: flex; flex-wrap: wrap; margin: 28px 0 0;
+  border: 1px solid var(--line); background: var(--line); gap: 1px;
+}
+.figures div {
+  background: var(--paper); padding: 14px 22px; flex: 1 1 145px;
+  display: flex; flex-direction: column;
+}
+.figures b {
+  font-family: var(--display); font-weight: 800; font-size: 1.8rem;
+  line-height: 1.15; font-variant-numeric: tabular-nums; color: var(--red);
+}
+.figures span { font-size: .84rem; color: var(--muted); }
+
+.cta { display: flex; flex-wrap: wrap; gap: 10px; margin: 24px 0 0; }
+.btn {
+  font-family: var(--display); font-weight: 600; font-size: .9rem;
+  padding: 11px 20px; text-decoration: none; border: 1.5px solid var(--ink);
+  transition: transform .14s, background .14s, color .14s;
+}
+.btn.solid { background: var(--red); border-color: var(--red); color: var(--paper); }
+.btn.solid:hover { background: var(--red-bright); border-color: var(--red-bright); }
+.btn.ghost:hover { background: var(--ink); color: var(--paper); }
+.btn:active { transform: translateY(1px); }
+
+/* ── เส้นทางของแขกหนึ่งคน ─────────────────────────────────────
+   ทำด้วย CSS ไม่ใช่ SVG เพราะต้องไหลลงเป็นสองแถวบนจอแคบ
+   ซึ่ง SVG ทำไม่ได้ถ้าไม่เขียนสองชุด                            */
+.journey {
+  margin: clamp(30px, 5vw, 46px) 0 0;
+  border: 1px solid var(--line); background: var(--paper);
+  padding: clamp(20px, 3vw, 30px);
+}
+.journey > h2 { font-size: 1.16rem; font-weight: 800; margin-bottom: 3px; }
+.journey > p { margin: 0 0 20px; color: var(--muted); font-size: .92rem; max-width: 62ch; }
+.steps {
+  display: grid; grid-template-columns: repeat(8, 1fr); gap: 0;
+  counter-reset: st;
+}
+.steps > div {
+  counter-increment: st; position: relative;
+  padding: 0 10px 0 0; min-width: 0;
+}
+/* เส้นเชื่อมระหว่างขั้น — วาดด้วยขอบบน ไม่ใช่รูป */
+.steps > div::before {
+  content: ""; display: block; height: 3px; background: var(--cream-deep);
+  margin-bottom: 11px;
+}
+.steps > div.auto::before { background: var(--green); }
+.steps > div.by-hand::before { background: var(--red); }
+.jkey { display: flex; flex-wrap: wrap; gap: 6px 20px; margin: 16px 0 0; font-size: .82rem; color: var(--muted); }
+.jkey span { display: inline-flex; align-items: center; gap: 7px; }
+.jkey i { width: 16px; height: 3px; display: inline-block; }
+.steps .who {
+  font-family: var(--display); font-size: .6rem; font-weight: 600;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--muted);
+  display: block;
+}
+.steps .what {
+  font-weight: 600; font-size: .93rem; line-height: 1.35;
+  display: block; margin-top: 2px;
+}
+.steps .note { display: block; font-size: .8rem; color: var(--muted); line-height: 1.45; margin-top: 2px; }
+.journey .foot {
+  margin: 18px 0 0; padding-top: 14px; border-top: 1px solid var(--line);
+  font-size: .88rem; color: var(--ink-soft);
+}
+.journey .foot b { color: var(--red); }
+
+/* ── หัวข้อฟังก์ชันแต่ละกลุ่ม ──────────────────────────────── */
+section.grp {
+  padding: clamp(34px, 5vw, 56px) 0;
+  border-top: 1px solid var(--line);
+  scroll-margin-top: 58px;
+}
+section.grp > .head {
+  display: grid; grid-template-columns: auto 1fr auto;
+  gap: 4px 20px; align-items: baseline; margin-bottom: 22px;
+}
+.head .n {
+  font-family: var(--display); font-weight: 800;
+  font-size: clamp(1.9rem, 4.5vw, 3rem); line-height: 1;
+  color: var(--red); font-variant-numeric: tabular-nums;
+  grid-row: 1 / span 3; align-self: start;
+}
+.head .u { grid-column: 2; }
+.head h2 {
+  grid-column: 2; font-size: clamp(1.4rem, 3vw, 2rem);
+  font-weight: 800; letter-spacing: -.01em; line-height: 1.2;
+}
+.head .lead {
+  grid-column: 2; margin: 7px 0 0; max-width: 64ch;
+  color: var(--ink-soft); font-size: .97rem;
+}
+.head .tally {
+  grid-column: 3; grid-row: 1 / span 2;
+  font-family: var(--display); font-weight: 600; font-size: .8rem;
+  color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums;
+}
+
+/* ── ภาพหน้าจอจริง ────────────────────────────────────────────
+   ยกออกจากพื้นด้วยเงา เพราะมันคือ "หน้าต่างของอีกโปรแกรมหนึ่ง"
+   จริง ๆ ไม่ใช่การ์ดตกแต่ง                                      */
+figure.shot { margin: 0 0 22px; }
+figure.shot img {
+  width: 100%; height: auto;
+  border: 1px solid var(--line); box-shadow: var(--lift);
+  background: var(--paper);
+}
+figure.shot figcaption {
+  margin-top: 10px; font-size: .88rem; color: var(--muted);
+  display: flex; gap: 8px; align-items: baseline;
+}
+figure.shot figcaption b {
+  font-family: var(--display); font-size: .66rem; font-weight: 600;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--red);
+  white-space: nowrap; flex: 0 0 auto;
+}
+
+/* สองภาพเรียงคู่ */
+.shots2 { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-bottom: 22px; }
+.shots2 figure.shot { margin: 0; }
+
+/* ภาพมือถือ — วางคู่กับข้อความ ไม่ยืดเต็มความกว้าง */
+.withphone { display: grid; grid-template-columns: 268px 1fr; gap: 26px; align-items: start; margin-bottom: 22px; }
+.withphone figure.shot { margin: 0; }
+.withphone figure.shot img { border: 0; box-shadow: var(--lift); background: transparent; }
+.withphone .say h3 { font-size: 1.15rem; font-weight: 800; margin-bottom: 6px; }
+.withphone .say p { margin: 0; color: var(--ink-soft); font-size: .96rem; max-width: 54ch; }
+.withphone .say p + p { margin-top: 10px; }
+
+/* ── ตารางฟังก์ชัน ────────────────────────────────────────── */
+ul.fn {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; gap: 1px;
+  grid-template-columns: repeat(auto-fit, minmax(272px, 1fr));
+}
+/* เส้นคั่นวาดที่ตัวรายการ ไม่ใช่ที่พื้นหลังของตาราง — ช่องที่เหลือในแถว
+   สุดท้ายจึงว่างเปล่าจริง ๆ ไม่โผล่เป็นบล็อกสีเทาที่ดูเหมือนของหาย */
+ul.fn > li {
+  background: var(--paper); padding: 15px 18px 17px;
+  box-shadow: 0 0 0 1px var(--line);
+  display: flex; flex-direction: column; gap: 3px; min-width: 0;
+}
+ul.fn h3 { font-size: 1rem; font-weight: 600; line-height: 1.4; font-family: var(--body); }
+ul.fn .en {
+  font-family: var(--display); font-size: .67rem; font-weight: 500;
+  letter-spacing: .09em; text-transform: uppercase; color: var(--muted);
+}
+ul.fn p { margin: 2px 0 0; font-size: .89rem; color: var(--ink-soft); }
+ul.fn .law { margin-top: 5px; font-size: .78rem; color: var(--green); font-weight: 500; }
+
+/* ── แถบปิดท้าย ───────────────────────────────────────────── */
+.close {
+  margin: 0 0 clamp(50px, 8vw, 90px);
+  background: var(--brown); color: var(--cream);
+  padding: clamp(28px, 5vw, 46px) clamp(24px, 4vw, 46px);
+}
+.close h2 { font-size: clamp(1.5rem, 3.4vw, 2.2rem); font-weight: 800; line-height: 1.18; max-width: 22ch; }
+.close p { margin: 14px 0 0; max-width: 58ch; color: #e2d4c8; font-size: 1rem; }
+.close .cta { margin-top: 24px; }
+.close .btn { border-color: var(--cream); color: var(--cream); }
+.close .btn:hover { background: var(--cream); color: var(--brown); }
+.close .btn.solid { background: var(--red-bright); border-color: var(--red-bright); color: #fff; }
+.close .btn.solid:hover { background: #fff; border-color: #fff; color: var(--red); }
+
+footer.end { padding: 0 0 46px; font-size: .84rem; color: var(--muted); }
+
+@media (max-width: 900px) {
+  .steps { grid-template-columns: repeat(4, 1fr); row-gap: 20px; }
+}
+@media (max-width: 640px) {
+  section.grp > .head { grid-template-columns: auto 1fr; }
+  .head .tally { grid-column: 2; grid-row: auto; margin-top: 4px; }
+  ul.fn { grid-template-columns: 1fr; }
+  .shots2 { grid-template-columns: 1fr; }
+  .withphone { grid-template-columns: 1fr; justify-items: center; }
+  .withphone figure.shot img { max-width: 268px; }
+  .withphone .say { justify-self: stretch; }
+  .steps { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; scroll-behavior: auto !important; }
+}
+html { scroll-behavior: smooth; }
+</style>
+
+<div class="rail">
+  <div class="rail-in">
+    <span class="mark">SENTIARA<em>·</em>PMS</span>
+    <nav aria-label="ข้ามไปยังกลุ่มฟังก์ชัน">
+      <a href="#g01">01</a><a href="#g02">02</a><a href="#g03">03</a><a href="#g04">04</a><a href="#g05">05</a><a href="#g06">06</a><a href="#g07">07</a><a href="#g08">08</a><a href="#g09">09</a><a href="#g10">10</a>
+    </nav>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <header class="hero">
+    <span class="u">Property Management System · ขอบเขตระบบทั้งหมด</span>
+    <h1>ทุกงานในโรงแรม<br>อยู่ใน<em>ระบบเดียว</em></h1>
+    <p class="sub">
+      ตั้งแต่แขกกดจอง จนถึงตัวเลขที่เข้าสมุดบัญชี — 10 กลุ่มงาน 55 ฟังก์ชัน
+      ที่ออกแบบมาให้ต่อกันด้วยข้อมูลชุดเดียว ไม่ใช่หลายโปรแกรมที่ต้องคีย์ซ้ำ
+    </p>
+
+    <div class="figures">
+      <div><b>10</b><span>กลุ่มงาน</span></div>
+      <div><b>55</b><span>ฟังก์ชัน</span></div>
+      <div><b>5</b><span>มุมมองผู้ใช้</span></div>
+      <div><b>6</b><span>ระดับสิทธิ์</span></div>
+      <div><b>100%</b><span>ภาษาไทยทั้งระบบ</span></div>
+    </div>
+
+    <div class="cta">
+      <a class="btn solid" href="https://sentiara-guest-demo.vercel.app" target="_blank" rel="noopener">เปิดเดโม กดใช้ได้จริง ↗</a>
+      <a class="btn ghost" href="#g01">ดูฟังก์ชันทั้งหมด ↓</a>
+    </div>
+
+    <div class="journey">
+      <h2>ตามแขกหนึ่งคน ตั้งแต่กดจองจนเงินเข้าบัญชี</h2>
+      <p>ไม่ต้องดูฟีเจอร์ทีละอัน — ดูว่างานหนึ่งชิ้นวิ่งผ่านระบบยังไง และตรงไหนที่ไม่มีใครต้องคีย์ซ้ำ</p>
+      <div class="steps">
+        <div class="by-hand"><span class="who">แขก</span><span class="what">กดจอง</span><span class="note">ทุกช่องทางลงปฏิทินเดียว</span></div>
+        <div class="auto"><span class="who">ระบบ</span><span class="what">ปิดขายห้องนั้น</span><span class="note">ขายซ้ำวันเดียวกันไม่ได้</span></div>
+        <div class="by-hand"><span class="who">เคาน์เตอร์</span><span class="what">เช็กอิน 90 วินาที</span><span class="note">ข้อมูลมาครบ ไม่ต้องถามซ้ำ</span></div>
+        <div class="auto"><span class="who">ระบบ</span><span class="what">เขียนบัตร NFC</span><span class="note">ประตูอ่านเองแม้เน็ตล่ม</span></div>
+        <div class="by-hand"><span class="who">แขก</span><span class="what">สั่งอาหาร</span><span class="note">เข้าบิลห้องเอง</span></div>
+        <div class="by-hand"><span class="who">เคาน์เตอร์</span><span class="what">เช็กเอาต์</span><span class="note">ห้องเข้าคิวแม่บ้านทันที</span></div>
+        <div class="auto"><span class="who">ระบบ · ตี 2</span><span class="what">ปิดยอดรายคืน</span><span class="note">ไม่มีใครต้องนั่งรอ</span></div>
+        <div class="auto"><span class="who">ระบบ · เช้า</span><span class="what">เข้าสมุดบัญชี</span><span class="note">ลงแล้วแก้ไม่ได้</span></div>
+      </div>
+      <div class="jkey">
+        <span><i style="background:var(--red)"></i>คนทำ 4 ขั้น</span>
+        <span><i style="background:var(--green)"></i>ระบบทำเอง 4 ขั้น</span>
+      </div>
+      <p class="foot">ตั้งแต่ต้นจนจบ <b>ไม่มีใครคีย์ข้อมูลซ้ำแม้แต่ครั้งเดียว</b> — นั่นคือที่มาของเวลาที่ได้คืน</p>
+    </div>
+  </header>
+
+  <!-- ══ 01 ══════════════════════════════════════════════════ -->
+  <section class="grp" id="g01">
+    <div class="head">
+      <span class="n">01</span>
+      <span class="u">Manage Customer</span>
+      <h2>งานลูกค้าและการจอง</h2>
+      <p class="lead">หัวใจของโรงแรม — ตั้งแต่แขกเห็นห้องครั้งแรก จนกลับมาจองซ้ำเพราะจำโรงแรมได้</p>
+      <span class="tally">9 ฟังก์ชัน</span>
+    </div>
+
+    <div class="withphone">
+      <figure class="shot">
+        <img src="{{IMG:guest-search}}" alt="หน้าจองห้องบนมือถือของแขก แสดงห้องดีลักซ์ ราคา และปุ่มจอง">
+      </figure>
+      <div class="say">
+        <h3>แขกเห็นราคาจริงก่อนกดจ่าย</h3>
+        <p>
+          ราคารวมทุกคืนแจกแจงให้เห็นตั้งแต่หน้าแรก — วันธรรมดา ฿1,650 คืนศุกร์–เสาร์ ฿1,980
+          พร้อมบอกว่าถูกกว่าเว็บจองเท่าไร ไม่มีค่าใช้จ่ายโผล่ทีหลัง
+        </p>
+        <p>
+          ทุกอย่างเป็นภาษาไทย ใช้บนมือถือได้ทันทีโดยไม่ต้องโหลดแอป
+          และห้องที่เห็นว่าว่างคือว่างจริงในปฏิทินเดียวกับที่เคาน์เตอร์ใช้
+        </p>
+      </div>
+    </div>
+
+    <figure class="shot">
+      <img src="{{IMG:owner-guests}}" alt="หน้าลูกค้าและแต้มสะสม แสดงประวัติเข้าพัก คะแนนรีวิว และโอกาสที่ควรทัก">
+      <figcaption><b>ลูกค้า &amp; แต้ม</b><span>รู้ว่าแขกคนนี้มากี่ครั้ง ใช้จ่ายเท่าไร ให้กี่ดาว และมีเหตุอะไรให้ทักกลับ — ก่อนเขาเดินเข้าล็อบบี้</span></figcaption>
+    </figure>
+
+    <ul class="fn">
+      <li><span class="en">Home</span><h3>หน้าจองฝั่งแขก</h3>
+        <p>เลือกวัน จำนวนคน จำนวนห้อง เห็นราคารวมก่อนกดจ่าย ไม่มีค่าใช้จ่ายซ่อน</p></li>
+      <li><span class="en">Book Room System</span><h3>ระบบจองห้อง</h3>
+        <p>กันจองซ้ำด้วยการตรวจช่วงวันที่ทับกันจริง ห้องเดียวกันขายซ้ำวันเดียวกันไม่ได้</p></li>
+      <li><span class="en">Check In / Check Out</span><h3>เช็กอิน–เช็กเอาต์</h3>
+        <p>ทำได้ทั้งเคาน์เตอร์และฝั่งแขก เช็กเอาต์แล้วห้องเข้าคิวแม่บ้านเองทันที</p></li>
+      <li><span class="en">Change Room</span><h3>ย้ายห้อง เลื่อนวัน ยกเลิก</h3>
+        <p>แก้การจองได้ทุกแบบ พร้อมคำนวณส่วนต่างและเงินคืนให้อัตโนมัติ</p></li>
+      <li><span class="en">Booking History</span><h3>ประวัติการเข้าพัก</h3>
+        <p>รู้ว่าแขกคนนี้มากี่ครั้ง ใช้จ่ายไปเท่าไร ชอบห้องแบบไหน ตั้งแต่ก่อนเขาเดินเข้าล็อบบี้</p></li>
+      <li><span class="en">Feedback</span><h3>รีวิวจากแขก</h3>
+        <p>กดให้ดาวตอนเช็กเอาต์ ขณะที่ความรู้สึกยังสด เก็บเข้าประวัติรายคน</p></li>
+      <li><span class="en">Redeem Present</span><h3>แต้มสะสมและของรางวัล</h3>
+        <p>สะสมแต้มจากยอดใช้จ่าย แบ่งระดับลูกค้า แลกของรางวัลได้จากหน้าจอ</p></li>
+      <li><span class="en">Alert For Anniversary</span><h3>เตือนวันเกิดและวันครบรอบ</h3>
+        <p>เตือนล่วงหน้าพร้อมข้อความร่างที่แก้ได้ — คนกดส่งเสมอ ระบบไม่ส่งเอง</p></li>
+      <li><span class="en">Festival</span><h3>แคมเปญเทศกาล</h3>
+        <p>ปีใหม่ สงกรานต์ ลอยกระทง — ชวนเฉพาะลูกค้าเก่าให้กลับมาจองตรง ไม่ผ่านค่านายหน้า</p></li>
+    </ul>
+  </section>
+
+  <!-- ══ 02 ══════════════════════════════════════════════════ -->
+  <section class="grp" id="g02">
+    <div class="head">
+      <span class="n">02</span>
+      <span class="u">Manage Employee</span>
+      <h2>งานพนักงาน</h2>
+      <p class="lead">บัตร NFC ใบเดียวเปิดประตู ล็อกอิน และลงเวลา พนักงานไม่ต้องจำรหัสผ่าน</p>
+      <span class="tally">5 ฟังก์ชัน</span>
+    </div>
+    <ul class="fn">
+      <li><span class="en">Clock In / Clock Out</span><h3>ลงเวลาเข้าออกงาน</h3>
+        <p>แตะบัตรลงเวลา คิดโอทีจากกะมาตรฐาน ค่าแรงคำนวณจากเวลาที่ทำจริง</p></li>
+      <li><span class="en">Enrollment Employee</span><h3>ทะเบียนพนักงาน</h3>
+        <p>เพิ่ม แก้ ลบ กำหนดตำแหน่งและรหัสบัตรได้จากหน้าจอ ไม่ต้องเรียกช่าง</p></li>
+      <li><span class="en">KPI For Employee</span><h3>ตัวชี้วัดรายคน</h3>
+        <p>วัดงานที่ทำเสร็จ เวลาเฉลี่ยต่อห้อง และงานที่ถูกตีกลับ เห็นเป็นรายคน</p></li>
+      <li><span class="en">SOP</span><h3>คลังคู่มือการทำงาน</h3>
+        <p>ขั้นตอนมาตรฐานที่พนักงานเปิดอ่านได้จากมือถือหน้างาน ไม่ต้องถามหัวหน้า</p></li>
+      <li><span class="en">AI For Regulation</span><h3>ผู้ช่วยตอบเรื่องระเบียบ</h3>
+        <p>ถามเรื่องกฎระเบียบและสวัสดิการแล้วได้คำตอบพร้อมอ้างอิงต้นทาง</p></li>
+    </ul>
+  </section>
+
+  <!-- ══ 03 ══════════════════════════════════════════════════ -->
+  <section class="grp" id="g03">
+    <div class="head">
+      <span class="n">03</span>
+      <span class="u">Manage Housekeeper</span>
+      <h2>งานแม่บ้าน</h2>
+      <p class="lead">ห้องกลับมาขายได้เร็วขึ้น เพราะไม่มีใครต้องเดินไปถามว่าห้องไหนพร้อมแล้ว</p>
+      <span class="tally">3 ฟังก์ชัน</span>
+    </div>
+
+    <div class="withphone">
+      <figure class="shot">
+        <img src="{{IMG:staff-jobs}}" alt="หน้าจอมือถือของแม่บ้าน แสดงรายการห้องที่ต้องทำพร้อมลำดับความเร่งด่วน">
+      </figure>
+      <div class="say">
+        <h3>แม่บ้านเปิดมือถือแล้วรู้เลยว่าทำห้องไหนก่อน</h3>
+        <p>
+          งานเรียงตามความเร่งด่วนจริง — ห้องที่มีแขกรออยู่ขึ้นก่อนห้องที่ยังไม่มีใครจอง
+          ไม่ต้องรอหัวหน้ามาบอก ไม่ต้องใช้กระดาษ
+        </p>
+        <p>
+          ทำเสร็จถ่ายรูป 3 มุมมาตรฐาน หัวหน้าตรวจจากมือถือแล้วกดผ่านหรือตีกลับพร้อมเหตุผล
+          ผ่านเมื่อไร ห้องกลับไปขายได้ทันทีในปฏิทินของเคาน์เตอร์
+        </p>
+      </div>
+    </div>
+
+    <ul class="fn">
+      <li><span class="en">Image Standard</span><h3>ถ่ายรูปตรวจมาตรฐานห้อง</h3>
+        <p>3 มุมมาตรฐาน — มุมรวม เตียง ห้องน้ำ · หัวหน้าตรวจแล้วตีกลับได้พร้อมเหตุผล</p></li>
+      <li><span class="en">Clock In / Clock Out</span><h3>ลงเวลาแม่บ้าน</h3>
+        <p>ใช้บัตรใบเดียวกับพนักงานส่วนอื่น ไม่ต้องดูแลสองระบบ</p></li>
+      <li><span class="en">Examine Inventory</span><h3>คลังของใช้ในห้อง</h3>
+        <p>ผ้า สบู่ ของในมินิบาร์ — ตัดสต็อกตามการใช้จริง ของใกล้หมดเตือนก่อน</p></li>
+    </ul>
+  </section>
+
+  <!-- ══ 04 ══════════════════════════════════════════════════ -->
+  <section class="grp" id="g04">
+    <div class="head">
+      <span class="n">04</span>
+      <span class="u">Financial</span>
+      <h2>การเงินและเอกสารภาษี</h2>
+      <p class="lead">ทุกบาทเข้าบิลเอง แก้เงียบ ๆ ไม่ได้ ต้องมีเหตุผลและผู้อนุมัติเสมอ</p>
+      <span class="tally">8 ฟังก์ชัน</span>
+    </div>
+
+    <figure class="shot">
+      <img src="{{IMG:desk-invoice}}" alt="หน้าออกใบกำกับภาษีเต็มรูป แสดงการแยก VAT ออกจากยอดรวมและจำนวนเงินเป็นตัวอักษร">
+      <figcaption><b>ใบกำกับภาษีเต็มรูป</b><span>แยก VAT ออกจากยอดรวมตาม ม.86/4 พร้อมจำนวนเงินเป็นตัวอักษร — ออกได้ที่เคาน์เตอร์ ไม่ต้องส่งให้ใครพิมพ์ต่อ</span></figcaption>
+    </figure>
+
+    <ul class="fn">
+      <li><span class="en">Bill</span><h3>บิลห้องใบเดียวจบ</h3>
+        <p>ค่าห้อง อาหาร มินิบาร์ ซักรีด รวมอยู่ในบิลเดียว ปิดครั้งเดียวจบ</p></li>
+      <li><span class="en">Tax</span><h3>ใบกำกับภาษีเต็มรูป</h3>
+        <p>แยก VAT ออกจากยอดรวม พร้อมจำนวนเงินเป็นตัวอักษร เลขที่เรียงไม่ข้าม</p>
+        <span class="law">ตาม ม.86/4 ประมวลรัษฎากร</span></li>
+      <li><span class="en">Transaction</span><h3>สมุดรายการเดินบัญชี</h3>
+        <p>ทุกความเคลื่อนไหวของเงินค้นย้อนหลังได้ พร้อมชื่อคนที่กดและเวลาที่กด</p></li>
+      <li><span class="en">Accountant</span><h3>เชื่อมโปรแกรมบัญชี</h3>
+        <p>ส่งยอดปิดรายคืนเข้าระบบบัญชีคู่อัตโนมัติ ส่งซ้ำกี่ครั้งก็ไม่เกิดรายการซ้ำ</p></li>
+      <li><span class="en">Tag Financial</span><h3>แยกหมวดรายจ่าย</h3>
+        <p>เงินเดือน ค่าไฟ ค่าน้ำ ของใช้ ค่านายหน้า ซ่อมบำรุง ดอกเบี้ย — กดดูที่มาได้ทุกใบ</p></li>
+      <li><span class="en">Procurement</span><h3>สั่งซื้อและตัดสต็อก</h3>
+        <p>ตัดสต็อกตามสูตรที่ขายจริง ต่ำกว่าจุดสั่งซื้อระบบร่างใบสั่งซื้อรอไว้ให้</p></li>
+      <li><span class="en">Debt Collection</span><h3>ติดตามลูกหนี้</h3>
+        <p>เรียงตามจำนวนวันที่ค้าง เตือนตามลำดับขั้น รับเงินแล้วตัดยอดทันที</p></li>
+      <li><span class="en">Pledge</span><h3>มัดจำและเงินประกัน</h3>
+        <p>รับมัดจำตอนจอง ตัดเข้าบิลตอนเข้าพัก คืนได้เมื่อยกเลิก มีร่องรอยทุกก้อน</p></li>
+    </ul>
+  </section>
+
+  <!-- ══ 05 ══════════════════════════════════════════════════ -->
+  <section class="grp" id="g05">
+    <div class="head">
+      <span class="n">05</span>
+      <span class="u">Dashboard</span>
+      <h2>แดชบอร์ดเจ้าของกิจการ</h2>
+      <p class="lead">เปิดเช้าหนึ่งนาที รู้ว่าเมื่อคืนได้เท่าไร วันนี้ต้องตัดสินใจเรื่องอะไร</p>
+      <span class="tally">5 ฟังก์ชัน</span>
+    </div>
+
+    <figure class="shot">
+      <img src="{{IMG:owner-overview}}" alt="แดชบอร์ดเจ้าของ แสดงรายได้เมื่อคืน รายได้สัปดาห์นี้ อัตราเข้าพัก ADR และ RevPAR">
+      <figcaption><b>ภาพรวม &amp; รายได้</b><span>ทุกตัวเลขกดดูที่มาได้ว่ามาจากบิลใบไหน — ไม่ใช่ตัวเลขที่ใครพิมพ์เข้ามาเอง</span></figcaption>
+    </figure>
+
+    <figure class="shot">
+      <img src="{{IMG:owner-finance}}" alt="หน้ารายจ่ายและกำไรขาดทุน แสดงรายได้ รายจ่าย กำไร และจุดคุ้มทุนรายคืน">
+      <figcaption><b>รายจ่าย &amp; กำไรขาดทุน</b><span>คำถามที่เจ้าของซื้อระบบมาเพื่อตอบ — เดือนนี้กำไรเท่าไร และต้องขายกี่ห้องต่อคืนถึงจะไม่ขาดทุน</span></figcaption>
+    </figure>
+
+    <ul class="fn">
+      <li><span class="en">Business Analysis</span><h3>ตัวเลขชี้วัดธุรกิจ</h3>
+        <p>ADR · RevPAR · อัตราเข้าพัก · จองตรงเทียบเว็บจอง และจุดคุ้มทุนรายคืน</p></li>
+      <li><span class="en">Income / Outcome</span><h3>รายได้เทียบรายจ่าย</h3>
+        <p>อยู่บนช่วงเวลาเดียวกันจึงลบกันได้จริง ไม่ใช่ตัวเลขคนละงวดมาวางคู่กัน</p></li>
+      <li><span class="en">Profit / Loss</span><h3>กำไรขาดทุน</h3>
+        <p>กำไรและอัตรากำไรคำนวณจากตัวเลขจริง กดดูได้ว่ามาจากบิลใบไหนบ้าง</p></li>
+      <li><span class="en">Cashflow</span><h3>กระแสเงินสด</h3>
+        <p>แยกเงินที่จ่ายจริงแล้วออกจากที่ยังค้างจ่าย และเงินที่ขายได้แต่ยังไม่ได้รับ</p></li>
+      <li><span class="en">Debt</span><h3>หนี้สินและภาระผูกพัน</h3>
+        <p>เจ้าหนี้ค้างจ่ายพร้อมกำหนดชำระ ลูกหนี้ค้างรับพร้อมจำนวนวันที่ค้าง</p></li>
+    </ul>
+  </section>
+
+  <!-- ══ 06 ══════════════════════════════════════════════════ -->
+  <section class="grp" id="g06">
+    <div class="head">
+      <span class="n">06</span>
+      <span class="u">Setting / Config</span>
+      <h2>ตั้งค่าระบบ</h2>
+      <p class="lead">แก้ที่เดียวแล้วเปลี่ยนทั้งระบบ — ฝั่งแขก ปฏิทิน บิล และใบกำกับภาษีตามทันที</p>
+      <span class="tally">5 ฟังก์ชัน</span>
+    </div>
+
+    <figure class="shot">
+      <img src="{{IMG:owner-settings}}" alt="หน้าตั้งค่าระบบ แก้ชื่อกิจการ ราคาห้องรายประเภท เรตวันหยุด VAT และมัดจำ">
+      <figcaption><b>ตั้งค่าระบบ</b><span>เจ้าของแก้ราคาเองได้โดยไม่ต้องเรียกช่าง — และไม่ต้องแก้โค้ดใหม่ทุกครั้งที่ขายให้โรงแรมถัดไป</span></figcaption>
+    </figure>
+
+    <ul class="fn">
+      <li><span class="en">Property Profile</span><h3>ข้อมูลกิจการ</h3>
+        <p>ชื่อ ที่อยู่ เลขประจำตัวผู้เสียภาษี ขึ้นบนเอกสารทุกใบให้เอง</p></li>
+      <li><span class="en">Room Rates</span><h3>ราคาห้องรายประเภท</h3>
+        <p>ตั้งราคาแต่ละประเภทห้อง และราคาที่ตั้งบนเว็บจอง แยกจากกันได้</p></li>
+      <li><span class="en">Seasonal Pricing</span><h3>เรตวันหยุดและฤดูกาล</h3>
+        <p>คืนศุกร์–เสาร์และช่วงเทศกาลบวกเพิ่มอัตโนมัติ คิดเป็นรายคืน</p></li>
+      <li><span class="en">Tax &amp; Deposit</span><h3>ภาษีและมัดจำ</h3>
+        <p>อัตรา VAT และเปอร์เซ็นต์มัดจำ ปรับได้เอง พร้อมตัวตรวจกันค่าที่ทำให้คิดเงินผิด</p></li>
+      <li><span class="en">Roles &amp; Permissions</span><h3>สิทธิ์ผู้ใช้</h3>
+        <p>กำหนดว่าใครเห็นจอไหน ใครอนุมัติอะไรได้ — คนที่ถูกตรวจสอบอนุมัติให้ตัวเองไม่ได้</p></li>
+    </ul>
+  </section>
+
+  <!-- ══ 07 ══════════════════════════════════════════════════ -->
+  <section class="grp" id="g07">
+    <div class="head">
+      <span class="n">07</span>
+      <span class="u">Manage IoT</span>
+      <h2>อุปกรณ์ในอาคาร</h2>
+      <p class="lead">อาคารรายงานตัวเองได้ ไม่ต้องรอให้แขกเดินมาบอกว่าห้องมีปัญหา</p>
+      <span class="tally">3 ฟังก์ชัน</span>
+    </div>
+
+    <figure class="shot">
+      <img src="{{IMG:owner-energy}}" alt="หน้าค่าไฟและ IoT แสดงมิเตอร์ไฟรายห้องและห้องที่ใช้ไฟผิดปกติ">
+      <figcaption><b>ค่าไฟ &amp; IoT</b><span>มิเตอร์รายห้องจับห้องที่กินไฟผิดปกติ แล้วสั่งใบงานช่างต่อได้จากหน้าเดียวกัน</span></figcaption>
+    </figure>
+
+    <ul class="fn">
+      <li><span class="en">Smart Door Lock</span><h3>กลอนประตู NFC</h3>
+        <p>เขียนรหัสห้องลงบัตรใน 10 วินาที ประตูอ่านเองแม้เน็ตล่ม บันทึกทุกครั้งที่เปิด</p></li>
+      <li><span class="en">Energy Metering</span><h3>มิเตอร์ไฟรายห้อง</h3>
+        <p>จับห้องที่กินไฟผิดปกติแล้วสั่งงานช่างได้จากหน้าเดียวกัน</p></li>
+      <li><span class="en">Fire Alarm System</span><h3>ระบบแจ้งเหตุเพลิงไหม้</h3>
+        <p>สัญญาณจากเซ็นเซอร์เข้าระบบเดียวกับงานอื่น พร้อมสถานะอุปกรณ์ทุกตัว</p></li>
+    </ul>
+  </section>
+
+  <!-- ══ 08 ══════════════════════════════════════════════════ -->
+  <section class="grp" id="g08">
+    <div class="head">
+      <span class="n">08</span>
+      <span class="u">Security &amp; Legal</span>
+      <h2>ความปลอดภัยและงานกฎหมาย</h2>
+      <p class="lead">เรื่องที่ไม่มีใครนึกถึงจนกว่าจะมีปัญหา — และตอนนั้นย้อนกลับไปแก้ไม่ได้แล้ว</p>
+      <span class="tally">3 ฟังก์ชัน</span>
+    </div>
+    <ul class="fn">
+      <li><span class="en">Security Camera</span><h3>กล้องวงจรปิด</h3>
+        <p>ดูภาพจากจอเดียวกับงานอื่น เชื่อมเหตุการณ์เข้ากับห้องและเวลาที่เกิด</p></li>
+      <li><span class="en">Firmware Analyze</span><h3>ตรวจความปลอดภัยอุปกรณ์</h3>
+        <p>ตรวจเฟิร์มแวร์ของอุปกรณ์ก่อนเชื่อมเข้าเครือข่ายโรงแรม</p></li>
+      <li><span class="en">Lawyer</span><h3>ผู้ช่วยงานกฎหมาย</h3>
+        <p>เก็บสัญญา ตรวจเอกสาร และตอบคำถามพร้อมอ้างมาตราให้ตรวจย้อนได้</p></li>
+    </ul>
+  </section>
+
+  <!-- ══ 09 ══════════════════════════════════════════════════ -->
+  <section class="grp" id="g09">
+    <div class="head">
+      <span class="n">09</span>
+      <span class="u">Thai Compliance</span>
+      <h2>งานที่กฎหมายไทยบังคับ</h2>
+      <p class="lead">ทำผิดแล้วมีโทษจริง — ระบบต่างประเทศไม่มีให้ และเป็นเหตุผลหลักที่โรงแรมไทยต้องใช้ระบบไทย</p>
+      <span class="tally">4 ฟังก์ชัน</span>
+    </div>
+
+    <figure class="shot">
+      <img src="{{IMG:desk-register}}" alt="หน้าทะเบียนผู้พัก ร.ร.3 และ ร.ร.4 กรอกจากข้อมูลเช็กอินให้อัตโนมัติ">
+      <figcaption><b>ทะเบียนผู้พัก ร.ร.3 / ร.ร.4</b><span>กรอกจากข้อมูลที่มีอยู่แล้วตอนเช็กอิน ไม่ต้องเขียนสมุดซ้ำ — และแขกต่างชาติต่อเข้าแบบแจ้ง ตม.30 ให้เอง</span></figcaption>
+    </figure>
+
+    <ul class="fn">
+      <li><span class="en">Guest Register</span><h3>ทะเบียนผู้พัก ร.ร.3 / ร.ร.4</h3>
+        <p>กรอกจากข้อมูลที่มีอยู่แล้วตอนเช็กอิน ไม่ต้องเขียนสมุดซ้ำ</p>
+        <span class="law">ตาม ม.35 พ.ร.บ.โรงแรม พ.ศ. 2547</span></li>
+      <li><span class="en">Immigration TM.30</span><h3>แจ้งที่พักคนต่างด้าว ตม.30</h3>
+        <p>แขกต่างชาติเช็กอินแล้วระบบเตรียมแบบแจ้งให้ทันกำหนด</p>
+        <span class="law">ภายใน 24 ชั่วโมงตามที่กฎหมายกำหนด</span></li>
+      <li><span class="en">Double-Entry Ledger</span><h3>ส่งเข้าสมุดบัญชีคู่</h3>
+        <p>ยอดปิดรายคืนเข้าบัญชีเอง ใบที่ลงแล้วแก้ไม่ได้ ต้องตั้งรายการกลับเท่านั้น</p>
+        <span class="law">รูปแบบที่ผู้สอบบัญชียอมรับ</span></li>
+      <li><span class="en">Audit Trail</span><h3>ร่องรอยการตรวจสอบ</h3>
+        <p>ทุกการแก้ไขมีชื่อคน เวลา และเหตุผล ย้อนดูได้ว่าใครเปลี่ยนอะไรเมื่อไร</p></li>
+    </ul>
+  </section>
+
+  <!-- ══ 10 ══════════════════════════════════════════════════ -->
+  <section class="grp" id="g10">
+    <div class="head">
+      <span class="n">10</span>
+      <span class="u">Operations Core</span>
+      <h2>เครื่องมือหน้างานประจำวัน</h2>
+      <p class="lead">ส่วนที่พนักงานเปิดใช้ทุกวัน และเป็นตัวชี้ขาดว่าระบบจะถูกใช้จริงหรือถูกทิ้ง</p>
+      <span class="tally">10 ฟังก์ชัน</span>
+    </div>
+
+    <figure class="shot">
+      <img src="{{IMG:desk-calendar}}" alt="ปฏิทินห้องล่วงหน้า 14 วัน เห็นทุกห้องพร้อมกันว่าห้องไหนว่างห้องไหนมีคนจอง">
+      <figcaption><b>ปฏิทินห้องล่วงหน้า 14 วัน</b><span>หัวใจของ PMS — เห็นทุกห้องพร้อมกัน และกันจองซ้ำตั้งแต่ตอนกด ไม่ใช่ไปรู้ตอนแขกมาถึง</span></figcaption>
+    </figure>
+
+    <div class="shots2">
+      <figure class="shot">
+        <img src="{{IMG:desk-rack}}" alt="ผังห้องเรียลไทม์ แสดงห้องว่าง มีแขก รอทำความสะอาด และปิดซ่อม">
+        <figcaption><b>ผังห้องวันนี้</b><span>ทุกคนเห็นสถานะชุดเดียวกัน</span></figcaption>
+      </figure>
+      <figure class="shot">
+        <img src="{{IMG:desk-inbox}}" alt="กล่องข้อความรวมจาก LINE เว็บจอง และเว็บไซต์ อยู่ในจอเดียว">
+        <figcaption><b>กล่องข้อความรวม</b><span>LINE · เว็บจอง · เว็บไซต์ มาจอเดียว</span></figcaption>
+      </figure>
+    </div>
+
+    <figure class="shot">
+      <img src="{{IMG:pos-tables}}" alt="หน้า POS ร้านอาหาร แสดงผังโต๊ะและการสั่งอาหารเข้าบิลห้อง">
+      <figcaption><b>POS ร้านอาหาร</b><span>สั่งอาหารยิงเข้าจอครัว ตัดสต็อกตามสูตร แล้วเข้าบิลห้องเอง — ไม่ต้องคีย์ซ้ำที่เคาน์เตอร์</span></figcaption>
+    </figure>
+
+    <ul class="fn">
+      <li><span class="en">Room Calendar</span><h3>ปฏิทินห้อง 14 วัน</h3>
+        <p>เห็นทุกห้องพร้อมกัน ห้องไหนว่าง ห้องไหนมีคนจอง กันจองซ้ำตั้งแต่ตอนกด</p></li>
+      <li><span class="en">Room Rack</span><h3>ผังห้องเรียลไทม์</h3>
+        <p>ว่าง · มีแขก · รอทำความสะอาด · ปิดซ่อม ทุกคนเห็นสถานะชุดเดียวกัน</p></li>
+      <li><span class="en">Adjacent Rooms</span><h3>จัดห้องติดกัน</h3>
+        <p>จองหลายห้องแล้วหาห้องเรียงกันบนชั้นเดียว และบอกตามจริงเมื่อจัดไม่ได้</p></li>
+      <li><span class="en">Unified Inbox</span><h3>กล่องข้อความรวมทุกช่องทาง</h3>
+        <p>LINE · เว็บจอง · เว็บไซต์ มาจอเดียว รู้ว่ากำลังคุยกับแขกห้องไหน</p></li>
+      <li><span class="en">Reply Guard</span><h3>ด่านกรองก่อนตอบอัตโนมัติ</h3>
+        <p>ตรวจคำตอบกับข้อมูลจริงก่อนส่ง ตอบราคาผิดหรือรับปากแทนโรงแรมไม่ได้</p></li>
+      <li><span class="en">Restaurant POS</span><h3>POS ร้านอาหารเข้าบิลห้อง</h3>
+        <p>สั่งอาหารเข้าจอครัวแยกสถานี ตัดสต็อกตามสูตร เข้าบิลห้องเอง</p></li>
+      <li><span class="en">Channel Manager</span><h3>ช่องทางขายและเว็บจอง</h3>
+        <p>ห้องว่างและราคาส่งออกไปทุกช่องทางพร้อมกัน ขายห้องเดียวซ้ำสองที่ไม่ได้</p></li>
+      <li><span class="en">Approvals</span><h3>รออนุมัติส่วนลดและคืนเงิน</h3>
+        <p>รายการที่เกินอำนาจพนักงานขึ้นรอเจ้าของกด พร้อมเหตุผลที่บันทึกไว้</p></li>
+      <li><span class="en">Maintenance Orders</span><h3>ใบงานช่าง</h3>
+        <p>แจ้งซ่อมพร้อมรูป ติดตามสถานะ และคิดค่าอะไหล่เข้ารายจ่ายอัตโนมัติ</p></li>
+      <li><span class="en">AI Assistant</span><h3>ผู้ช่วยเจ้าของกิจการ</h3>
+        <p>ถามเรื่องตัวเลขผลประกอบการเป็นภาษาคนแล้วตอบพร้อมที่มาให้กดตรวจได้</p></li>
+    </ul>
+  </section>
+
+</div>
+
+<div class="wrap">
+  <div class="close">
+    <span class="u" style="color:var(--red-bright)">ขั้นตอนต่อไป</span>
+    <h2>เห็นหน้าจอจริงแล้ว ลองกดเองดู</h2>
+    <p>
+      เดโมเปิดให้กดได้ทุกปุ่มโดยไม่ต้องสมัคร — จองห้องฝั่งแขก เช็กอินที่เคาน์เตอร์
+      สั่งอาหารเข้าบิล แล้วดูตัวเลขขยับในจอเจ้าของ ครบทั้ง 5 มุมมองในเดโมเดียว
+    </p>
+    <div class="cta">
+      <a class="btn solid" href="https://sentiara-guest-demo.vercel.app" target="_blank" rel="noopener">เปิดเดโม กดใช้ได้จริง ↗</a>
+      <a class="btn" href="https://sentiara-3d-site.vercel.app" target="_blank" rel="noopener">กลับไปหน้าหลัก ↗</a>
+    </div>
+  </div>
+
+  <footer class="end">
+    Sentiara · Property Management System สำหรับโรงแรมและคอนโดปล่อยเช่ารายวันในประเทศไทย ·
+    ภาพทั้งหมดถ่ายจากระบบจริง ไม่ใช่ภาพจำลอง
+  </footer>
+</div>
+
+<script>
+// เน้นหมายเลขหัวข้อที่กำลังอยู่บนจอ — ช่วยให้คนนำเสนอรู้ว่าเลื่อนมาถึงไหนแล้ว
+(function () {
+  var links = {};
+  document.querySelectorAll('.rail nav a').forEach(function (a) {
+    links[a.getAttribute('href').slice(1)] = a;
+  });
+  var groups = document.querySelectorAll('section.grp');
+  if (!('IntersectionObserver' in window) || !groups.length) return;
+
+  var seen = new Set();
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (e.isIntersecting) seen.add(e.target.id); else seen.delete(e.target.id);
+    });
+    var current = null;
+    groups.forEach(function (g) { if (!current && seen.has(g.id)) current = g.id; });
+    Object.keys(links).forEach(function (id) {
+      if (id === current) links[id].setAttribute('aria-current', 'true');
+      else links[id].removeAttribute('aria-current');
+    });
+  }, { rootMargin: '-56px 0px -60% 0px' });
+
+  groups.forEach(function (g) { io.observe(g); });
+})();
+</script>

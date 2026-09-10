@@ -1,0 +1,36 @@
+    <div class="play" id="p-rate">
+      <header>
+        <span class="tag">ลองกดเล่น</span>
+        <h3>เปลี่ยนค่าตั้งต้นแล้วดูว่าบิลกับใบกำกับภาษีขยับตาม</h3>
+      </header>
+      <p class="hint">
+        ตั้งราคาที่เดียว แล้วทั้งระบบใช้ตัวเลขชุดเดียวกัน —
+        ราคาที่ประกาศเป็นราคารวมภาษีแล้ว ใบกำกับภาษีจึงต้อง <b>ถอด</b> VAT ออก ไม่ใช่บวกเพิ่ม
+      </p>
+
+      <div class="row" style="margin-bottom:10px">
+        <span style="font-size:.85rem;color:var(--muted)">ราคาวันธรรมดา</span>
+        <button type="button" data-rate="1350">฿1,350</button>
+        <button type="button" data-rate="1650" aria-pressed="true">฿1,650</button>
+        <button type="button" data-rate="2400">฿2,400</button>
+      </div>
+      <div class="row" style="margin-bottom:10px">
+        <span style="font-size:.85rem;color:var(--muted)">บวกคืนศุกร์–เสาร์</span>
+        <button type="button" data-wk="0">0%</button>
+        <button type="button" data-wk="20" aria-pressed="true">+20%</button>
+        <button type="button" data-wk="35">+35%</button>
+      </div>
+      <div class="row">
+        <span style="font-size:.85rem;color:var(--muted)">VAT</span>
+        <button type="button" data-vat="0">ยังไม่จด</button>
+        <button type="button" data-vat="7" aria-pressed="true">7%</button>
+      </div>
+
+      <table class="tbl" id="rateTbl">
+        <thead><tr>
+          <th scope="col">คืนวันที่</th><th scope="col">วัน</th><th scope="col" class="num">ราคา/คืน</th>
+        </tr></thead>
+        <tbody id="rateBody"></tbody>
+      </table>
+      <div class="say good" id="rateSay"></div>
+    </div>

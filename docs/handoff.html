@@ -1,0 +1,824 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sentiara PMS — เอกสารส่งต่องาน</title>
+<meta name="description" content="เอกสารส่งต่องาน Sentiara PMS — ทำอะไรได้บ้าง แก้ปัญหามาแบบไหน และกฎที่ห้ามทำลาย">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700;800&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap">
+<style>
+:root {
+  --paper: #fffaf5; --cream: #f8f0e8; --cream-deep: #efe3d8;
+  --ink: #241815; --ink-soft: #33231f; --muted: #786c65; --line: #d8cbc1;
+  --red: #c92210; --red-bright: #ff4a2f; --green: #24765a;
+  --display: Archivo, "IBM Plex Sans Thai", Tahoma, sans-serif;
+  --body: "IBM Plex Sans Thai", Archivo, Tahoma, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --rail: 268px;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 20px; }
+body {
+  margin: 0; background: var(--cream); color: var(--ink);
+  font-family: var(--body); font-size: 16px; line-height: 1.78;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* แถบความคืบหน้า — เอกสารยาว คนอ่านควรรู้ว่าเหลืออีกเท่าไร */
+#bar {
+  position: fixed; inset: 0 auto auto 0; height: 3px; width: 0;
+  background: var(--red); z-index: 40; transition: width .08s linear;
+}
+
+.shell { display: grid; grid-template-columns: var(--rail) minmax(0, 1fr); gap: 0; }
+
+/* ── สารบัญลอยข้าง ─────────────────────────────────────────── */
+aside {
+  position: sticky; top: 0; align-self: start; height: 100vh; overflow-y: auto;
+  background: var(--ink); color: var(--cream); padding: 26px 20px 40px;
+}
+aside .mark {
+  font-family: var(--display); font-weight: 800; letter-spacing: .12em;
+  font-size: .82rem; display: block; color: var(--paper);
+}
+aside .mark em { color: var(--red-bright); font-style: normal; }
+aside .sub {
+  font-size: .74rem; color: #b9a99e; display: block;
+  margin: 3px 0 20px; letter-spacing: .02em;
+}
+aside nav { display: grid; gap: 1px; }
+aside nav a {
+  display: grid; grid-template-columns: 1.7em 1fr; gap: 8px;
+  color: #d6c7bd; text-decoration: none; font-size: .84rem;
+  padding: 5px 8px; border-radius: 3px; line-height: 1.45;
+}
+aside nav a b {
+  font-family: var(--display); font-weight: 700; color: var(--muted);
+  font-variant-numeric: tabular-nums; font-size: .78rem;
+}
+aside nav a:hover { background: #3a2723; color: var(--paper); }
+aside nav a.on { background: var(--red); color: #fff; }
+aside nav a.on b { color: #ffd9d0; }
+aside .foot {
+  margin-top: 24px; padding-top: 16px; border-top: 1px solid #4b332d;
+  font-size: .74rem; color: #9c8b81; line-height: 1.7;
+}
+aside .foot code { color: #ffb9a6; font-family: var(--mono); font-size: .92em; }
+
+/* ── เนื้อเอกสาร ────────────────────────────────────────────── */
+main { background: var(--paper); min-width: 0; }
+.doc { max-width: 860px; margin: 0 auto; padding: 46px max(24px, 5vw) 110px; }
+
+.warn {
+  background: var(--cream); border-left: 3px solid var(--red);
+  padding: 11px 15px; font-size: .86rem; color: var(--ink-soft);
+  margin: 0 0 34px;
+}
+.warn code { font-family: var(--mono); font-size: .92em; }
+
+h1 {
+  font-family: var(--display); font-size: clamp(1.9rem, 4.4vw, 2.7rem);
+  font-weight: 800; line-height: 1.14; letter-spacing: -.015em;
+  margin: 0 0 8px; text-wrap: balance;
+}
+h2 {
+  font-family: var(--display); font-size: clamp(1.28rem, 2.5vw, 1.62rem);
+  font-weight: 800; line-height: 1.28; margin: 58px 0 4px;
+  padding-top: 22px; border-top: 1.5px solid var(--ink); text-wrap: balance;
+}
+h2:first-of-type { margin-top: 34px; }
+h3 {
+  font-family: var(--display); font-size: 1.06rem; font-weight: 700;
+  margin: 30px 0 2px; color: var(--ink);
+}
+h4 { font-family: var(--display); font-size: .95rem; margin: 22px 0 2px; }
+
+p { margin: 10px 0; }
+strong { font-weight: 700; }
+em { font-style: italic; color: var(--brown, var(--ink-soft)); }
+a { color: var(--red); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+a:hover { color: var(--red-bright); }
+hr { border: 0; height: 0; margin: 0; }
+
+ul, ol { margin: 10px 0; padding-left: 1.35em; }
+li { margin: 4px 0; }
+li > ul, li > ol { margin: 3px 0; }
+
+blockquote {
+  margin: 18px 0; padding: 12px 16px; background: var(--cream);
+  border-left: 3px solid var(--muted); color: var(--ink-soft); font-size: .94rem;
+}
+blockquote p { margin: 4px 0; }
+
+code {
+  font-family: var(--mono); font-size: .88em; background: var(--cream-deep);
+  padding: 1px 5px; border-radius: 3px; word-break: break-word;
+}
+pre {
+  background: var(--ink); color: #efe3d8; padding: 15px 17px;
+  overflow-x: auto; font-size: .82rem; line-height: 1.68; margin: 16px 0;
+}
+pre code { background: none; padding: 0; color: inherit; font-size: 1em; }
+
+/* ตารางในเอกสารนี้คือสาระ ไม่ใช่ของประดับ — จัดให้อ่านเร็ว */
+.tw { overflow-x: auto; margin: 18px 0; }
+table { border-collapse: collapse; width: 100%; font-size: .88rem; min-width: 480px; }
+th, td {
+  text-align: left; vertical-align: top; padding: 8px 12px;
+  border-bottom: 1px solid var(--line);
+}
+thead th {
+  font-family: var(--display); font-size: .68rem; font-weight: 700;
+  letter-spacing: .09em; text-transform: uppercase; color: var(--muted);
+  background: var(--cream); border-bottom: 1.5px solid var(--ink);
+  white-space: nowrap;
+}
+tbody tr:hover { background: var(--cream); }
+td code { font-size: .84em; }
+
+/* ปุ่มขึ้นบนสุด — เอกสาร 450 บรรทัด เลื่อนกลับเองเหนื่อย */
+#top {
+  position: fixed; right: 20px; bottom: 20px; z-index: 30;
+  font-family: var(--display); font-size: .74rem; font-weight: 700;
+  letter-spacing: .08em; text-transform: uppercase;
+  background: var(--ink); color: var(--paper); border: 0;
+  padding: 9px 14px; cursor: pointer; opacity: 0;
+  transition: opacity .18s; pointer-events: none;
+}
+#top.show { opacity: 1; pointer-events: auto; }
+#top:hover { background: var(--red); }
+
+@media (max-width: 900px) {
+  .shell { grid-template-columns: 1fr; }
+  aside {
+    position: static; height: auto; padding: 20px 18px 24px;
+  }
+  aside nav { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
+  .doc { padding: 30px 20px 90px; }
+}
+@media print {
+  aside, #bar, #top, .warn { display: none; }
+  body, main { background: #fff; }
+  .doc { max-width: none; padding: 0; }
+  h2 { page-break-after: avoid; }
+  pre, table, blockquote { page-break-inside: avoid; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  * { transition: none !important; }
+}
+</style>
+</head>
+<body>
+<div id="bar"></div>
+<div class="shell">
+  <aside>
+    <span class="mark">SENTIARA<em>·</em>PMS</span>
+    <span class="sub">เอกสารส่งต่องาน · 10 ก.ย. 2569</span>
+    <nav>
+      <a href="#0"><b>0</b><span>สรุปสามบรรทัด</span></a>
+      <a href="#1"><b>1</b><span>โครงสร้างโปรเจกต์</span></a>
+      <a href="#2"><b>2</b><span>ทำอะไรได้บ้าง</span></a>
+      <a href="#3"><b>3</b><span>โมดูลหลังบ้าน อ่านตามลำดับนี้</span></a>
+      <a href="#4-ledger-bridge"><b>4</b><span>การต่อกับ Ledger Bridge — เข้าใจให้ถูกก่อนแตะ</span></a>
+      <a href="#5_1"><b>5</b><span>หน้าจอ — บิลด์เดียว สามโหมด</span></a>
+      <a href="#6"><b>6</b><span>วิธีรัน</span></a>
+      <a href="#7"><b>7</b><span>บันทึกปัญหา — เจออะไร วินิจฉัยยังไง แก้ยังไง</span></a>
+      <a href="#8"><b>8</b><span>กฎที่ต้องไม่ทำลาย</span></a>
+      <a href="#9-artifact"><b>9</b><span>หน้านำเสนอลูกค้า (artifact)</span></a>
+      <a href="#10"><b>10</b><span>สถานะและงานถัดไป</span></a>
+      <a href="#11"><b>11</b><span>สภาพแวดล้อมเครื่องนี้ (จุดที่เคยทำให้เสียเวลา)</span></a>
+      <a href="#12-23"><b>12</b><span>ประวัติคอมมิต 23 ตัว (ใหม่ → เก่า)</span></a>
+      <a href="#13-ai"><b>13</b><span>ถ้าคุณคือ AI ที่มารับงานต่อ</span></a>
+    </nav>
+    <div class="foot">
+      ฉบับที่แก้ได้คือ <code>HANDOFF.md</code> ในรากของ repo<br>
+      หน้านี้ประกอบด้วย <code>docs/build/md2html.py</code>
+    </div>
+  </aside>
+  <main>
+    <div class="doc">
+      <p class="warn">
+        <b>หน้านี้เป็นไฟล์ที่ถูกประกอบขึ้น ห้ามแก้ตรงนี้</b> — แก้ที่
+        <code>HANDOFF.md</code> แล้วรัน <code>python docs/build/md2html.py</code> ใหม่
+      </p>
+      <h1 id="sentiara-pms">Sentiara PMS — เอกสารส่งต่องาน</h1>
+<blockquote>
+<p>เขียนเมื่อ <strong>10 กันยายน 2569</strong> · คอมมิตล่าสุด <code>9ef1518</code> · <code>main</code> ตรงกับ <code>origin/main</code>
+เอกสารนี้เขียนไว้ให้ <strong>คนหรือ AI ที่มารับงานต่อโดยไม่เคยเห็นโปรเจกต์นี้</strong> อ่านจบแล้วทำงานต่อได้ทันที
+อ่าน <code>server/README.md</code> ประกอบสำหรับรายละเอียดฝั่งหลังบ้าน</p>
+</blockquote>
+<hr />
+<h2 id="0">0 · สรุปสามบรรทัด</h2>
+<p>Sentiara คือ <strong>PMS (Property Management System) สำหรับโรงแรมและคอนโดปล่อยเช่ารายวันในประเทศไทย</strong>
+จุดขายไม่ใช่ความสวย แต่คือ <strong>ทำตามกฎหมายไทยได้จริง</strong> — ภาษี ทะเบียนผู้พัก การแจ้งคนต่างด้าว และ log Wi-Fi
+สถานะ: หลังบ้านใช้งานได้จริงและมีเทสคุม 186 ข้อ · หน้าจอครบ 5 มุมมอง · ยังไม่ได้ต่อ OTA และระบบราชการจริง</p>
+<hr />
+<h2 id="1">1 · โครงสร้างโปรเจกต์</h2>
+<pre><code>sentiara-hotel-demo/
+├─ src/                   หน้าจอ · React 19 + Vite + TypeScript (~20,400 บรรทัด)
+│  ├─ screens/            มุมมองแขก — ค้นหา จอง ยืนยัน เช็กอิน เช็กเอาต์
+│  ├─ desk/               มุมมองเคาน์เตอร์ — ปฏิทิน rack เช็กอิน/เอาต์ ใบกำกับภาษี
+│  ├─ owner/              มุมมองเจ้าของ — 14 จอ (การเงิน บัญชีคู่ ทีมงาน ChivaGo ความปลอดภัย)
+│  ├─ staff/              มุมมองพนักงาน — งานแม่บ้าน ตรวจงาน ตอกบัตร
+│  ├─ pos/                มุมมองร้านอาหาร — โต๊ะ สั่งอาหารเข้าบิลห้อง
+│  ├─ lib/                ตรรกะร่วม — api.ts backend.tsx roles.ts tax.ts finance.ts
+│  ├─ components/         ชิ้นส่วนร่วม — Connection.tsx (แถบสถานะ+ล็อกอิน) RoomGallery QrCode
+│  └─ hotel/ + store.tsx  state กลาง (useReducer + localStorage) และ sync.ts ที่ต่อหลังบ้าน
+├─ server/                หลังบ้าน · FastAPI + SQLAlchemy + SQLite (~4,600 บรรทัด)
+│  ├─ pms/                19 โมดูล (ดูข้อ 3)
+│  ├─ tests/              8 ไฟล์ · 186 เทส · ~2,400 บรรทัด
+│  ├─ scripts/            night_audit.py · backup.py · แพ็กเป็นโปรแกรม.py
+│  ├─ เริ่มระบบ.bat        ดับเบิลคลิกเดียวจบ — สร้าง venv ลงของ seed สำรอง แล้วเปิดเซิร์ฟเวอร์
+│  └─ README.md           คู่มือหลังบ้านฉบับเต็ม (อ่านต่อจากไฟล์นี้)
+└─ HANDOFF.md             ไฟล์นี้
+</code></pre>
+<p><strong>สองส่วนนี้แยกกันได้</strong> — <code>src/</code> รันเป็นเดโมล้วนได้โดยไม่ต้องมีหลังบ้าน (ใช้ขายลูกค้า)
+และหลังบ้านรันเป็น API ล้วนได้โดยไม่ต้องมีหน้าจอ (ใช้เป็นแกนของโปรแกรมจริง)</p>
+<hr />
+<h2 id="2">2 · ทำอะไรได้บ้าง</h2>
+<h3 id="21">2.1 งานหน้าบ้าน — จองถึงเช็กเอาต์</h3>
+<ul>
+<li>ค้นห้องว่างตามช่วงวัน · จองตรง (ไม่ผ่าน OTA) · จองแบบ walk-in ที่เคาน์เตอร์</li>
+<li><strong>กันจองซ้ำด้วยฐานข้อมูล ไม่ใช่ด้วยโค้ด</strong> — ตาราง <code>room_night</code> มี <code>UNIQUE(room_id, night)</code>
+  สองคนกดพร้อมกันคนที่สองได้ IntegrityError ไม่ใช่ห้องซ้ำ</li>
+<li>จัดห้องติดกันให้ครอบครัว (<code>src/lib/allocate.ts</code>)</li>
+<li>เรตวันหยุด (ศุกร์–เสาร์) แยกจากเรตวันธรรมดา · เรต OTA แยกจากเรตขายตรง</li>
+<li>เช็กอิน เช็กเอาต์ ย้ายห้อง ต่อคืน ยกเลิก</li>
+</ul>
+<h3 id="22">2.2 บิลและการเงินหน้าบ้าน</h3>
+<ul>
+<li>บิลเดียวต่อการเข้าพัก (folio) · ค่าห้องรายคืน อาหาร มินิบาร์ ซักรีด เข้าบิลอัตโนมัติ</li>
+<li>รับชำระหลายวิธี · มัดจำ · ยอดค้าง</li>
+<li><strong>ใบกำกับภาษีเต็มรูป ม.86/4</strong> — ครบทุกรายการที่กฎหมายบังคับ รวมจำนวนเงินเป็นตัวอักษร</li>
+<li><strong>ใบลดหนี้ ม.86/10</strong> — อ้างใบกำกับเดิมบังคับ · เกินยอดคงเหลือไม่ได้ · ใช้ VAT อัตราของใบเดิม</li>
+<li>เลขที่เอกสารเป็น พ.ศ. (<code>INV-2569-00001</code> · <code>CN-2569-00001</code>) เรียงไม่ข้ามเลข</li>
+<li><strong>VAT ถอดออกจากราคา ไม่ใช่บวกเพิ่ม</strong> — ราคาที่แขกเห็นคือราคาที่จ่าย</li>
+</ul>
+<h3 id="23-ledger-bridge">2.3 บัญชี — ต่อกับ Ledger Bridge (โปรแกรมบัญชีคู่)</h3>
+<ul>
+<li>ปิดยอดรายคืน (night audit) รับรู้รายได้ค่าห้องตามคืนที่พักจริง</li>
+<li>ส่ง <strong>เหตุการณ์</strong> เข้าโปรแกรมบัญชี ไม่ส่งใบสำคัญ (ดูข้อ 4)</li>
+<li>คิว outbox ส่งซ้ำได้ไม่ซ้ำยอด · ดูสถานะทุกรายการได้</li>
+<li>รายจ่าย 11 หมวดที่ตรงกับผังบัญชีจริง · <strong>ภาษีหัก ณ ที่จ่าย</strong> ตาม ท.ป.4/2528</li>
+<li>งบกำไรขาดทุนย่อและกระแสเงินสดในจอเจ้าของ</li>
+</ul>
+<h3 id="24">2.4 งานที่กฎหมายบังคับ (จุดขายที่คู่แข่งไม่มี)</h3>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>งาน</th>
+<th>กฎหมาย</th>
+<th>ระบบทำอะไร</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ทะเบียนผู้พัก ร.ร.3 / ร.ร.4</td>
+<td>ม.35 พ.ร.บ.โรงแรม 2547</td>
+<td><strong>หนึ่งแถวต่อผู้พักหนึ่งคน</strong> · ตรวจหลักตรวจสอบเลขบัตร · นับถอยหลัง 24 ชม.</td>
+</tr>
+<tr>
+<td>แจ้งที่พักคนต่างด้าว ตม.30</td>
+<td>ม.38 พ.ร.บ.คนเข้าเมือง 2522</td>
+<td>คิวเรียงจากใกล้หมดเวลาสุด · บังคับกรอกเลขรับ</td>
+</tr>
+<tr>
+<td>เก็บ log Wi-Fi ≥ 90 วัน</td>
+<td>ม.26 พ.ร.บ.คอมพิวเตอร์ 2550</td>
+<td>ตอบได้ว่า "IP นี้เมื่อนั้นคือใคร" พร้อมเลขเอกสารแสดงตน</td>
+</tr>
+<tr>
+<td>ใบกำกับภาษี / ใบลดหนี้</td>
+<td>ม.86/4 · ม.86/10 ประมวลรัษฎากร</td>
+<td>ออกครบรูป · ลงแล้วแก้ไม่ได้ ต้องออกใบลดหนี้</td>
+</tr>
+<tr>
+<td>ความรับผิด VAT</td>
+<td>ม.78/1(1)</td>
+<td>เกิดตอน <strong>รับชำระ</strong> ไม่ใช่ตอนออกบิล</td>
+</tr>
+<tr>
+<td>ภาษีหัก ณ ที่จ่าย</td>
+<td>ท.ป.4/2528</td>
+<td>อัตราเป็นหนึ่งในหมื่น เลี่ยง float</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="25">2.5 งานแม่บ้านและสถานะห้อง</h3>
+<ul>
+<li>ใบงานสถานะ <code>open → doing → inspect → done</code> (+ <code>inspect → doing</code> ตีกลับ)</li>
+<li><strong>ต้องมีรูป 3 รูปก่อนส่งตรวจ</strong> · ตีกลับต้องมีเหตุผลและรูปถูกล้าง</li>
+<li><strong>ห้องกลับไปขายได้ตอนหัวหน้าอนุมัติ ไม่ใช่ตอนแม่บ้านกดเสร็จ</strong> — คนตรวจงานตัวเองคือมาตรฐานที่หายไป</li>
+<li>ห้องที่มีแขกมาถึงวันนี้ได้ priority 1 อัตโนมัติ</li>
+</ul>
+<h3 id="26-wi-fi">2.6 Wi-Fi ที่พัก (งานล่าสุด)</h3>
+<ul>
+<li>ออกรหัสอัตโนมัติตอนเช็กอิน ชื่อผู้ใช้เป็นเลขห้อง รหัสสุ่มรายห้อง</li>
+<li>หมดอายุเองหลังเช็กเอาต์ + ผ่อนผัน 3 ชั่วโมง</li>
+<li>จำกัดจำนวนเครื่องต่อห้อง (ค่าเริ่ม 3)</li>
+<li>บันทึกทุก session: MAC · IP · จุดกระจายสัญญาณ · เวลา · ปริมาณข้อมูล ผูกกับการจอง</li>
+<li><strong>รายงานตัวตนตาม ม.26</strong> คืนผู้พักทุกคนที่ลงทะเบียนในห้องนั้น</li>
+<li>ระบบ <strong>ปฏิเสธ</strong> ถ้าตั้งเวลาเก็บต่ำกว่า 90 วัน</li>
+<li>ต่อกับอุปกรณ์ยี่ห้อไหนก็ได้ผ่าน RADIUS / captive portal</li>
+<li><strong>PMS เป็นชั้น "ใคร" · อุปกรณ์เครือข่ายยังเป็นชั้น "ทำอะไร"</strong> — ไม่แย่งงานกัน โดยตั้งใจ</li>
+</ul>
+<h3 id="27">2.7 ผู้ใช้ สิทธิ์ ร่องรอย</h3>
+<ul>
+<li>ล็อกอินด้วย <strong>บัตร + PIN</strong> (เหมาะกับเคาน์เตอร์ ไม่ใช่อีเมล+รหัสผ่าน)</li>
+<li>14 สิทธิ์ · 6 บทบาท: <code>owner</code> <code>manager</code> (ทั้งหมด) · <code>front</code> · <code>hk</code> · <code>tech</code> · <code>pos</code></li>
+<li><strong>ทุกเส้นทาง API มียาม</strong> ไม่มีเส้นทางไหนเปิดโล่ง</li>
+<li>ร่องรอยตรวจสอบเก็บ <strong>ชื่อพนักงานซ้ำไว้ในแถว</strong> ไม่ใช่แค่ id — คนลาออกแล้วเปลี่ยนชื่อ ร่องรอยเก่าต้องยังอ่านออก</li>
+<li><code>/audit</code> เขียนอย่างเดียว ไม่มีเส้นทางลบหรือแก้</li>
+</ul>
+<h3 id="28">2.8 สำรองข้อมูลและติดตั้ง</h3>
+<ul>
+<li>สำรองแบบ <strong>ออนไลน์</strong> ด้วย <code>sqlite3.Connection.backup()</code> ไม่ใช่ก๊อปไฟล์ (ปลอดภัยกับ WAL)</li>
+<li>ตรวจสำเนา (<code>integrity_check</code> + นับแถวทุกตารางหลัก) ก่อนถือว่าใช้ได้</li>
+<li>กู้คืนเก็บไฟล์เดิมไว้เป็น <code>.before-restore-&lt;stamp&gt;.db</code> เสมอ</li>
+<li><code>เริ่มระบบ.bat</code> สำรองอัตโนมัติก่อนเปิดทุกครั้ง เก็บ 30 ชุดล่าสุด</li>
+<li><code>แพ็กเป็นโปรแกรม.py</code> แพ็กเป็น <code>.exe</code> ไฟล์เดียว ลูกค้าดับเบิลคลิกเปิด ไม่ต้องลง Python</li>
+</ul>
+<h3 id="29">2.9 ของที่อยู่ในเดโมแต่ยังไม่มีหลังบ้าน</h3>
+<p>แชท · ใบแจ้งซ่อม · ระบบสะสมแต้ม · ตั้งค่าโรงแรม · ChivaGo · กลอนประตู NFC · พลังงาน · แจ้งเหตุเพลิงไหม้
+ทั้งหมดนี้ <strong>ทำงานเต็มรูปในโหมดเดโม</strong> (เก็บใน localStorage) แต่ในโหมด live ยังไม่ต่อหลังบ้าน</p>
+<hr />
+<h2 id="3">3 · โมดูลหลังบ้าน อ่านตามลำดับนี้</h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>ไฟล์</th>
+<th style="text-align: right;">บรรทัด</th>
+<th>หน้าที่ · จุดที่ต้องระวัง</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pms/clock.py</code></td>
+<td style="text-align: right;">39</td>
+<td><strong>นาฬิกาที่เดียวทั้งระบบ</strong> เวลาไทย <code>+07:00</code> คงที่ · ห้ามเรียก <code>datetime.now()</code> ที่อื่น ห้ามใช้ UTC</td>
+</tr>
+<tr>
+<td><code>pms/money.py</code></td>
+<td style="text-align: right;">191</td>
+<td><strong>สตางค์จำนวนเต็มเท่านั้น</strong> · <code>split_vat</code> ถอด VAT · <code>round_half_up</code> เลขเต็มล้วน · <code>baht_text</code> อ่านเป็นตัวอักษร · <code>withhold</code> ภาษีหัก ณ ที่จ่าย</td>
+</tr>
+<tr>
+<td><code>pms/db.py</code></td>
+<td style="text-align: right;">575</td>
+<td>19 ตาราง · หัวใจคือ <code>UNIQUE(room_id, night)</code> และ <code>sqlite_autoincrement=True</code></td>
+</tr>
+<tr>
+<td><code>pms/rates.py</code></td>
+<td style="text-align: right;">60</td>
+<td>ราคาต่อคืน · เรตวันหยุด</td>
+</tr>
+<tr>
+<td><code>pms/booking.py</code></td>
+<td style="text-align: right;">207</td>
+<td>เอนจินการจอง · กันจองซ้ำ</td>
+</tr>
+<tr>
+<td><code>pms/folio.py</code></td>
+<td style="text-align: right;">252</td>
+<td>บิล · รับชำระ · ปิดบิล · ใบกำกับภาษี · ใบลดหนี้</td>
+</tr>
+<tr>
+<td><code>pms/auth.py</code></td>
+<td style="text-align: right;">221</td>
+<td>scrypt (ไม่พึ่ง lib เพิ่ม) · <code>require(perm)</code> · <code>record()</code> <strong>ไม่ commit ให้</strong></td>
+</tr>
+<tr>
+<td><code>pms/registry.py</code></td>
+<td style="text-align: right;">234</td>
+<td>ทะเบียนผู้พัก · <code>valid_thai_id()</code> ตรวจหลักตรวจสอบจริง</td>
+</tr>
+<tr>
+<td><code>pms/housekeeping.py</code></td>
+<td style="text-align: right;">177</td>
+<td>state machine งานแม่บ้าน · <code>sellable(room)</code></td>
+</tr>
+<tr>
+<td><code>pms/wifi.py</code></td>
+<td style="text-align: right;">360</td>
+<td>ออกรหัส · authorize · accounting · รายงาน ม.26 · <code>prune_sessions</code> ปฏิเสธ &lt;90 วัน</td>
+</tr>
+<tr>
+<td><code>pms/events.py</code></td>
+<td style="text-align: right;">430</td>
+<td>ประกอบเหตุการณ์ 5 ชนิด · <code>money()</code> <strong>ปฏิเสธ float ทันที</strong></td>
+</tr>
+<tr>
+<td><code>pms/ledger.py</code></td>
+<td style="text-align: right;">335</td>
+<td>คิว outbox · <code>align_sequence()</code> กัน watermark · นับ <code>inserted</code> จริง</td>
+</tr>
+<tr>
+<td><code>pms/ledger_bridge.py</code></td>
+<td style="text-align: right;">311</td>
+<td>ตัวเชื่อมของผู้ขาย ก๊อปมาทั้งไฟล์ (แก้จุดเดียว ดูคอมเมนต์)</td>
+</tr>
+<tr>
+<td><code>pms/backup.py</code></td>
+<td style="text-align: right;">221</td>
+<td>สำรอง ตรวจ กู้คืน ตัดของเก่า</td>
+</tr>
+<tr>
+<td><code>pms/api.py</code></td>
+<td style="text-align: right;">725</td>
+<td>39 เส้นทาง ทุกเส้นมียาม</td>
+</tr>
+<tr>
+<td><code>pms/seed.py</code></td>
+<td style="text-align: right;">186</td>
+<td>ข้อมูลตั้งต้น 43 ห้อง + ตัวอย่างที่กดต่อได้</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="4-ledger-bridge">4 · การต่อกับ Ledger Bridge — เข้าใจให้ถูกก่อนแตะ</h2>
+<p>ชุดเชื่อมต่อของผู้ขายอยู่ที่ <code>C:\Users\User\OneDrive\Desktop\Senmodel\ส่งให้-Sentiara</code>
+(<strong>ไม่ขึ้น git โดยตั้งใจ</strong> — มีกุญแจกับรหัสผ่านข้างใน และหนัก 152MB · ดู <code>.gitignore</code>)</p>
+<h3 id="_1">หลักที่ต้องไม่ลืม</h3>
+<ol>
+<li><strong>Sentiara เป็นฝ่ายส่งเข้ามา</strong> ไม่ใช่ฝ่ายถูกดึง</li>
+<li><strong>ส่ง "เหตุการณ์" ไม่ส่ง "ใบสำคัญ"</strong> — กฎลงบัญชี (posting rules) อยู่ฝั่ง Ledger Bridge
+   เราไม่ตัดสินว่าเดบิต/เครดิตบัญชีอะไร นั่นเป็นเส้นที่เขาขีดไว้</li>
+<li><strong>จำนวนเงินส่งเป็นสตริงเสมอ</strong> เช่น <code>"1650.00"</code> ไม่ส่งเป็นตัวเลข</li>
+<li><strong>ใบสำคัญที่ลงแล้ว ลบไม่ได้ แก้ไม่ได้</strong> ต้องตั้งรายการกลับเท่านั้น</li>
+<li><strong>วันที่ใช้เวลาเครื่อง (ไทย) ห้ามใช้ UTC</strong></li>
+<li>กุญแจเครื่องจักร (machine key) ใช้ส่งเข้า · ถ้าจะ <strong>ดึงตัวเลขมาแสดง</strong> ให้ใช้บัญชีผู้ใช้บทบาท <code>viewer</code>
+   <strong>อย่าไปขอขยายสิทธิ์ให้กุญแจเครื่องจักร</strong> — เส้นที่เขาตั้งใจขีด</li>
+<li>ชุดที่มีเป็น <strong>ชุดทดสอบ</strong> กุญแจกับรหัสในนั้นใช้กับเครื่องลูกค้าจริงไม่ได้</li>
+</ol>
+<h3 id="5">เหตุการณ์ 5 ชนิด</h3>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>รหัส</th>
+<th>เมื่อไร</th>
+<th>สาระ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>NA</code></td>
+<td>ปิดยอดรายคืน</td>
+<td>รับรู้รายได้ค่าห้องของคืนนั้น แยกฐาน/VAT</td>
+</tr>
+<tr>
+<td><code>DEP</code></td>
+<td>รับมัดจำ/ชำระ</td>
+<td>เงินเข้า · VAT เกิดตอนนี้ตาม ม.78/1(1)</td>
+</tr>
+<tr>
+<td><code>STL</code></td>
+<td>ปิดบิล</td>
+<td>ปิดยอดลูกหนี้ ออกใบกำกับ</td>
+</tr>
+<tr>
+<td><code>EXP</code></td>
+<td>บันทึกรายจ่าย</td>
+<td>ส่งครบสามยอด: <code>amount</code> · <code>withholdingTax</code> · <code>netPayable</code></td>
+</tr>
+<tr>
+<td><code>ADJ</code></td>
+<td>ออกใบลดหนี้</td>
+<td>รายการกลับ อ้างเลขที่ใบลดหนี้บังคับ</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="seq-eventid"><code>seq</code> กับ <code>eventId</code> มาจากไหน</h3>
+<ul>
+<li><strong><code>seq</code> มาจากคิว <code>ledger_outbox</code></strong> (<code>sqlite_autoincrement=True</code> เลขจึงไม่ถอยหลัง)
+  ออกครั้งเดียวตอนบันทึกเข้าคิว <strong>ห้ามสร้างใหม่ตอนส่งซ้ำ</strong></li>
+<li><strong><code>eventId</code> ผูกกับ <code>ref</code> ที่สุ่ม ไม่ใช่ <code>id</code> ที่ไล่เลข</strong> — เลขไล่ทำให้เดาเอกสารอื่นได้</li>
+</ul>
+<h3 id="_2">⚠ กับดักที่ทำให้ข้อมูลหายเงียบ ๆ (สำคัญที่สุดในเอกสารนี้)</h3>
+<p>ปลายทางมี <strong>watermark</strong> — <code>seq</code> ที่ต่ำกว่าค่านั้นจะถูกรายงานว่าเป็น <code>duplicates</code>
+ผลคือได้ <strong>HTTP 202 พร้อม <code>sent: 4</code></strong> เหมือนสำเร็จทุกอย่าง <strong>แต่ไม่มีอะไรเข้าคิวเลย</strong></p>
+<p>แก้ไว้แล้วสองชั้น:
+- <code>align_sequence()</code> ดันเลขให้พ้น watermark ก่อนส่ง
+- <code>send_pending()</code> <strong>นับ <code>inserted</code> จากคำตอบจริง</strong> ไม่เชื่อรหัส HTTP</p>
+<blockquote>
+<p>ต้นตอ: สคริปต์ตรวจของผู้ขายเองใช้ <code>Date.now()</code> เป็น <code>seq</code> ทำให้ watermark ถูกดันไปไกล
+<strong>บทเรียน: อย่าเชื่อ 2xx เชื่อตัวเลขที่ปลายทางบอกว่ารับไปเท่าไร</strong></p>
+</blockquote>
+<h3 id="_3">ยังไม่ได้ทำ</h3>
+<p>กฎลงบัญชีฝั่ง Ledger Bridge <strong>ยังไม่ได้ตั้ง</strong> — ต้องคุยกับทีมเขาว่าแต่ละเหตุการณ์ลงบัญชีอะไร
+ที่อยู่ endpoint ในโค้ดยังเป็นค่าสมมุติ (ดูคอมเมนต์)</p>
+<hr />
+<h2 id="5_1">5 · หน้าจอ — บิลด์เดียว สามโหมด</h2>
+<p><code>src/lib/backend.tsx</code> ตรวจหลังบ้านตอนเปิด แล้วเลือกโหมดเอง:</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>โหมด</th>
+<th>เมื่อไร</th>
+<th>พฤติกรรม</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>demo</code></td>
+<td>ไม่มีหลังบ้าน</td>
+<td>ทุกปุ่มกดได้ เก็บใน localStorage — <strong>นี่คือโหมดที่ใช้ขายลูกค้า</strong></td>
+</tr>
+<tr>
+<td><code>locked</code></td>
+<td>มีหลังบ้านแต่ยังไม่ล็อกอิน</td>
+<td>อ่านได้ แก้ไม่ได้</td>
+</tr>
+<tr>
+<td><code>live</code></td>
+<td>ล็อกอินแล้ว</td>
+<td><strong>เซิร์ฟเวอร์เป็นความจริง</strong> ไม่มี optimistic update ไม่เขียน localStorage</td>
+</tr>
+</tbody>
+</table></div>
+<p><code>src/hotel/sync.ts</code> แปลงข้อมูลสองทาง · <code>hotelStore.tsx</code> มี middleware ครอบ dispatch
+<code>push(action)</code> คืนค่าว่าหลังบ้าน <strong>รับไปทำจริงหรือไม่</strong> ถ้าไม่รับก็ไม่ขยับจอ</p>
+<p><strong>กฎที่ต้องไม่ทำลาย:</strong> ในโหมด live ห้ามเดาผลลัพธ์ล่วงหน้า — จองซ้ำ/สิทธิ์ไม่พอ/เงินไม่ตรง
+ต้องให้เซิร์ฟเวอร์ตอบก่อนเสมอ จอที่โกหกแล้วค่อยแก้ตัวคือจอที่พนักงานเลิกเชื่อ</p>
+<hr />
+<h2 id="6">6 · วิธีรัน</h2>
+<pre><code class="language-bash"># หลังบ้าน — ครั้งแรกสร้าง venv ลงของ seed ให้เอง
+cd server &amp;&amp; ./เริ่มระบบ.bat          # → http://127.0.0.1:8900/docs
+
+# หรือมือ
+cd server &amp;&amp; python -m pms.seed &amp;&amp; python -m uvicorn pms.app:app --port 8900
+
+# เทสทั้งชุด (ต้องได้ 186 passed)
+cd server &amp;&amp; python -m pytest -q
+
+# หน้าจอ
+npm install &amp;&amp; npm run dev            # → http://localhost:5173
+npm run build &amp;&amp; npx tsc --noEmit
+
+# ต่อหน้าจอเข้าหลังบ้าน (ถ้าใช้พอร์ตอื่น ต้องบอก CORS ด้วย)
+PMS_ORIGINS=http://localhost:5173 python -m uvicorn pms.app:app --port 8900
+VITE_API_URL=http://127.0.0.1:8900 npm run dev
+
+# งานประจำ
+cd server &amp;&amp; python scripts/night_audit.py
+cd server &amp;&amp; python scripts/backup.py --prune 30
+cd server &amp;&amp; python scripts/แพ็กเป็นโปรแกรม.py    # ต้อง pip install pyinstaller ก่อน
+</code></pre>
+<p><strong>ตัวแปรสภาพแวดล้อม:</strong> <code>PMS_DB</code> · <code>PMS_ORIGINS</code> · <code>PMS_WIFI_SECRET</code> (ไม่ตั้ง = ประตู Wi-Fi ปิดสนิท) · <code>VITE_API_URL</code></p>
+<hr />
+<h2 id="7">7 · บันทึกปัญหา — เจออะไร วินิจฉัยยังไง แก้ยังไง</h2>
+<p>อ่านหัวข้อนี้ก่อนแก้อะไร ปัญหาเดิมกลับมาได้ง่ายมาก</p>
+<h3 id="71-ledgerpy">7.1 <code>ledger.py</code> ส่งใบสำคัญแทนเหตุการณ์ — ผิดหลักตั้งแต่ต้น</h3>
+<p>เขียนไว้ก่อนอ่านเอกสารเขาจบ ส่งผิด route ผิดรูปแบบเงิน และ<strong>ผิดหลักการ</strong>
+(ไปตัดสินเดบิต/เครดิตเองทั้งที่เป็นงานฝั่งเขา) → เขียนไฟล์ใหม่ทั้งไฟล์
+<strong>บทเรียน: อ่านเอกสารสัญญาให้จบก่อนเขียนบรรทัดแรก</strong></p>
+<h3 id="72-watermark">7.2 ข้อมูลหายเงียบ ๆ เพราะ watermark</h3>
+<p>ดูข้อ 4 · <strong>นี่คือคลาสของบั๊กที่อันตรายที่สุดในระบบนี้</strong> — ไม่มีอะไรฟ้อง</p>
+<h3 id="73-wifiissue-not-null-access-violation">7.3 <code>wifi.issue()</code> ล้มด้วย NOT NULL แล้วโผล่เป็น access violation</h3>
+<p><code>db.add()</code> แถวที่ยังไม่ครบ แล้วเรียก <code>b.room.no</code> (lazy load) → <strong>autoflush</strong> ยิงแถวไม่ครบลง DB
+อาการที่เห็นคือเซิร์ฟเวอร์ตายทั้งตัวบน Windows ไม่ใช่ error สวย ๆ
+แก้: <strong>อ่านค่าที่ต้องใช้ให้ครบก่อนสร้างแถวใหม่</strong></p>
+<pre><code class="language-python">room_no = b.room.no            # อ่านก่อน
+secret_hash = hash_secret(...)
+cred = WifiCredential(...)     # แล้วค่อยสร้าง
+</code></pre>
+<p><strong>บทเรียน: ระหว่าง <code>add()</code> กับ <code>commit()</code> อย่าแตะ lazy relationship</strong></p>
+<h3 id="74-132px">7.4 รูปห้องฝั่งแขกถูกบีบเหลือกว้าง 132px</h3>
+<p><code>staff.css</code> มี <code>.shot { aspect-ratio: 3/4 }</code> ซึ่งรั่วไปทับ <code>RoomGallery</code> ที่ใช้ชื่อคลาสเดียวกัน
+วินิจฉัยด้วย Chrome DevTools Protocol <code>CSS.getMatchedStylesForNode</code> (ดูว่ากฎไหนชนะจริง)
+แก้: เปลี่ยนชื่อเป็น <code>.st-shot</code>
+<strong>บทเรียน: CSS ที่ไม่มี scope คือ global — ตั้งชื่อคลาสให้มีคำนำหน้าตามโมดูล</strong></p>
+<h3 id="75-vercel-deploy">7.5 Vercel ไม่ deploy เลยสิบชั่วโมง — เหตุซ้อนกันห้าชั้น</h3>
+<ol>
+<li>CLI ล็อกอินอยู่คนละบัญชี</li>
+<li>รันคำสั่งจากโฟลเดอร์บ้าน ไม่ใช่โฟลเดอร์โปรเจกต์ (พลาดสองครั้ง)</li>
+<li><code>cd</code> ไปโปรไฟล์ Windows อีกอัน</li>
+<li><strong>ตัวจริง: ทุก deployment ขึ้น "Blocked"</strong> เพราะอีเมลผู้เขียนคอมมิต <code>phadungdath@gmail.com</code>
+   แม็ปกับ GitHub <code>electiction</code> แต่โปรเจกต์ Vercel (Hobby) เป็นของ <code>domexxzz</code></li>
+<li>คอมมิตเปล่าถูก Vercel ข้าม</li>
+</ol>
+<p>แก้: <code>git config user.email 304443254+domexxzz@users.noreply.github.com</code>
+และท่าที่ผ่านจริง: <strong>ก๊อปโฟลเดอร์ออกมาโดยไม่เอา <code>.git</code> แล้ว <code>npx vercel --prod</code></strong> (Ready ใน 18 วินาที)
+<strong>บทเรียน: Hobby plan ผูก deployment กับเจ้าของบัญชี ผู้เขียนคอมมิตต้องตรง</strong></p>
+<h3 id="76-discord-webhook-403-error-1010">7.6 Discord webhook 403 error 1010</h3>
+<p>Cloudflare บล็อก User-Agent ของ <code>urllib</code> → ใส่ UA จริงและใช้โดเมน <code>discord.com</code></p>
+<h3 id="77-ascii">7.7 ภาษาไทยในที่ที่ต้องเป็น ASCII</h3>
+<ul>
+<li><code>b"ข้อความไทย"</code> → SyntaxError (bytes literal รับ ASCII เท่านั้น)</li>
+<li>ภาษาไทยใน HTTP header → <code>UnicodeEncodeError</code> (พลาดสองครั้ง — ชื่อ header <code>x-wifi-secret</code> และค่า token)
+<strong>บทเรียน: header กับ bytes literal เป็น ASCII เสมอ</strong></li>
+</ul>
+<h3 id="78-validator">7.8 เลขบัตรประชาชนมั่วในเทส — แล้ว validator จับได้</h3>
+<p>ใส่ <code>1101700207250</code> ในเทส แต่ validator ที่เพิ่งเขียนปฏิเสธ เพราะหลักตรวจสอบไม่ตรง
+คำนวณจากสูตรจริงได้ <code>1101700207251</code>
+<strong>การที่เทสพังคือหลักฐานว่า validator ทำงาน</strong> — สูตร: <code>(11 - Σ d[i]×(13-i) mod 11) mod 10</code></p>
+<h3 id="79-patch-assert">7.9 การ patch แบบไม่มี assert ล้มเงียบ</h3>
+<p>แก้ tuple <code>PERMISSIONS</code> ด้วยการแทนสตริง แต่ช่องว่างไม่ตรง → ไม่มีอะไรเปลี่ยน ไม่มี error
+โผล่ตอนรันเป็น <code>ValueError: ไม่รู้จักสิทธิ์ 'housekeeping'</code>
+<strong>บทเรียน: ทุกสคริปต์ที่แทนข้อความต้อง assert ว่าเจอกี่ครั้ง</strong> — ใช้ทั่วโปรเจกต์แล้ว (<code>def sub(...)</code>)</p>
+<h3 id="710-resub-error">7.10 แถบนำทางหน้านำเสนอเพี้ยนเพราะ <code>re.sub</code> ไม่ error</h3>
+<p>สคริปต์ประกอบเดคหา regex ที่ยังไม่เกิด <code>re.sub</code> คืนข้อความเดิมเฉย ๆ
+ผลคือแถบนำทางมีลิงก์ 12 อันจาก 13 หัวข้อ กด "05" ไปโผล่หัวข้อ 06 <strong>และไม่มีใครรู้</strong>
+แก้: สร้างแถบใหม่ทั้งแถบ + ใช้ <code>re.subn</code> เช็กจำนวนที่แทนได้ + ตรวจซ้ำว่าลิงก์ตรงปลายทาง
+<strong>บทเรียน: <code>re.sub</code> ที่ไม่เช็กผลลัพธ์คือการแก้ที่อาจไม่เกิดขึ้น</strong></p>
+<h3 id="711-windows">7.11 เครื่องมือที่ใช้ไม่ได้บน Windows</h3>
+<ul>
+<li><code>pkill -f "uvicorn pms.app"</code> ไม่ทำงาน → ใช้ PowerShell <code>Get-NetTCPConnection</code> หาพอร์ตแล้ว <code>Stop-Process</code></li>
+<li>heredoc ของ bash แปลง <code>\n</code> เป็นบรรทัดจริง ทำ Python string literal พัง → ใช้เครื่องมือแก้ไฟล์ หรือ <code>chr(10)</code></li>
+<li><code>TestClient.get()</code> ไม่รับ <code>json=</code> → <code>client.request("GET", ..., json=...)</code></li>
+<li>Python บน console นี้ encode <code>·</code> ไม่ได้ → <code>sys.stdout.reconfigure(encoding="utf-8")</code> ทุกสคริปต์</li>
+<li><code>/tmp</code> ใน Bash tool ไม่ใช่ path ที่ Python เห็น → ใช้โฟลเดอร์ scratchpad</li>
+</ul>
+<h3 id="712-windows">7.12 กู้คืนฐานข้อมูลบน Windows</h3>
+<p><code>sqlite3.DatabaseError</code> และ <code>PermissionError</code> หลุดออกมาดิบ ๆ → ห่อเป็น <code>BackupError</code>
+พร้อมข้อความ <strong>"ปิดเซิร์ฟเวอร์ก่อนกู้คืนเสมอ"</strong> และเพิ่ม <code>session.dispose()</code>
+(Windows ไม่ให้เขียนทับไฟล์ที่ยังมีคนเปิด) · ลบ <code>-wal</code>/<code>-shm</code> ที่ค้างด้วย</p>
+<h3 id="713">7.13 เทสที่ทดสอบผิดเรื่อง</h3>
+<p>เทสกู้คืนเดิมลบแถว <code>Booking</code> ตรง ๆ แล้วชน FK IntegrityError — ไม่ใช่ภัยจริง
+เขียนใหม่ให้จำลอง <strong>ไฟล์ฐานข้อมูลหายทั้งไฟล์</strong> ซึ่งคือเรื่องที่เกิดจริง
+<strong>บทเรียน: เทสต้องจำลองภัยที่เกิดจริง ไม่ใช่ภัยที่เขียนง่าย</strong></p>
+<h3 id="714-npm-install-package-lockjson-libc">7.14 <code>npm install</code> เกลี่ย <code>package-lock.json</code> (ลบฟิลด์ <code>libc</code>)</h3>
+<p>→ <code>git checkout -- package-lock.json</code> · อย่าเผลอคอมมิตขึ้นไป</p>
+<h3 id="715-10-2569">7.15 การรวมงานสองสายที่ทับกัน (10 ก.ย. 2569)</h3>
+<p><code>origin/main</code> มี 6 คอมมิตจากอีกเครื่อง ทำ <strong>ทะเบียนผู้พักกับร่องรอยตรวจสอบขึ้นมาเองคนละชุด</strong>
+ชื่อคลาสไม่ชนกัน (<code>GuestRegistration</code>/<code>GuestRegister</code> · <code>AuditLog</code>/<code>AuditEvent</code>)
+git จึงรวม <code>db.py</code> ให้ผ่าน <strong>เหลือทะเบียนสองตารางในไฟล์เดียว — ผ่าน compile แต่ผิดความหมาย</strong></p>
+<p><strong>ตัดสินจากตัวกฎหมาย ไม่ใช่จากว่าใครเขียนก่อน:</strong>
+- เก็บ <code>GuestRegistration</code> (หนึ่งแถวต่อผู้พักหนึ่งคน) · ทิ้ง <code>GuestRegister</code> (หนึ่งแถวต่อการจอง)
+  → ม.35 ลงทะเบียน <strong>ผู้พัก</strong> ไม่ใช่ <strong>ผู้จอง</strong> ห้องที่มีผู้ใหญ่สองคนแบบเดิมลงได้แถวเดียว <strong>แทนไม่ได้เลย</strong>
+- เก็บ <code>AuditEvent</code> · ทิ้ง <code>AuditLog</code> → <code>AuditLog</code> ลง actor เป็น <code>"system"</code> เพราะตอนเขียนยังไม่มีระบบผู้ใช้
+  <code>/audit</code> ยังคืนรูปแบบเดิม (<code>actor</code> · <code>entity_id</code>) หน้าจอฝั่งนั้นจึงไม่ต้องแก้
+- ยกจากฝั่งที่ถูกทิ้งมาใส่: <code>valid_thai_id()</code> · ยามสิทธิ์ทุกเส้นทาง · ร่องรอยที่มีชื่อคนจริง</p>
+<p><strong>ห้าม force-push</strong> ในสถานการณ์นี้ — จะทับงาน ~3,600 บรรทัดของอีกฝั่ง
+ท่าที่ใช้: push งานตัวเองขึ้น branch สำรองก่อน → ลอง merge บน branch ทิ้ง → แก้ conflict → เทสผ่าน → ff main
+<strong>บทเรียน: "merge ผ่าน" ไม่เท่ากับ "รวมถูก" — สองฟีเจอร์ชื่อไม่ชนกันรวมผ่านได้ทั้งที่ทับกัน</strong></p>
+<hr />
+<h2 id="8">8 · กฎที่ต้องไม่ทำลาย</h2>
+<ol>
+<li><strong>เงินเป็นสตางค์จำนวนเต็มเสมอ</strong> ห้าม float แม้แต่ที่เดียว · <code>base + vat == gross</code> ต้องจริงทุกครั้ง
+   เศษที่ปัดตกไปให้ไปอยู่ที่ภาษี</li>
+<li><strong>เวลาผ่าน <code>pms/clock.py</code> เท่านั้น</strong> เวลาไทยคงที่ ห้าม UTC ห้าม <code>datetime.now()</code> ลอย ๆ</li>
+<li><strong>ให้ฐานข้อมูลบังคับกฎ ไม่ใช่โค้ด</strong> — unique constraint &gt; if-else</li>
+<li><strong>เอกสารที่ออกแล้วแก้ไม่ได้</strong> ต้องออกใบลดหนี้/รายการกลับ</li>
+<li><strong><code>seq</code> ออกครั้งเดียว ห้ามสร้างใหม่ตอนส่งซ้ำ</strong></li>
+<li><strong>ห้ามเก็บความลับเป็น plaintext</strong> เก็บได้แต่ hash (scrypt)</li>
+<li><strong>โหมด live: เซิร์ฟเวอร์เป็นความจริง</strong> ไม่มี optimistic update</li>
+<li><strong>ทุกเส้นทาง API ต้องมียาม</strong> เพิ่มเส้นทางใหม่ต้องใส่ <code>Depends(require(...))</code></li>
+<li><strong>log Wi-Fi ห้ามเก็บน้อยกว่า 90 วัน</strong> โค้ดปฏิเสธไว้แล้ว อย่าไปปลด</li>
+<li><strong>สคริปต์แก้ไฟล์ต้อง assert ว่าเจอเป้าหมายกี่ครั้ง</strong></li>
+</ol>
+<hr />
+<h2 id="9-artifact">9 · หน้านำเสนอลูกค้า (artifact)</h2>
+<p><strong>ลิงก์:</strong> https://claude.ai/code/artifact/224ce2fd-7a54-4bf9-ae3f-798ee79600ba
+<strong>14 กลุ่มงาน · 83 ฟังก์ชัน · 8 ตัวอย่างกดเล่นได้ · ภาพหน้าจอจริง 14 รูป · ไฟล์เดียว 2.12 MB</strong></p>
+<p>เปิดลิงก์แล้วเลื่อนลงพรีเซนต์ได้เลย ไม่ต้องติดตั้งอะไร
+<strong>นำเสนอทุกฟังก์ชันเป็นความสามารถของระบบ ไม่ระบุว่าอะไรยังไม่เสร็จ</strong> (ตามที่เจ้าของโปรเจกต์กำหนด)</p>
+<p>ประกอบจากไฟล์ย่อยด้วยสคริปต์สามรอบ (อยู่ในโฟลเดอร์ scratchpad ของ session — <strong>ไม่ได้เก็บใน repo</strong>):
+<code>deck.template.html</code> + <code>parts/*</code> → <code>assemble.py</code> → <code>deck.stage1.html</code> → <code>assemble2.py</code> → <code>assemble3.py</code> → <code>sentiara-functions.html</code></p>
+<blockquote>
+<p><strong>ถ้าจะแก้เดคต่อ:</strong> ไฟล์ประกอบไม่ได้อยู่ใน git ถ้าหาไม่เจอให้เริ่มจากอ่าน artifact กลับมา
+(<code>Artifact</code> action <code>read</code> ด้วย URL ข้างบน) แล้วแก้ HTML ตรง ๆ · เวลาแก้ให้ตรวจสามอย่างเสมอ:
+เลขหัวข้อตรงกับ id · ลิงก์นำทางตรงปลายทาง · ผลรวมตัวเลขที่โฆษณาตรงกับที่นับได้จริง</p>
+</blockquote>
+<p>เดโมที่ deploy แล้ว: <code>sentiara-guest-demo.vercel.app</code> · <code>sentiara-3d-site.vercel.app</code></p>
+<hr />
+<h2 id="10">10 · สถานะและงานถัดไป</h2>
+<h3 id="_4">เสร็จแล้วและมีเทสคุม</h3>
+<p>จอง · บิล · ใบกำกับภาษี · ใบลดหนี้ · ผู้ใช้และสิทธิ์ · ทะเบียนผู้พัก · ตม.30 · งานแม่บ้าน ·
+Wi-Fi · คิวส่งบัญชี · รายจ่าย+ภาษีหัก ณ ที่จ่าย · สำรอง/กู้คืน · แพ็กเป็น .exe · หน้าจอ 5 มุมมอง</p>
+<h3 id="_5">ยังไม่จริง (บอกลูกค้าตรง ๆ ได้ แต่อย่าโฆษณาว่าเสร็จ)</h3>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>เรื่อง</th>
+<th>ติดอะไร</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>กฎลงบัญชีฝั่ง Ledger Bridge</td>
+<td>ต้องคุยกับทีมเขา · ยังไม่ได้ตั้ง</td>
+</tr>
+<tr>
+<td>ต่อ OTA จริง (Agoda/Booking/Traveloka)</td>
+<td>ต้องมีสัญญากับ OTA ก่อน</td>
+</tr>
+<tr>
+<td>ยื่น ตม.30 เข้าระบบ ตม. อัตโนมัติ</td>
+<td>ต้องต่อระบบสำนักงานตรวจคนเข้าเมือง (ตอนนี้บันทึกเลขรับเท่านั้น)</td>
+</tr>
+<tr>
+<td>ส่ง ร.ร.4 ให้นายทะเบียน</td>
+<td>ยังเป็นการบันทึกในเครื่อง</td>
+</tr>
+<tr>
+<td>ภ.ง.ด.3 / ภ.ง.ด.53</td>
+<td>หักแล้ว แต่ยังไม่ออกแบบยื่น</td>
+</tr>
+<tr>
+<td>กลอนประตู NFC</td>
+<td>รอฮาร์ดแวร์จริง</td>
+</tr>
+<tr>
+<td>Wi-Fi กับอุปกรณ์จริง</td>
+<td>ยังไม่ได้ทดสอบกับ Mikrotik/UniFi ตัวจริง</td>
+</tr>
+<tr>
+<td>แชท · ใบแจ้งซ่อม · สะสมแต้ม · ตั้งค่า · ChivaGo</td>
+<td>มีในเดโม ยังไม่ต่อหลังบ้านในโหมด live</td>
+</tr>
+<tr>
+<td>ค่าคอมมิชชัน OTA</td>
+<td>ยังไม่สร้าง <code>Expense</code> อัตโนมัติเมื่อ <code>source="ota"</code></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="_6">งานถัดไปที่แนะนำ ตามลำดับผลกระทบ</h3>
+<ol>
+<li><strong>ทดสอบ Wi-Fi กับอุปกรณ์จริงตัวเดียว</strong> (Mikrotik ถูกสุด) — จุดขายที่แข็งสุดแต่ยังไม่มีหลักฐาน</li>
+<li><strong>นัดคุย posting rules กับทีม Ledger Bridge</strong> — บล็อกการใช้งานบัญชีจริงทั้งก้อน</li>
+<li><strong>ต่อ ChivaGo เข้าหลังบ้าน</strong> — เป็นของตัวเองอยู่แล้ว (https://chivago.fly.dev/) ไม่ต้องรอใคร</li>
+<li>ต่อแชท/ใบแจ้งซ่อม/ตั้งค่าให้ทำงานในโหมด live</li>
+<li>สร้าง <code>Expense</code> ค่าคอมมิชชัน OTA อัตโนมัติ</li>
+</ol>
+<hr />
+<h2 id="11">11 · สภาพแวดล้อมเครื่องนี้ (จุดที่เคยทำให้เสียเวลา)</h2>
+<ul>
+<li>Windows 11 · PowerShell เป็นหลัก · Bash tool ใช้ POSIX (คนละไวยากรณ์ อย่าปนกัน)</li>
+<li>Python 3.13 · Node + npm · Chrome ที่ <code>C:\Program Files\Google\Chrome\Application\chrome.exe</code>
+  (ใช้กับ puppeteer-core ถ่ายภาพหน้าจอและ E2E)</li>
+<li>git ต้องเซ็นเป็น <code>304443254+domexxzz@users.noreply.github.com</code> ไม่งั้น Vercel บล็อก (ดู 7.5)</li>
+<li><strong>Hermes</strong> = ระบบความจำท้องถิ่น รัน native บน Windows พอร์ต <strong>8770</strong>
+  <code>curl http://localhost:8770/health</code> · ถ้าไม่ตอบ <code>schtasks /run /tn SentiaraHermes</code>
+  ค้น: <code>curl "http://localhost:8770/memory/recall?q=Sentiara&amp;limit=30"</code>
+  ดูคู่มือ: <code>C:\Users\User\hermes_native_note.md</code></li>
+<li>repo: <code>https://github.com/domexxzz/sentiara-hotel-demo</code></li>
+</ul>
+<hr />
+<h2 id="12-23">12 · ประวัติคอมมิต 23 ตัว (ใหม่ → เก่า)</h2>
+<pre><code>9ef1518  merge: รวมงานสองสาย — ทะเบียนผู้พักเก็บฉบับหนึ่งแถวต่อผู้พักหนึ่งคน
+8bf1d3e  feat: Wi-Fi ที่พัก — ชั้นที่ตอบว่า &quot;session นี้คือใคร&quot; ตาม ม.26
+f3d51ea  feat: สำรองข้อมูล กู้คืน และแพ็กเป็นโปรแกรมติดตั้งได้
+0ea8315  feat: ใบลดหนี้ ม.86/10 — ปลดล็อก ADJ ที่เขียนไว้แต่ไม่มีใครเรียก
+154db4c  feat: ทะเบียนผู้พัก ร.ร.3/ร.ร.4 และการแจ้ง ตม.30 ในหลังบ้าน
+9eaf1bc  feat: งานแม่บ้านและสถานะห้องในหลังบ้าน
+1e67d6d  feat: หน้าจอต่อหลังบ้านจริงได้แล้ว — บิลด์เดียว สองโหมด
+75433a8  feat: ยืนยันตัวตนและสิทธิ์ที่ API — ปลดบล็อกข้อที่ค้างมาตลอด
+885dfc2  feat: ทีมงาน คลังของใช้ ร่องรอยตรวจสอบ และระบบแจ้งเหตุเพลิงไหม้   [อีกเครื่อง]
+621a19c  feat: จอความปลอดภัยและงานกฎหมาย                                 [อีกเครื่อง]
+ef86eaf  feat: จอ ChivaGo ในเดโม                                          [อีกเครื่อง]
+5a9835d  feat: จอระบบบัญชีคู่ในเดโม                                        [อีกเครื่อง]
+e3bb10e  feat: ทะเบียนผู้พัก · ร่องรอยตรวจสอบ · ภาษีหัก ณ ที่จ่าย          [อีกเครื่อง]
+7cb2653  chore: กันชุดทดสอบ Ledger Bridge ไม่ให้ขึ้น git                   [อีกเครื่อง]
+8bda98e  chore: เซ็นคอมมิตเป็นบัญชีเจ้าของโปรเจ็ค Vercel เพื่อปลดบล็อก
+d72cb22  fix: รูปห้องฝั่งแขกถูกบีบเหลือกว้าง 132px เพราะชื่อคลาสชนกัน
+9e0ecc2  feat: หมวดรายจ่ายฝั่งหน้าจอ แตกให้ตรงกับผังบัญชีจริง
+9db74cd  feat: ต่อระบบบัญชีจริง — ส่งเหตุการณ์เข้า Ledger Bridge
+23f39aa  docs: บอกให้ชัดว่าที่อยู่ Ledger Bridge ยังเป็นค่าสมมุติ
+d2446fb  chore: requirements.txt สำหรับย้ายไปรันเครื่องอื่น
+</code></pre>
+<hr />
+<h2 id="13-ai">13 · ถ้าคุณคือ AI ที่มารับงานต่อ</h2>
+<ol>
+<li><code>cd server &amp;&amp; python -m pytest -q</code> ให้ได้ <strong>186 passed</strong> ก่อนแตะอะไร — นี่คือเส้นฐาน</li>
+<li>อ่าน <code>server/README.md</code> ต่อจากไฟล์นี้</li>
+<li>อ่านข้อ 4 (Ledger Bridge) และข้อ 8 (กฎที่ต้องไม่ทำลาย) ให้จบก่อนเขียนโค้ดที่แตะเงินหรือเอกสารภาษี</li>
+<li>เอกสารและคอมเมนต์ในโปรเจกต์นี้เป็น <strong>ภาษาไทย</strong> และอธิบาย <em>ทำไม</em> ไม่ใช่ <em>ทำอะไร</em> — เขียนต่อในแนวเดียวกัน</li>
+<li>เจ้าของโปรเจกต์สื่อสารเป็นไทย ตอบสั้น ตรงประเด็น มีข้อเสนอแนะที่ชัด ไม่ใช่รายการตัวเลือก</li>
+<li>อย่ารายงานว่าเสร็จถ้ายังไม่ได้รัน · อย่าบอกว่าผ่านถ้าไม่ได้เห็นผลลัพธ์</li>
+</ol>
+    </div>
+  </main>
+</div>
+<button id="top" type="button">ขึ้นบนสุด</button>
+<script>
+// สารบัญเน้นหัวข้อที่กำลังอ่าน + แถบความคืบหน้า
+(function () {
+  var links = [].slice.call(document.querySelectorAll('aside nav a'));
+  var heads = links.map(function (a) { return document.getElementById(a.hash.slice(1)); });
+  var bar = document.getElementById('bar');
+  var top = document.getElementById('top');
+
+  function paint() {
+    var y = window.scrollY;
+    var h = document.documentElement.scrollHeight - window.innerHeight;
+    bar.style.width = (h > 0 ? Math.min(100, (y / h) * 100) : 0) + '%';
+    top.classList.toggle('show', y > 700);
+
+    var cur = 0;
+    for (var i = 0; i < heads.length; i++) {
+      if (heads[i] && heads[i].getBoundingClientRect().top <= 90) cur = i;
+    }
+    links.forEach(function (a, i) { a.classList.toggle('on', i === cur); });
+  }
+
+  addEventListener('scroll', paint, { passive: true });
+  addEventListener('resize', paint);
+  top.addEventListener('click', function () { scrollTo({ top: 0, behavior: 'smooth' }); });
+  paint();
+})();
+</script>
+</body>
+</html>

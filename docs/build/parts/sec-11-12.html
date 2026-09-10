@@ -1,0 +1,147 @@
+  <!-- ══ 11 ══════════════════════════════════════════════════ -->
+  <section class="grp" id="g11">
+    <div class="head">
+      <span class="n">11</span>
+      <span class="u">Channels &amp; Messaging</span>
+      <h2>เชื่อมช่องทางจองออนไลน์ และแชทรวม</h2>
+      <p class="lead">
+        ค่านายหน้าคือรายจ่ายก้อนที่ใหญ่ที่สุดที่โรงแรมมองไม่เห็นเป็นก้อนเดียว —
+        ระบบนี้ทำสองอย่างพร้อมกัน ขายผ่านทุกช่องทางโดยไม่ขายซ้ำ และค่อย ๆ ดึงคนกลับมาจองตรง
+      </p>
+      <span class="tally">8 ฟังก์ชัน</span>
+    </div>
+
+    <div class="play" id="p-chan">
+      <header>
+        <span class="tag">ลองกดเล่น</span>
+        <h3>แก้ราคาที่เดียว ส่งออกทุกช่องทางพร้อมกัน</h3>
+      </header>
+      <p class="hint">
+        เปลี่ยนราคาหรือจำนวนห้องแล้วกดส่ง — ทุกช่องทางได้ราคาเดียวกันในครั้งเดียว
+        และตัวเลขขวาสุดคือ <b>เงินที่เข้ากระเป๋าโรงแรมจริง</b> หลังหักค่านายหน้าของช่องทางนั้น
+      </p>
+
+      <div class="row" style="margin-bottom:10px">
+        <span style="font-size:.85rem;color:var(--muted)">ราคาที่ประกาศ</span>
+        <button type="button" data-cprice="1650" aria-pressed="true">฿1,650</button>
+        <button type="button" data-cprice="1980">฿1,980</button>
+        <button type="button" data-cprice="2400">฿2,400</button>
+      </div>
+      <div class="row">
+        <button type="button" class="go" data-push>ส่งราคาใหม่ไปทุกช่องทาง</button>
+        <button type="button" data-sell>มีคนจอง 1 ห้องผ่าน Agoda</button>
+        <button type="button" data-creset>เริ่มใหม่</button>
+      </div>
+
+      <div class="chan" id="chanList"></div>
+      <div class="say" id="chanSay">ห้องว่างคืนนี้ 8 ห้อง · กดส่งราคาเพื่อดูว่าเกิดอะไรขึ้น</div>
+    </div>
+
+    <div class="play" id="p-guard">
+      <header>
+        <span class="tag">ลองกดเล่น</span>
+        <h3>ด่านสี่ชั้นก่อนบอทตอบแขก</h3>
+      </header>
+      <p class="hint">
+        โรงแรมเสี่ยงสองอย่างเวลาปล่อยบอทคุยกับแขก — <b>ตอบราคาผิด</b> คือข้อผูกพันที่ต้องรับผิดชอบ
+        และ <b>ตอบว่าว่างผิด</b> คือห้องถูกจองซ้ำ · เลือกข้อความดูว่าด่านไหนจับได้
+      </p>
+      <div class="row" id="msgPick"></div>
+
+      <div class="draft" id="guardIn"></div>
+      <div class="draft" id="guardDraft"></div>
+      <div class="gates" id="guardGates"></div>
+      <div class="say" id="guardSay"></div>
+    </div>
+
+    <ul class="fn">
+      <li><span class="en">Channel Manager</span><h3>ซิงก์ห้องว่างและราคา</h3>
+        <p>Agoda · Booking.com · Traveloka · Expedia · Airbnb · Trip.com — แก้ที่เดียวส่งออกพร้อมกัน</p></li>
+      <li><span class="en">Instant Sync</span><h3>จองเข้ามาปิดขายทุกที่ทันที</h3>
+        <p>ห้องที่ขายไปแล้วหายจากทุกช่องทางในวินาทีเดียวกัน ไม่ต้องรอรอบซิงก์</p></li>
+      <li><span class="en">Rate Parity</span><h3>ราคาตรงกันทุกช่องทาง</h3>
+        <p>เตือนทันทีเมื่อราคาบนช่องทางไหนหลุดจากที่ตั้งไว้ — ผิดสัญญากับ OTA แล้วโดนลดอันดับ</p></li>
+      <li><span class="en">Commission Tracking</span><h3>ค่านายหน้าเข้ารายจ่ายเอง</h3>
+        <p>จองผ่านช่องทางไหน ค่าคอมของช่องทางนั้นลงหมวดรายจ่ายอัตโนมัติ ไม่ต้องมานั่งกระทบยอด</p></li>
+      <li><span class="en">Direct Booking Engine</span><h3>หน้าจองตรงบนเว็บโรงแรม</h3>
+        <p>ปฏิทินและราคาชุดเดียวกับที่ส่งให้ OTA แต่ไม่เสียค่านายหน้าแม้แต่บาทเดียว</p></li>
+      <li><span class="en">Unified Inbox</span><h3>แชทรวมทุกช่องทาง</h3>
+        <p>LINE · Messenger · แชทของ Agoda และ Booking.com · เว็บไซต์ — มาจอเดียว รู้ว่าคุยกับแขกห้องไหน</p></li>
+      <li><span class="en">Reply Guard</span><h3>ด่านกรองก่อนตอบอัตโนมัติ</h3>
+        <p>ตรวจคำตอบกับปฏิทินและเรตจริงก่อนส่ง เรื่องที่ต้องให้คนตอบส่งต่อพร้อมเหตุผล</p></li>
+      <li><span class="en">Review Sync</span><h3>รีวิวจากทุกช่องทางที่เดียว</h3>
+        <p>คะแนนและความเห็นจากทุกแพลตฟอร์มมารวมกัน ตอบกลับได้จากจอเดียว</p></li>
+    </ul>
+  </section>
+
+  <!-- ══ 12 ══════════════════════════════════════════════════ -->
+  <section class="grp" id="g12">
+    <div class="head">
+      <span class="n">12</span>
+      <span class="u">ChivaGo · Verified Privilege</span>
+      <h2>สิทธิพิเศษที่ตรวจสอบได้</h2>
+      <p class="lead">
+        แอปของเราเอง ต่อเข้ากับ PMS โดยตรง — เปลี่ยนแต้มสะสมจากตัวเลขที่ใครก็แจกได้
+        ให้เป็นหลักฐานที่บุคคลที่สามตรวจย้อนได้ และเป็นเหตุผลให้แขกกลับมาจองตรง
+      </p>
+      <span class="tally">6 ฟังก์ชัน</span>
+    </div>
+
+    <div class="withphone">
+      <figure class="shot">
+        <img src="{{IMG:chiva-2}}" alt="แอป ChivaGo แสดงคะแนนสุขภาพของพื้นที่ สถานที่ที่วัดค่าจริง และกิจกรรมประจำวัน">
+      </figure>
+      <div class="say2">
+        <h3>แต้มจะมีค่าก็ต่อเมื่อมีคนต้องตรวจ</h3>
+        <p>
+          ตัวเลขความยั่งยืนที่โรงแรมยื่นทุกวันนี้ — HCMI, CHSB, CF-Hotels — โรงแรม
+          <b>กรอกเอง</b>ทั้งหมด ไม่มีอันไหนพิสูจน์ให้คนนอกเห็นได้ว่ามีเรื่องหนึ่งเกิดขึ้นจริง
+          ในวันหนึ่ง โดยมีคนชื่อจริงยืนยัน
+        </p>
+        <p>
+          ChivaGo ผลิตสิ่งนั้นให้ — กิจกรรมที่ <b>โฮสต์ชื่อจริงอนุมัติ</b> ภายในพื้นที่จริง
+          ในวันที่ระบุ ออกมาเป็นใบรับรองที่ใครก็ตรวจได้ แล้วแนบไปกับรายงานที่โรงแรมยื่นอยู่แล้ว
+        </p>
+      </div>
+    </div>
+
+    <div class="play" id="p-chiva">
+      <header>
+        <span class="tag">ลองกดเล่น</span>
+        <h3>Green Points กับ Trip Points ต่างกันตรงไหน</h3>
+      </header>
+      <p class="hint">
+        ลองทำกิจกรรมทั้งสองแบบ แล้วดูว่าแต้มลงคนละช่อง —
+        และ <b>ไม่มีทางปนกันได้</b> เพราะแยกกันตั้งแต่ในสมุดบัญชีแต้ม ไม่ใช่แค่แยกสีบนหน้าจอ
+      </p>
+
+      <div class="wallet">
+        <div class="green"><span class="k">Green · โฮสต์ยืนยันแล้ว</span><b id="wG">1,850</b><span class="note">ใช้เป็นหลักฐานในรายงานได้</span></div>
+        <div class="trip"><span class="k">Trip · ยืนยันเอง</span><b id="wT">790</b><span class="note">ใช้แลกของรางวัลได้ แต่เป็นหลักฐานไม่ได้</span></div>
+      </div>
+
+      <div class="row" style="margin-top:14px">
+        <button type="button" data-act="self">เดินเล่นเอง แล้วเช็กอินด้วยตัวเอง</button>
+        <button type="button" class="go" data-act="host">ร่วมกิจกรรมฟื้นป่าชายเลน</button>
+        <button type="button" data-act="stmt">ออกใบรับรองให้โรงแรม</button>
+        <button type="button" data-act="reset">เริ่มใหม่</button>
+      </div>
+      <div class="say" id="chivaSay">กดปุ่มซ้ายกับปุ่มแดงเทียบกัน แล้วดูว่าแต้มลงคนละช่องกัน</div>
+      <div class="stmt" id="chivaStmt" hidden></div>
+    </div>
+
+    <ul class="fn">
+      <li><span class="en">Green Points</span><h3>แต้มที่โฮสต์ยืนยันแล้ว</h3>
+        <p>ต้องอยู่ในพื้นที่จริง ถ่ายรูปที่มีพิกัดติดมา แล้วโฮสต์ชื่อจริงกดอนุมัติ ถึงจะได้</p></li>
+      <li><span class="en">Trip Points</span><h3>แต้มที่ยืนยันเอง</h3>
+        <p>ได้ง่ายกว่า ใช้แลกของรางวัลได้ แต่ห้ามแสดงผลให้ดูเหมือนแต้มที่ผ่านการตรวจ</p></li>
+      <li><span class="en">Host Console</span><h3>จอสำหรับโฮสต์อนุมัติ</h3>
+        <p>คิวงานรอตรวจขึ้นบนมือถือโฮสต์ กดอนุมัติหรือปฏิเสธพร้อมเหตุผล จ่ายแต้มครั้งเดียวเสมอ</p></li>
+      <li><span class="en">Immutable Statement</span><h3>ใบรับรองที่แก้ไม่ได้</h3>
+        <p>ออกเป็นไฟล์พร้อมรหัสตรวจสอบและลิงก์ยืนยัน · แก้แล้วรหัสไม่ตรง ระบบปฏิเสธการอ่าน</p></li>
+      <li><span class="en">ESG &amp; Sponsor Report</span><h3>รายงานให้ผู้สนับสนุน</h3>
+        <p>นับคนที่มาจริง ไม่นับการมองเห็นหรือมูลค่าประเมิน — คนหนึ่งทำสามกิจกรรมคือหนึ่งคน</p></li>
+      <li><span class="en">B2B Partner Network</span><h3>เครือข่ายสิทธิพิเศษข้ามธุรกิจ</h3>
+        <p>โรงแรม ร้านอาหาร และผู้ให้บริการในพื้นที่เดียวกันแลกสิทธิ์กันได้ — แขกของคุณกลายเป็นลูกค้าประจำของย่าน</p></li>
+    </ul>
+  </section>

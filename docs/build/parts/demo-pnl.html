@@ -1,0 +1,45 @@
+    <div class="play" id="p-pnl">
+      <header>
+        <span class="tag">ลองกดเล่น</span>
+        <h3>ขายกี่ห้องต่อคืนถึงจะไม่ขาดทุน</h3>
+      </header>
+      <p class="hint">
+        คำถามที่เจ้าของซื้อระบบมาเพื่อตอบ แต่ตอบไม่ได้ถ้ารายได้กับรายจ่ายอยู่คนละโปรแกรม —
+        ปรับตัวเลขแล้วดูกำไรกับ<b>จุดคุ้มทุน</b>ขยับตามทันที · โรงแรม 43 ห้อง คิดเป็นรอบ 30 คืน
+      </p>
+
+      <div class="dials">
+        <div>
+          <span class="k">ขายได้เฉลี่ยต่อคืน</span>
+          <div class="row">
+            <button type="button" data-occ="20">20 ห้อง</button>
+            <button type="button" data-occ="28" aria-pressed="true">28 ห้อง</button>
+            <button type="button" data-occ="35">35 ห้อง</button>
+          </div>
+        </div>
+        <div>
+          <span class="k">ราคาห้องเฉลี่ย (ADR)</span>
+          <div class="row">
+            <button type="button" data-adr="1200">฿1,200</button>
+            <button type="button" data-adr="1343" aria-pressed="true">฿1,343</button>
+            <button type="button" data-adr="1700">฿1,700</button>
+          </div>
+        </div>
+        <div>
+          <span class="k">สัดส่วนจองตรง</span>
+          <div class="row">
+            <button type="button" data-dir="10">10%</button>
+            <button type="button" data-dir="26" aria-pressed="true">26%</button>
+            <button type="button" data-dir="50">50%</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="pnl" id="pnlCards"></div>
+      <div class="bar2" id="pnlBar"><i class="cost" style="width:70%"></i><i class="prof" style="width:30%"></i></div>
+      <div class="bar2key">
+        <span><i class="cost" style="background:var(--red)"></i>รายจ่าย</span>
+        <span><i class="prof" style="background:var(--green)"></i>กำไรก่อนภาษีและค่าเสื่อม</span>
+      </div>
+      <div class="say good" id="pnlSay"></div>
+    </div>

@@ -1,0 +1,10 @@
+# ของที่เกิดจากการประกอบ — ผลลัพธ์จริงคือ ../presentation.html ที่ commit ไว้แล้ว
+deck.stage1.html
+sentiara-functions.html
+
+# ภาพที่ check-deck.mjs ถ่ายไว้ดูตอนตรวจ
+_shot-*.jpg
+
+# puppeteer-core ลงเฉพาะเวลาจะตรวจ
+node_modules/
+package-lock.json

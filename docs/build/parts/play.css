@@ -1,0 +1,144 @@
+/* ── ตัวอย่างที่กดเล่นได้ ─────────────────────────────────────
+   ใช้ขอบหนาสีหมึกแยกจากส่วนอื่นโดยตั้งใจ — ภาพหน้าจอใช้เส้นบางกับเงา
+   รายการฟังก์ชันใช้เส้นบาง ส่วนอันนี้คือของที่ "กดได้" จึงต้องดูต่างจริง
+   ไม่ใช่แค่การ์ดอีกใบที่หน้าตาเหมือนกันหมด                            */
+.play {
+  border: 1.5px solid var(--ink); background: var(--paper);
+  margin: 0 0 22px; padding: clamp(16px, 2.6vw, 24px);
+}
+.play > header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 12px; margin-bottom: 4px; }
+.play > header .tag {
+  font-family: var(--display); font-size: .64rem; font-weight: 700;
+  letter-spacing: .12em; text-transform: uppercase;
+  background: var(--ink); color: var(--paper); padding: 3px 8px; flex: 0 0 auto;
+}
+.play > header h3 { font-size: 1.08rem; font-weight: 800; }
+.play > .hint { margin: 0 0 16px; font-size: .89rem; color: var(--muted); max-width: 64ch; }
+
+.play button {
+  font-family: var(--body); font-size: .88rem; font-weight: 600;
+  padding: 7px 13px; background: var(--paper); color: var(--ink);
+  border: 1px solid var(--line); cursor: pointer;
+  transition: background .13s, border-color .13s, color .13s;
+}
+.play button:hover:not(:disabled) { border-color: var(--ink); background: var(--cream); }
+.play button[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+.play button.go { background: var(--red); border-color: var(--red); color: var(--paper); }
+.play button.go:hover:not(:disabled) { background: var(--red-bright); border-color: var(--red-bright); }
+.play button:disabled { opacity: .45; cursor: default; }
+.play .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.play .say {
+  margin: 14px 0 0; padding: 11px 14px; font-size: .89rem; line-height: 1.6;
+  border-left: 3px solid var(--line); background: var(--cream); min-height: 44px;
+}
+.play .say.bad { border-left-color: var(--red); background: #fdeeea; }
+.play .say.good { border-left-color: var(--green); background: #e7f1eb; }
+.play .say b { font-weight: 700; }
+
+/* ปฏิทินกันจองซ้ำ */
+.cal { overflow-x: auto; margin-top: 6px; }
+.cal table { border-collapse: collapse; font-size: .8rem; min-width: 520px; width: 100%; }
+.cal th, .cal td { border: 1px solid var(--line); padding: 0; text-align: center; }
+.cal thead th {
+  font-family: var(--display); font-weight: 600; font-size: .7rem; color: var(--muted);
+  padding: 5px 4px; background: var(--cream); font-variant-numeric: tabular-nums;
+}
+.cal thead th.we { color: var(--red); }
+.cal tbody th {
+  font-family: var(--display); font-weight: 700; font-size: .78rem;
+  padding: 6px 10px; background: var(--cream); text-align: left; white-space: nowrap;
+}
+.cal td button {
+  width: 100%; border: 0; padding: 9px 2px; background: transparent;
+  font-size: .68rem; font-weight: 600; color: var(--muted); display: block;
+}
+.cal td button:hover:not(:disabled) { background: var(--cream-deep); border: 0; }
+.cal td.taken { background: #f1ded9; }
+.cal td.taken button { color: var(--red); cursor: not-allowed; }
+.cal td.mine { background: var(--green); }
+.cal td.mine button { color: #fff; }
+.cal td.bump { animation: bump .32s; }
+@keyframes bump { 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }
+
+/* ตารางตัวเลข */
+.tbl { width: 100%; border-collapse: collapse; font-size: .87rem; margin-top: 6px; }
+.tbl th, .tbl td { padding: 7px 10px; border-bottom: 1px solid var(--line); text-align: left; }
+.tbl th {
+  font-family: var(--display); font-size: .68rem; font-weight: 600;
+  letter-spacing: .08em; text-transform: uppercase; color: var(--muted);
+}
+.tbl td.num, .tbl th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.tbl tr.sum td { border-top: 1.5px solid var(--ink); border-bottom: 0; font-weight: 700; }
+.tbl .we { color: var(--red); font-size: .76rem; }
+
+/* ช่องทางขาย */
+.chan { display: grid; gap: 1px; margin-top: 6px; }
+.chan > div {
+  display: grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: center;
+  padding: 9px 12px; background: var(--paper); box-shadow: 0 0 0 1px var(--line);
+  font-size: .88rem;
+}
+.chan .nm { font-weight: 600; display: flex; align-items: center; gap: 9px; min-width: 0; }
+.chan .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--line); flex: 0 0 auto; transition: background .2s; }
+.chan .dot.on { background: var(--green); }
+.chan .fee { font-size: .78rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.chan .amt { font-family: var(--display); font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.chan > div.direct { box-shadow: 0 0 0 1.5px var(--green); }
+.chan > div.direct .amt { color: var(--green); }
+
+/* ด่านกรองสี่ชั้น */
+.gates { display: grid; gap: 1px; margin-top: 12px; }
+.gates > div {
+  display: grid; grid-template-columns: 26px 1fr auto; gap: 11px; align-items: start;
+  padding: 9px 12px; background: var(--paper); box-shadow: 0 0 0 1px var(--line); font-size: .87rem;
+}
+.gates .g {
+  font-family: var(--display); font-weight: 700; font-size: .72rem;
+  color: var(--muted); font-variant-numeric: tabular-nums; padding-top: 1px;
+}
+.gates .nm { font-weight: 600; }
+.gates .why { display: block; font-size: .82rem; color: var(--muted); margin-top: 1px; }
+.gates .vd { font-family: var(--display); font-weight: 700; font-size: .68rem; letter-spacing: .06em; white-space: nowrap; }
+.gates > div.pass .vd { color: var(--green); }
+.gates > div.fail { box-shadow: 0 0 0 1.5px var(--red); }
+.gates > div.fail .vd { color: var(--red); }
+.gates > div.idle { opacity: .42; }
+.draft {
+  margin-top: 12px; padding: 11px 14px; background: var(--cream);
+  border-left: 3px solid var(--ink); font-size: .9rem;
+}
+.draft .lab {
+  font-family: var(--display); font-size: .64rem; font-weight: 700;
+  letter-spacing: .11em; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 2px;
+}
+
+/* กระเป๋าแต้ม ChivaGo */
+.wallet { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; margin-top: 6px; }
+.wallet > div { padding: 13px 16px; background: var(--paper); box-shadow: 0 0 0 1px var(--line); }
+.wallet .k {
+  font-family: var(--display); font-size: .64rem; font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--muted);
+}
+.wallet b {
+  font-family: var(--display); font-size: 1.9rem; font-weight: 800;
+  display: block; line-height: 1.15; font-variant-numeric: tabular-nums;
+  transition: color .2s;
+}
+.wallet .green b { color: var(--green); }
+.wallet .trip b { color: #96650c; }
+.wallet .note { font-size: .78rem; color: var(--muted); }
+.stmt {
+  margin-top: 12px; padding: 12px 14px; background: var(--ink); color: var(--cream);
+  font-size: .82rem; line-height: 1.7; word-break: break-all;
+}
+.stmt .lab {
+  font-family: var(--display); font-size: .64rem; font-weight: 700;
+  letter-spacing: .11em; text-transform: uppercase; color: #b9a99e; display: block;
+}
+.stmt code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: #ffb9a6; }
+
+@media (max-width: 560px) {
+  .chan > div { grid-template-columns: 1fr auto; }
+  .chan .fee { grid-column: 1; }
+  .wallet { grid-template-columns: 1fr; }
+}

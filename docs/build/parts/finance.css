@@ -1,0 +1,87 @@
+/* ── สมุดบัญชีคู่ · ใบสำคัญ ────────────────────────────────────
+   ตารางเดบิต/เครดิตเป็นเอกสารบัญชี ไม่ใช่การ์ด — จัดแบบสมุดจริง
+   หัวคอลัมน์บาง ตัวเลขชิดขวา และมีเส้นปิดยอดที่ท้ายเสมอ            */
+.steps-fin { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 4px; }
+.steps-fin button { position: relative; padding-left: 26px; }
+.steps-fin button::before {
+  content: attr(data-s); position: absolute; left: 8px; top: 50%; transform: translateY(-50%);
+  font-family: var(--display); font-size: .68rem; font-weight: 700; color: var(--muted);
+}
+.steps-fin button.done { border-color: var(--green); }
+.steps-fin button.done::before { content: "✓"; color: var(--green); }
+.steps-fin button[aria-pressed="true"]::before { color: var(--paper); }
+
+.folio {
+  margin-top: 14px; background: var(--cream); padding: 13px 16px;
+  border-left: 3px solid var(--ink);
+}
+.folio .lab {
+  font-family: var(--display); font-size: .64rem; font-weight: 700;
+  letter-spacing: .11em; text-transform: uppercase; color: var(--muted);
+  display: block; margin-bottom: 5px;
+}
+.folio table { width: 100%; border-collapse: collapse; font-size: .86rem; }
+.folio td { padding: 3px 0; }
+.folio td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.folio tr.tot td { border-top: 1px solid var(--line); font-weight: 700; padding-top: 6px; }
+.folio tr.due td { color: var(--red); font-weight: 700; }
+
+.jv { margin-top: 14px; }
+.jv + .jv { margin-top: 10px; }
+.jv > .hd {
+  display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline;
+  padding: 7px 12px; background: var(--ink); color: var(--cream);
+}
+.jv > .hd .kind {
+  font-family: var(--display); font-size: .64rem; font-weight: 700;
+  letter-spacing: .1em; background: var(--red-bright); color: #fff; padding: 2px 7px;
+}
+.jv > .hd .ttl { font-weight: 600; font-size: .88rem; flex: 1 1 auto; }
+.jv > .hd .meta {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .72rem; color: #c9b8ad;
+}
+.jv table { width: 100%; border-collapse: collapse; font-size: .85rem; background: var(--paper); }
+.jv th, .jv td { padding: 6px 12px; border-bottom: 1px solid var(--line); text-align: left; }
+.jv th {
+  font-family: var(--display); font-size: .64rem; font-weight: 600;
+  letter-spacing: .08em; text-transform: uppercase; color: var(--muted);
+}
+.jv td.num, .jv th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.jv td.acc { font-variant-numeric: tabular-nums; }
+.jv td.acc i { font-style: normal; color: var(--muted); font-size: .8rem; display: block; }
+.jv tr.bal td {
+  border-top: 1.5px solid var(--ink); border-bottom: 0;
+  font-weight: 700; background: var(--cream);
+}
+.jv tr.bal td.ok { color: var(--green); }
+
+/* งบกำไรขาดทุนย่อ */
+.pnl { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1px; margin-top: 14px; }
+.pnl > div { background: var(--paper); box-shadow: 0 0 0 1px var(--line); padding: 12px 15px; }
+.pnl .k {
+  font-family: var(--display); font-size: .63rem; font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--muted); display: block;
+}
+.pnl b {
+  font-family: var(--display); font-size: 1.55rem; font-weight: 800;
+  display: block; line-height: 1.2; font-variant-numeric: tabular-nums;
+}
+.pnl .sub { font-size: .78rem; color: var(--muted); }
+.pnl .up b { color: var(--green); }
+.pnl .down b { color: var(--red); }
+
+.bar2 { height: 10px; display: flex; margin-top: 12px; border: 1px solid var(--line); overflow: hidden; }
+.bar2 i { display: block; height: 100%; }
+.bar2 .cost { background: var(--red); }
+.bar2 .prof { background: var(--green); }
+.bar2key { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 8px; font-size: .8rem; color: var(--muted); }
+.bar2key span { display: inline-flex; align-items: center; gap: 7px; }
+.bar2key i { width: 14px; height: 10px; display: inline-block; }
+
+/* แถวปุ่มปรับค่า */
+.dials { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
+.dials > div { display: flex; flex-direction: column; gap: 6px; }
+.dials .k { font-size: .82rem; color: var(--muted); }
+.dials .row { gap: 6px; }
+.dials button { padding: 6px 11px; font-size: .84rem; }

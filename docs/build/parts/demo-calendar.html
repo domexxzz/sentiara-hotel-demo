@@ -1,0 +1,23 @@
+    <div class="play" id="p-cal">
+      <header>
+        <span class="tag">ลองกดเล่น</span>
+        <h3>จองห้องซ้ำวันเดียวกัน — ลองดูว่าระบบยอมไหม</h3>
+      </header>
+      <p class="hint">
+        กดช่องว่างเพื่อจอง แล้วลองกดช่องที่มีคนจองอยู่แล้ว
+        นี่คือความเสี่ยงอันดับหนึ่งของโรงแรม และเป็นเหตุผลที่ปฏิทินต้องเป็นชุดเดียวกันทั้งระบบ
+      </p>
+      <div class="cal">
+        <table id="calTable">
+          <caption class="sr-only">ปฏิทินห้องว่าง 10 คืน</caption>
+          <thead><tr id="calHead"><th scope="col">ห้อง</th></tr></thead>
+          <tbody id="calBody"></tbody>
+        </table>
+      </div>
+      <div class="row" style="margin-top:14px">
+        <button type="button" class="go" data-adj="2">จอง 2 ห้องติดกัน</button>
+        <button type="button" data-adj="3">จอง 3 ห้องติดกัน</button>
+        <button type="button" data-calreset>เริ่มใหม่</button>
+      </div>
+      <div class="say" id="calSay">คืนศุกร์–เสาร์คิดเรตวันหยุด +20% · ห้องที่มีสีคือมีคนจองแล้ว</div>
+    </div>
