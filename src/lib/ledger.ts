@@ -212,10 +212,13 @@ export function postingResult(f: FolioInput): Entry {
   }
 
   const lines: Line[] = [];
-  for (const [key, amount] of bases)
-    key === "discount"
-      ? lines.push({ account: ACCOUNTS.discount, debit: -amount, credit: 0, memo: "ส่วนลด" })
-      : lines.push({ account: ACCOUNTS[key as keyof typeof ACCOUNTS], debit: 0, credit: amount });
+  for (const [key, amount] of bases) {
+    if (key === "discount") {
+      lines.push({ account: ACCOUNTS.discount, debit: -amount, credit: 0, memo: "ส่วนลด" });
+    } else {
+      lines.push({ account: ACCOUNTS[key as keyof typeof ACCOUNTS], debit: 0, credit: amount });
+    }
+  }
   if (v.vat)
     lines.push({ account: ACCOUNTS.vatOut, debit: 0, credit: v.vat, memo: `ภาษีขาย ${f.vatPct}%` });
   if (f.paid) lines.push({ account: ACCOUNTS.cash, debit: f.paid, credit: 0, memo: "รับชำระ" });

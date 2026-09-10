@@ -117,11 +117,11 @@
     // บังคับให้เบราว์เซอร์วาดใหม่ทันที — Safari หน่วงการวาดบางชั้นไว้
     // จนกว่าจะมีอะไรมาอ่านค่าเลย์เอาต์ คนกดสลับกลางหน้าจะได้เห็นผลทันที
     void document.body.offsetHeight;
-    try { localStorage.setItem('astra-look', mode); } catch (e) { /* โหมดส่วนตัวก็ใช้ได้ */ }
+    try { localStorage.setItem('astra-look', mode); } catch { /* โหมดส่วนตัวก็ใช้ได้ */ }
   }
   try {
     if (localStorage.getItem('astra-look') === 'day') look('day');
-  } catch (e) { /* อ่านไม่ได้ก็ใช้ค่าตั้งต้น */ }
+  } catch { /* อ่านไม่ได้ก็ใช้ค่าตั้งต้น */ }
   if (btn) btn.addEventListener('click', function () {
     look(root.getAttribute('data-look') === 'day' ? 'night' : 'day');
   });

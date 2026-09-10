@@ -92,7 +92,7 @@
       }
     ];
 
-    var at = -1, sent = false, invoiced = false;
+    var at = -1, sent = false;
 
     function folio() {
       var paid = at >= 2 ? GROSS : (at >= 0 ? DEP : 0);
