@@ -15,6 +15,8 @@
  * ซึ่งตรงกับที่หลังบ้านทำไว้ (ใช้ urllib ของไพธอนเอง ไม่ลง requests)
  */
 
+import type { Role } from "./roles";
+
 /** ที่อยู่หลังบ้าน · ว่าง = ไม่ต้องลองต่อเลย */
 export const API_BASE: string = (import.meta.env.VITE_API_URL ?? "").replace(/\/+$/, "");
 
@@ -199,7 +201,7 @@ export type Session = {
   ref: string;
   name: string;
   title: string;
-  role: string;
+  role: Role;
   permissions: string[];
 };
 

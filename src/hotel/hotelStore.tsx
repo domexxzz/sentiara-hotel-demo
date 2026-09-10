@@ -1037,7 +1037,7 @@ const HotelContext = createContext<Ctx | null>(null);
 
 export function HotelProvider({ children }: { children: ReactNode }) {
   const [state, rawDispatch] = useReducer(reducer, undefined, boot);
-  const { mode } = useBackend();
+  const { mode, session: backendSession } = useBackend();
   const live = mode === "live";
   const [syncing, setSyncing] = useState(false);
   const [syncError, setSyncError] = useState("");
@@ -1175,7 +1175,11 @@ export function HotelProvider({ children }: { children: ReactNode }) {
 
       msgsOf: (convId) => state.messages.filter((m) => m.convId === convId),
       unreadChats: state.conversations.reduce((t, c) => t + c.unread, 0),
-      session: state.session,
+      // สิทธิ์ทุกจอในโหมดจริงต้องอ้างผู้ใช้ที่เซิร์ฟเวอร์ยืนยัน ไม่ใช่บัตรเดโมที่เคยเลือก
+      session: mode === "demo" ? state.session : backendSession ? {
+        id: backendSession.ref, name: backendSession.name, title: backendSession.title,
+        role: backendSession.role, card: "",
+      } : null,
       staffList: state.staff,
       mode: state.mode,
       settings: state.settings,
@@ -1275,7 +1279,7 @@ export function HotelProvider({ children }: { children: ReactNode }) {
         occupancy: Math.round((sold / sellable) * 100),
       },
     };
-  }, [state, dispatch, live, syncing, syncError]);
+  }, [state, dispatch, live, mode, backendSession, syncing, syncError]);
 
   return <HotelContext.Provider value={value}>{children}</HotelContext.Provider>;
 }

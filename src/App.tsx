@@ -86,7 +86,7 @@ function Stage() {
         <header className="stage-head">
           <span className="k">Sentiara · Interactive Prototype</span>
           <h1>{head.title}</h1>
-          <p>{head.note}</p>
+          <p>{backend.mode === "demo" ? head.note : "เชื่อมต่อระบบโรงแรม · รายการที่ยังไม่รองรับจะแจ้งให้ทราบเมื่อทำรายการ"}</p>
         </header>
 
         <ConnectionBar />

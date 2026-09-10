@@ -159,6 +159,31 @@ function checkoutFixture(dispatch, amountPaid = 2000) {
   return { deskActions, button: (label) => nodes.find((n) => n.type === 'button' && text(n).includes(label)) };
 }
 
+test('ตัวตน live ใช้ผู้ใช้เซิร์ฟเวอร์ ไม่มีบัตรเดโมให้เปลี่ยนสิทธิ์ และออกผ่าน API', () => {
+  let logout = 0;
+  const jsx = (type, props) => ({ type, props });
+  const backend = { mode: 'live', session: { name: 'Actual Front', title: 'Front desk' },
+    signOut: () => { logout++; } };
+  const mocks = {
+    react: { useState: () => [false, () => {}] },
+    'react/jsx-runtime': { jsx, jsxs: jsx },
+    '../hotel/hotelStore': { useHotel: () => ({ session: { name: 'Demo Owner' } }) },
+    '../lib/backend': { useBackend: () => backend },
+    '../lib/roles': { ROLE_LABEL: {} }, '../lib/property': { PROPERTY: {} },
+    './Icon': { Icon: 'icon' },
+  };
+  const { Identity } = load('src/components/Identity.tsx', mocks);
+  const tree = Identity();
+  const serialized = JSON.stringify(tree);
+  assert.match(serialized, /Actual Front/);
+  assert.doesNotMatch(serialized, /Demo Owner|idcards|idmode/);
+  tree.props.children[1].props.onClick();
+  assert.equal(logout, 1);
+  backend.mode = 'locked';
+  backend.session = null;
+  assert.equal(Identity(), null);
+});
+
 test('ปุ่มเช็กเอาต์รอ API ยืนยันก่อนแจ้งสำเร็จ และกันกดซ้ำระหว่างรอ', async () => {
   let resolve;
   let calls = 0;

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useHotel } from "../hotel/hotelStore";
+import { useBackend } from "../lib/backend";
 import { ROLE_LABEL } from "../lib/roles";
 import { PROPERTY, type PropertyMode } from "../lib/property";
 import { Icon } from "./Icon";
@@ -12,8 +13,23 @@ import { Icon } from "./Icon";
  */
 export function Identity() {
   const hotel = useHotel();
+  const backend = useBackend();
   const [open, setOpen] = useState(false);
   const me = hotel.session;
+
+  // บัตรเดโมเปลี่ยนสิทธิ์ในระบบจริงไม่ได้ และปุ่มออกต้องเพิกถอนโทเคนที่เซิร์ฟเวอร์
+  if (backend.mode !== "demo") {
+    if (!backend.session) return null;
+    return (
+      <div className="idbar on">
+        <div className="idwho">
+          <Icon name="key" size={15} />
+          <span><strong>{backend.session.name}</strong><i>{backend.session.title}</i></span>
+        </div>
+        <button className="idout" onClick={() => void backend.signOut()}>ออกจากระบบ</button>
+      </div>
+    );
+  }
 
   return (
     <div className={`idbar ${me ? "on" : ""}`}>
