@@ -114,6 +114,9 @@
     if (mode === 'day') root.setAttribute('data-look', 'day');
     else root.removeAttribute('data-look');
     if (btn) btn.textContent = mode === 'day' ? 'กลางคืน' : 'กลางวัน';
+    // บังคับให้เบราว์เซอร์วาดใหม่ทันที — Safari หน่วงการวาดบางชั้นไว้
+    // จนกว่าจะมีอะไรมาอ่านค่าเลย์เอาต์ คนกดสลับกลางหน้าจะได้เห็นผลทันที
+    void document.body.offsetHeight;
     try { localStorage.setItem('astra-look', mode); } catch (e) { /* โหมดส่วนตัวก็ใช้ได้ */ }
   }
   try {

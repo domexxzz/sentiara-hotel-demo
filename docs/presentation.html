@@ -613,6 +613,8 @@ html { scroll-behavior: smooth; }
   --ink:        #f7f1ec;   /* ตัวอักษรหลัก (เดิมคือสีเข้มสุด) */
   --ink-soft:   #cabfb8;   /* ตัวอักษรรอง */
   --brown:      #efe6df;   /* แผงปิดท้าย — กลับเป็นสว่างเพื่อปิดหน้าให้สะดุด */
+  --close-fg:   #1b1210;   /* ตัวอักษรบนแผงปิดท้าย ต้องคู่กับ --brown เสมอ */
+  --close-sub:  #4a3a34;
   --muted:      #8a7e77;
   --line:       #2b2523;
   --red:        #ff4a2f;
@@ -638,6 +640,8 @@ html { scroll-behavior: smooth; }
   --ink:        #241815;
   --ink-soft:   #33231f;
   --brown:      #2e1f1b;
+  --close-fg:   #f8f0e8;
+  --close-sub:  #d9c9bf;
   --muted:      #786c65;
   --line:       #ddd0c6;
   --red:        #c92210;
@@ -657,20 +661,20 @@ html { scroll-behavior: smooth; }
    สามชั้นซ้อน: ไล่สีรัศมีสองจุด · ตะแกรงเส้นบาง · แสงจากขอบบน
    ตรึงกับหน้าจอ (fixed) เพื่อให้เนื้อหารู้สึกลอยอยู่บนแผงเครื่องมือ
    ไม่ใช่ไหลไปพร้อมกระดาษ                                        */
+html { overflow-x: hidden; }   /* ไว้ที่ html ไม่ใช่ body — ที่ body จะทำให้ position: sticky ของแถบบนพัง */
 body {
   background: var(--field);
   color: var(--ink);
   position: relative;
-  overflow-x: hidden;
 }
 body::before {
-  content: ""; position: fixed; inset: 0; z-index: -2; pointer-events: none;
+  content: ""; position: absolute; inset: 0; z-index: -2; pointer-events: none;
   background:
     radial-gradient(58vw 52vh at 78% -8%, var(--glow-soft), transparent 68%),
     radial-gradient(46vw 44vh at 4% 12%, rgba(53, 210, 154, .07), transparent 70%);
 }
 body::after {
-  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
   background-image:
     linear-gradient(to right, var(--sheen) 1px, transparent 1px),
     linear-gradient(to bottom, var(--sheen) 1px, transparent 1px);
@@ -844,12 +848,28 @@ section.grp::before {
   content: attr(data-n); position: absolute; z-index: 0;
   top: clamp(8px, 1.6vw, 22px); right: -.06em;
   font-family: var(--display); font-weight: 800;
-  font-size: clamp(7rem, 21vw, 17rem); line-height: .78;
-  letter-spacing: -.06em; color: transparent;
+  font-size: clamp(6rem, 16vw, 13rem); line-height: .78;
+  letter-spacing: -.06em; color: transparent; opacity: .5;
   -webkit-text-stroke: 1px var(--line);
   pointer-events: none; user-select: none;
 }
 section.grp > * { position: relative; z-index: 1; }
+/* แสงประจำหัวข้อ สลับข้างซ้าย-ขวา — ตอนชั้นตกแต่งเป็น fixed แสงรัศมีตาม
+   จอไปทั้งหน้า พอเลิกใช้ fixed (Safari ไม่วาดชั้น fixed ใหม่ตอนสลับธีม)
+   แสงเหลือแค่ตอนต้นหน้า อีกสองหมื่นพิกเซลที่เหลือจึงเรียบจนแบน
+   ย้ายมาเป็นแสงของแต่ละหัวข้อ ได้บรรยากาศเดิมโดยไม่ต้องมีชั้นที่ค้างได้ */
+section.grp::after {
+  content: ""; position: absolute; z-index: 0; pointer-events: none;
+  top: -12%; right: -14%; width: 62%; height: 74%;
+  background: radial-gradient(closest-side, var(--glow-soft), transparent 74%);
+}
+section.grp:nth-of-type(even)::after {
+  right: auto; left: -14%;
+  background: radial-gradient(closest-side, rgba(53, 210, 154, .06), transparent 74%);
+}
+:root[data-look="day"] section.grp:nth-of-type(even)::after {
+  background: radial-gradient(closest-side, rgba(29, 107, 80, .05), transparent 74%);
+}
 
 section.grp > .head { margin-bottom: 26px; }
 .head .n {
@@ -913,10 +933,10 @@ figure.shot figcaption b { font-family: var(--mono); font-size: .62rem; letter-s
 .splitbox > .tail { border-left: 2px solid var(--red); }
 .splitbox > .tail b { color: var(--ink); }
 .splitbox > .tail .sub { color: var(--ink-soft); }
-.close { background: var(--brown); color: #1b1210; }
-.close p { color: #4a3a34; }
-.close .btn { border-color: #1b1210; color: #1b1210; }
-.close .btn:hover { background: #1b1210; color: var(--brown); }
+.close { background: var(--brown); color: var(--close-fg); }
+.close p { color: var(--close-sub); }
+.close .btn { border-color: var(--close-fg); color: var(--close-fg); }
+.close .btn:hover { background: var(--close-fg); color: var(--brown); }
 .close .btn.solid { background: var(--red); border-color: var(--red); color: #fff; }
 .close .btn.solid:hover { background: var(--red-bright); border-color: var(--red-bright); color: #fff; }
 
@@ -2816,6 +2836,9 @@ ul.fn .law::before {
     if (mode === 'day') root.setAttribute('data-look', 'day');
     else root.removeAttribute('data-look');
     if (btn) btn.textContent = mode === 'day' ? 'กลางคืน' : 'กลางวัน';
+    // บังคับให้เบราว์เซอร์วาดใหม่ทันที — Safari หน่วงการวาดบางชั้นไว้
+    // จนกว่าจะมีอะไรมาอ่านค่าเลย์เอาต์ คนกดสลับกลางหน้าจะได้เห็นผลทันที
+    void document.body.offsetHeight;
     try { localStorage.setItem('astra-look', mode); } catch (e) { /* โหมดส่วนตัวก็ใช้ได้ */ }
   }
   try {
