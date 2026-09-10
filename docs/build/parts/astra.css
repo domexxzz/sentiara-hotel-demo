@@ -1,0 +1,500 @@
+/* ══════════════════════════════════════════════════════════════════
+   ASTRA — ชั้นดีไซน์ที่ทับของเดิมทั้งหน้า
+
+   ทำเป็นชั้นทับ ไม่รื้อของเดิม เพราะตัวอย่างกดเล่นได้ 8 อันผูกกับ
+   ชื่อคลาสและ id เดิมทั้งหมด (play.js · finance.js · wifi.js)
+   รื้อ markup แล้วพังทั้งชุดโดยที่หน้ายังดูเหมือนเดิมตอนโหลดครั้งแรก
+
+   วิธีทำงาน
+   ─────────
+   1. นิยาม token ชุดใหม่เป็น "กลางคืน" แล้วสลับบทบาท paper ↔ ink
+      CSS เดิมใช้สองตัวนี้เป็นคู่ตรงข้ามอย่างสม่ำเสมอ (paper คือสว่างสุด
+      ink คือมืดสุด) สลับคู่แล้วทุกการจับคู่จึงยังอ่านออก ไม่ต้องตามแก้ทีละจุด
+   2. แผงที่ของเดิมใช้ ink เป็น "พื้นหลัง" ต้องสั่งใหม่ให้ชัด เพราะการสลับ
+      ทำให้มันกลายเป็นแผงสว่างกลางหน้ามืด (ดูหัวข้อ 9)
+   3. สีที่ฝังเป็นเลขฐานสิบหกใน play/finance/wifi.css ทับทีละตัว 14 จุด
+   4. ธีมสว่างยังอยู่ กดสลับได้ที่แถบบน — ของเดิมตั้งใจล็อกสว่างเพราะ
+      หน้านี้ถูกฉายขึ้นจอต่อหน้าลูกค้า เหตุผลนั้นยังจริง จึงไม่ตัดทิ้ง
+      แค่ให้ "กลางคืน" เป็นค่าตั้งต้น แล้วปล่อยให้คนนำเสนอเลือกเอง
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ── 1 · token กลางคืน ─────────────────────────────────────────── */
+:root {
+  --paper:      #171413;   /* พื้นการ์ด — สว่างกว่าพื้นหน้าเล็กน้อย */
+  --cream:      #0d0b0a;   /* พื้นหน้า */
+  --cream-deep: #221d1b;   /* พื้นเน้น */
+  --ink:        #f7f1ec;   /* ตัวอักษรหลัก (เดิมคือสีเข้มสุด) */
+  --ink-soft:   #cabfb8;   /* ตัวอักษรรอง */
+  --brown:      #efe6df;   /* แผงปิดท้าย — กลับเป็นสว่างเพื่อปิดหน้าให้สะดุด */
+  --muted:      #8a7e77;
+  --line:       #2b2523;
+  --red:        #ff4a2f;
+  --red-bright: #ff6f52;
+  --green:      #35d29a;
+
+  --hair:       #322b28;   /* เส้นบางที่เน้นกว่า line */
+  --field:      #0d0b0a;   /* สีพื้นของสนามหลัง */
+  --glow:       rgba(255, 74, 47, .30);
+  --glow-soft:  rgba(255, 74, 47, .10);
+  --sheen:      rgba(255, 244, 238, .055);
+  --amber:      #ffc46b;
+  --lift:       0 22px 60px rgba(0, 0, 0, .55);
+  --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --ease: cubic-bezier(.22, .68, .16, 1);
+}
+
+/* ธีมสว่าง — ชุดเดิมทั้งชุด แต่ได้โครงหน้าใหม่ไปด้วย */
+:root[data-look="day"] {
+  --paper:      #fffaf5;
+  --cream:      #f5ece3;
+  --cream-deep: #efe3d8;
+  --ink:        #241815;
+  --ink-soft:   #33231f;
+  --brown:      #2e1f1b;
+  --muted:      #786c65;
+  --line:       #ddd0c6;
+  --red:        #c92210;
+  --red-bright: #ff4a2f;
+  --green:      #1d6b50;
+
+  --hair:       #cdbdb0;
+  --field:      #f5ece3;
+  --glow:       rgba(201, 34, 16, .18);
+  --glow-soft:  rgba(201, 34, 16, .06);
+  --sheen:      rgba(36, 24, 21, .04);
+  --amber:      #8a5c07;
+  --lift:       0 18px 44px rgba(36, 24, 21, .14);
+}
+
+/* ── 2 · สนามหลัง ──────────────────────────────────────────────
+   สามชั้นซ้อน: ไล่สีรัศมีสองจุด · ตะแกรงเส้นบาง · แสงจากขอบบน
+   ตรึงกับหน้าจอ (fixed) เพื่อให้เนื้อหารู้สึกลอยอยู่บนแผงเครื่องมือ
+   ไม่ใช่ไหลไปพร้อมกระดาษ                                        */
+body {
+  background: var(--field);
+  color: var(--ink);
+  position: relative;
+  overflow-x: hidden;
+}
+body::before {
+  content: ""; position: fixed; inset: 0; z-index: -2; pointer-events: none;
+  background:
+    radial-gradient(58vw 52vh at 78% -8%, var(--glow-soft), transparent 68%),
+    radial-gradient(46vw 44vh at 4% 12%, rgba(53, 210, 154, .07), transparent 70%);
+}
+body::after {
+  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background-image:
+    linear-gradient(to right, var(--sheen) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--sheen) 1px, transparent 1px);
+  background-size: 74px 74px;
+  mask-image: radial-gradient(120vw 80vh at 50% 0%, #000 20%, transparent 78%);
+}
+:root[data-look="day"] body::before {
+  background:
+    radial-gradient(58vw 52vh at 78% -8%, var(--glow-soft), transparent 68%),
+    radial-gradient(46vw 44vh at 4% 12%, rgba(29, 107, 80, .05), transparent 70%);
+}
+
+/* ── 3 · แถบบน — เปลี่ยนจากแถบนำทางเป็นแผงบอกตำแหน่ง ─────────── */
+.rail {
+  background: var(--cream);
+  background: color-mix(in srgb, var(--cream) 82%, transparent);
+  backdrop-filter: blur(16px) saturate(1.3);
+  border-bottom: 1px solid var(--line);
+  box-shadow: 0 1px 0 var(--sheen);
+}
+.rail-in { gap: 10px; padding-top: 7px; padding-bottom: 7px; }
+.rail .mark {
+  font-family: var(--display); font-size: .78rem; letter-spacing: .1em;
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.rail .mark::before {
+  content: ""; width: 7px; height: 7px; flex: 0 0 auto;
+  background: var(--red); border-radius: 50%;
+  box-shadow: 0 0 0 3px var(--glow-soft), 0 0 14px var(--glow);
+  animation: pulse 3.4s var(--ease) infinite;
+}
+@keyframes pulse { 50% { box-shadow: 0 0 0 6px transparent, 0 0 20px var(--glow); } }
+
+.rail nav { gap: 2px; }
+.rail nav a {
+  font-family: var(--mono); font-size: .7rem; letter-spacing: .02em;
+  border-radius: 0; padding: 5px 7px; position: relative;
+  color: var(--muted); border-bottom: 2px solid transparent;
+  transition: color .2s var(--ease), border-color .2s var(--ease), background .2s;
+}
+.rail nav a:hover { background: transparent; color: var(--ink); border-bottom-color: var(--hair); }
+.rail nav a[aria-current="true"] {
+  background: transparent; color: var(--red);
+  border-bottom-color: var(--red); text-shadow: 0 0 18px var(--glow);
+}
+
+/* ตัวนับตำแหน่ง + ปุ่มสลับธีม — ของใหม่ที่ assemble4.py แทรกเข้ามา */
+.rail .hud {
+  display: flex; align-items: center; gap: 12px; flex: 0 0 auto;
+  font-family: var(--mono); font-size: .7rem; color: var(--muted);
+}
+.rail .count { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.rail .count b { color: var(--ink); font-weight: 500; }
+.rail .look {
+  font: inherit; background: transparent; color: var(--muted);
+  border: 1px solid var(--line); padding: 4px 9px; cursor: pointer;
+  transition: color .18s, border-color .18s;
+}
+.rail .look:hover { color: var(--ink); border-color: var(--hair); }
+.rail .meter {
+  position: absolute; left: 0; bottom: -1px; height: 2px; width: 0;
+  background: linear-gradient(90deg, var(--red-bright), var(--red));
+  box-shadow: 0 0 12px var(--glow); transition: width .1s linear;
+}
+.rail { position: sticky; }
+@media (max-width: 760px) { .rail .count { display: none; } }
+
+/* ── 4 · หัวเรื่อง ────────────────────────────────────────────── */
+.hero { padding-top: clamp(48px, 9vw, 104px); padding-bottom: clamp(30px, 5vw, 52px); position: relative; }
+.hero > .u {
+  font-family: var(--mono); font-size: .68rem; letter-spacing: .18em;
+  display: inline-flex; align-items: center; gap: 10px;
+}
+.hero > .u::after {
+  content: ""; width: clamp(40px, 12vw, 150px); height: 1px;
+  background: linear-gradient(90deg, var(--red), transparent);
+}
+.hero h1 {
+  font-size: clamp(2.3rem, 7.4vw, 5.1rem); font-weight: 800;
+  letter-spacing: -.032em; line-height: .98; margin-top: 16px;
+}
+.hero h1 em {
+  font-style: normal; position: relative; display: inline-block;
+  background: linear-gradient(102deg, var(--red-bright) 6%, var(--red) 48%, var(--amber) 108%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+/* เส้นกวาดใต้คำเน้น — บอกว่าหน้านี้ "มีชีวิต" ตั้งแต่วินาทีแรก */
+.hero h1 em::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: -.06em; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--red), transparent);
+  transform: scaleX(0); transform-origin: left;
+  animation: sweep 1.5s .5s var(--ease) forwards;
+}
+@keyframes sweep { to { transform: scaleX(1); } }
+.hero .sub { font-size: clamp(1.02rem, 1.9vw, 1.22rem); color: var(--ink-soft); margin-top: 20px; }
+
+/* ตัวเลขหัวเรื่อง — แผงมาตรวัด ไม่ใช่การ์ดสี่ใบ */
+.figures {
+  border: 1px solid var(--line); background: var(--line);
+  margin-top: clamp(26px, 4vw, 40px); position: relative; overflow: hidden;
+}
+.figures::before {
+  content: ""; position: absolute; inset: 0 0 auto; height: 1px; z-index: 1;
+  background: linear-gradient(90deg, transparent, var(--red), transparent);
+}
+.figures div {
+  background: var(--paper); padding: 18px 22px 16px; position: relative;
+  transition: background .25s var(--ease);
+}
+.figures div:hover { background: var(--cream-deep); }
+.figures b {
+  font-family: var(--display); font-size: clamp(1.9rem, 3.6vw, 2.5rem);
+  letter-spacing: -.03em; color: var(--ink);
+  text-shadow: 0 0 34px var(--glow);
+}
+.figures span {
+  font-family: var(--mono); font-size: .66rem; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--muted); margin-top: 3px;
+}
+
+/* ── 5 · ปุ่ม ─────────────────────────────────────────────────── */
+.btn {
+  position: relative; overflow: hidden; border-width: 1px;
+  font-family: var(--display); letter-spacing: .01em;
+  border-color: var(--hair); color: var(--ink);
+  transition: transform .16s var(--ease), background .2s, color .2s, border-color .2s, box-shadow .25s;
+}
+.btn.solid {
+  background: var(--red); border-color: var(--red); color: #fff;
+  box-shadow: 0 0 0 0 var(--glow);
+}
+.btn.solid:hover {
+  background: var(--red-bright); border-color: var(--red-bright);
+  box-shadow: 0 10px 34px var(--glow); transform: translateY(-1px);
+}
+.btn.ghost:hover { background: var(--ink); color: var(--cream); border-color: var(--ink); }
+/* แสงกวาดตอนชี้ — ครั้งเดียว ไม่วนซ้ำให้รบกวนสายตา */
+.btn::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(105deg, transparent 34%, var(--sheen) 50%, transparent 66%);
+  transform: translateX(-120%); transition: transform .6s var(--ease);
+}
+.btn:hover::after { transform: translateX(120%); }
+
+/* ── 6 · เส้นทางของแขก ────────────────────────────────────────── */
+.journey {
+  background: linear-gradient(160deg, var(--paper), var(--cream) 120%);
+  border-color: var(--line); position: relative;
+}
+.journey::before {
+  content: ""; position: absolute; inset: 0 0 auto; height: 1px;
+  background: linear-gradient(90deg, var(--red), transparent 55%);
+}
+.journey > h2 { letter-spacing: -.015em; }
+.steps > div::before {
+  height: 2px; background: var(--hair);
+  box-shadow: none; transition: box-shadow .3s var(--ease);
+}
+.steps > div.auto::before { background: var(--green); box-shadow: 0 0 12px rgba(53, 210, 154, .5); }
+.steps > div.by-hand::before { background: var(--red); box-shadow: 0 0 12px var(--glow); }
+.steps .who { font-family: var(--mono); font-size: .58rem; letter-spacing: .13em; }
+.jkey { font-family: var(--mono); font-size: .68rem; letter-spacing: .04em; }
+
+/* ── 7 · หัวข้อแต่ละกลุ่ม ─────────────────────────────────────── */
+section.grp {
+  position: relative; border-top: 1px solid var(--line);
+  scroll-margin-top: 62px; overflow: hidden;
+}
+/* เลขหัวข้อขนาดยักษ์เป็นลายน้ำ — assemble4.py ใส่ data-n ให้ทุกหัวข้อ */
+section.grp::before {
+  content: attr(data-n); position: absolute; z-index: 0;
+  top: clamp(8px, 1.6vw, 22px); right: -.06em;
+  font-family: var(--display); font-weight: 800;
+  font-size: clamp(7rem, 21vw, 17rem); line-height: .78;
+  letter-spacing: -.06em; color: transparent;
+  -webkit-text-stroke: 1px var(--line);
+  pointer-events: none; user-select: none;
+}
+section.grp > * { position: relative; z-index: 1; }
+
+section.grp > .head { margin-bottom: 26px; }
+.head .n {
+  font-family: var(--display); font-size: clamp(1.6rem, 3.4vw, 2.3rem);
+  color: var(--red); text-shadow: 0 0 26px var(--glow);
+  padding-top: .12em;
+}
+.head .u { font-family: var(--mono); font-size: .66rem; letter-spacing: .16em; }
+.head h2 { letter-spacing: -.028em; line-height: 1.12; }
+.head .lead { font-size: 1rem; }
+.head .tally {
+  font-family: var(--mono); font-size: .68rem; letter-spacing: .06em;
+  color: var(--muted); border: 1px solid var(--line); padding: 4px 10px;
+  align-self: start;
+}
+
+/* ── 8 · ภาพหน้าจอ — ใส่กรอบเหมือนหน้าจอเครื่องจริง ──────────── */
+figure.shot img {
+  border: 1px solid var(--hair); background: var(--paper);
+  box-shadow: var(--lift), 0 0 0 1px var(--sheen) inset;
+}
+figure.shot { position: relative; }
+/* แสงรับหลังภาพ — ทำให้ภาพดูเป็นจอที่เปิดอยู่ ไม่ใช่รูปแปะ */
+figure.shot::before {
+  content: ""; position: absolute; z-index: -1;
+  inset: 12% 6% -6%; border-radius: 50%;
+  background: radial-gradient(closest-side, var(--glow-soft), transparent 72%);
+  filter: blur(26px); opacity: 0; transition: opacity .5s var(--ease);
+}
+figure.shot:hover::before { opacity: 1; }
+figure.shot figcaption { font-family: var(--body); font-size: .86rem; }
+figure.shot figcaption b { font-family: var(--mono); font-size: .62rem; letter-spacing: .12em; }
+.withphone figure.shot img { border: 1px solid var(--hair); background: var(--paper); }
+
+/* ── 9 · แผงที่ของเดิมใช้ ink เป็นพื้นหลัง ─────────────────────
+   การสลับ paper ↔ ink ทำให้แผงพวกนี้กลายเป็นแผงสว่างกลางหน้ามืด
+   สั่งใหม่ให้ชัดทั้งสองธีม จะได้ไม่ต้องเดาว่าตัวไหนชนะ           */
+.play > header .tag,
+.play button[aria-pressed="true"],
+.jv > .hd,
+.stmt,
+.splitbox > .tail {
+  background: var(--cream-deep); color: var(--ink);
+  border: 1px solid var(--hair);
+}
+.play > header .tag {
+  font-family: var(--mono); letter-spacing: .14em;
+  background: var(--red); border-color: var(--red); color: #fff;
+  box-shadow: 0 0 22px var(--glow);
+}
+.play button[aria-pressed="true"] {
+  background: var(--red); border-color: var(--red); color: #fff;
+  box-shadow: 0 0 20px var(--glow);
+}
+.jv > .hd { border: 0; border-bottom: 1px solid var(--hair); }
+.jv > .hd .meta { font-family: var(--mono); color: var(--muted); }
+.jv > .hd .kind { font-family: var(--mono); letter-spacing: .12em; }
+.stmt { border-left: 2px solid var(--red); }
+.stmt .lab { font-family: var(--mono); color: var(--muted); }
+.stmt code { color: var(--red); font-family: var(--mono); }
+.splitbox > .tail { border-left: 2px solid var(--red); }
+.splitbox > .tail b { color: var(--ink); }
+.splitbox > .tail .sub { color: var(--ink-soft); }
+.close { background: var(--brown); color: #1b1210; }
+.close p { color: #4a3a34; }
+.close .btn { border-color: #1b1210; color: #1b1210; }
+.close .btn:hover { background: #1b1210; color: var(--brown); }
+.close .btn.solid { background: var(--red); border-color: var(--red); color: #fff; }
+.close .btn.solid:hover { background: var(--red-bright); border-color: var(--red-bright); color: #fff; }
+
+/* ── 10 · การ์ดฟังก์ชัน 83 ใบ ─────────────────────────────────── */
+ul.fn { gap: 1px; }
+ul.fn > li {
+  background: var(--paper); box-shadow: 0 0 0 1px var(--line);
+  position: relative; padding: 17px 19px 19px; overflow: hidden;
+  transition: background .25s var(--ease), box-shadow .25s var(--ease), transform .25s var(--ease);
+}
+/* เส้นเน้นงอกจากซ้ายตอนชี้ — บอกว่าอ่านถึงใบไหน ไม่ใช่ของประดับ */
+ul.fn > li::before {
+  content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
+  background: var(--red); transform: scaleY(0); transform-origin: top;
+  transition: transform .3s var(--ease);
+}
+ul.fn > li:hover {
+  background: var(--cream-deep); box-shadow: 0 0 0 1px var(--hair), var(--lift);
+  transform: translateY(-2px); z-index: 2;
+}
+ul.fn > li:hover::before { transform: scaleY(1); }
+ul.fn .en {
+  font-family: var(--mono); font-size: .63rem; letter-spacing: .13em;
+  color: var(--muted); transition: color .25s;
+}
+ul.fn > li:hover .en { color: var(--red); }
+ul.fn h3 { font-size: 1.01rem; font-weight: 600; letter-spacing: -.004em; }
+ul.fn p { color: var(--ink-soft); }
+/* บรรทัดกฎหมาย — ใส่หัวข้อนำหน้าให้รู้ว่านี่คือข้ออ้างอิง ไม่ใช่คำโฆษณา */
+ul.fn .law {
+  color: var(--green); display: flex; gap: 7px; align-items: baseline;
+  border-top: 1px solid var(--line); padding-top: 6px; margin-top: 8px;
+}
+ul.fn .law::before {
+  content: "§"; font-family: var(--mono); font-size: .82rem;
+  color: var(--green); opacity: .8; flex: 0 0 auto;
+}
+
+/* ── 11 · แผงตัวอย่างกดเล่นได้ ────────────────────────────────── */
+.play {
+  border: 1px solid var(--hair); background: var(--paper);
+  position: relative; box-shadow: var(--lift);
+}
+.play::before {
+  content: ""; position: absolute; inset: 0 0 auto; height: 1px;
+  background: linear-gradient(90deg, var(--red) 0%, transparent 42%);
+}
+.play > header { margin-bottom: 6px; }
+.play > header h3 { letter-spacing: -.012em; }
+.play > .hint { font-size: .88rem; }
+.play button {
+  font-family: var(--body); border: 1px solid var(--line);
+  background: var(--cream); color: var(--ink); border-radius: 0;
+  transition: border-color .18s, background .18s, color .18s, box-shadow .25s;
+}
+.play button:hover:not(:disabled) {
+  border-color: var(--hair); background: var(--cream-deep);
+  box-shadow: 0 0 0 1px var(--hair);
+}
+.play button.go {
+  background: var(--red); border-color: var(--red); color: #fff;
+  box-shadow: 0 6px 24px var(--glow);
+}
+.play button.go:hover:not(:disabled) { background: var(--red-bright); border-color: var(--red-bright); }
+.play .say { background: var(--cream); border-left-width: 2px; }
+.play .say.bad { background: rgba(255, 74, 47, .10); border-left-color: var(--red); }
+.play .say.good { background: rgba(53, 210, 154, .10); border-left-color: var(--green); }
+:root[data-look="day"] .play .say.bad { background: #fdeeea; }
+:root[data-look="day"] .play .say.good { background: #e8f2ec; }
+
+/* ตารางในตัวอย่าง */
+.cal thead th, .cal tbody th { background: var(--cream); font-family: var(--mono); }
+.cal td.taken { background: rgba(255, 74, 47, .13); }
+.cal td.mine { background: var(--green); }
+.cal td.mine button { color: #06231a; font-weight: 700; }
+:root[data-look="day"] .cal td.taken { background: #f4e0da; }
+:root[data-look="day"] .cal td.mine button { color: #fff; }
+.tbl th, .folio .lab, .pnl .k, .wallet .k, .gates .g, .gates .vd,
+.chan .fee, .steps-fin button::before, .kv .q, .verdict, .side > .k {
+  font-family: var(--mono); letter-spacing: .06em;
+}
+.tbl tr.sum td { border-top-color: var(--hair); }
+.jv tr.bal td { background: var(--cream); border-top-color: var(--hair); }
+.jv table { background: var(--paper); }
+.folio { background: var(--cream); border-left-color: var(--red); }
+.pnl > div, .wallet > div, .chan > div, .gates > div, .play .vs .side, .splitbox > div {
+  background: var(--paper); box-shadow: 0 0 0 1px var(--line);
+}
+.splitbox > .mid { background: var(--cream); }
+.wallet .trip b { color: var(--amber); }
+.bar2 { border-color: var(--hair); }
+.draft { background: var(--cream); border-left-color: var(--red); }
+.draft .lab { font-family: var(--mono); }
+
+/* ── 12 · การเผยตัวเมื่อเลื่อนถึง ─────────────────────────────
+   คลาส .rv ถูกใส่ด้วย JS ไม่ใช่เขียนไว้ใน HTML — ถ้า JS ไม่ทำงาน
+   เนื้อหาต้องยังเห็นครบ ไม่ใช่หน้าว่างเปล่า                      */
+.rv { opacity: 0; transform: translateY(16px); }
+.rv.in {
+  opacity: 1; transform: none;
+  transition: opacity .55s var(--ease), transform .55s var(--ease);
+  transition-delay: var(--d, 0ms);
+}
+
+/* ── 13 · แผงคำใบ้ปุ่มลัดสำหรับคนนำเสนอ ──────────────────────── */
+.keys {
+  position: fixed; z-index: 25; right: 16px; bottom: 16px;
+  font-family: var(--mono); font-size: .66rem; letter-spacing: .04em;
+  color: var(--muted); background: var(--paper);
+  background: color-mix(in srgb, var(--paper) 88%, transparent);
+  backdrop-filter: blur(10px); border: 1px solid var(--line);
+  padding: 7px 11px; display: flex; gap: 9px; align-items: center;
+  opacity: 0; transform: translateY(6px);
+  transition: opacity .4s var(--ease), transform .4s var(--ease);
+  pointer-events: none;
+}
+.keys.on { opacity: 1; transform: none; }
+.keys kbd {
+  font-family: inherit; font-size: .95em; color: var(--ink);
+  border: 1px solid var(--hair); padding: 1px 5px; background: var(--cream);
+}
+
+/* ── 13.5 · ขอบเบราว์เซอร์ — แถบเลื่อนกับสีที่เลือกข้อความ ─────
+   ถ้าไม่แตะ แถบเลื่อนขาวจะเป็นเส้นสว่างข้างหน้ามืดทั้งหน้า
+   และคนนำเสนอที่ลากคลุมข้อความจะได้พื้นฟ้าของระบบมาแทน            */
+* { scrollbar-color: var(--hair) var(--cream); scrollbar-width: thin; }
+::-webkit-scrollbar { width: 11px; height: 11px; }
+::-webkit-scrollbar-track { background: var(--cream); }
+::-webkit-scrollbar-thumb { background: var(--hair); border: 3px solid var(--cream); }
+::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+::selection { background: var(--red); color: #fff; }
+
+/* บอกว่าแถบเลขหัวข้อเลื่อนต่อไปได้ — บนจอแคบมันโชว์ได้แค่ 4 ตัว */
+.rail nav { position: relative; mask-image: linear-gradient(90deg, #000 88%, transparent); }
+@media (min-width: 1100px) { .rail nav { mask-image: none; } }
+
+/* ── 14 · จอแคบ ───────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  section.grp::before { font-size: clamp(5.5rem, 26vw, 11rem); opacity: .75; }
+  .keys { display: none; }
+}
+@media (max-width: 640px) {
+  .figures div { padding: 14px 18px; }
+  .head .tally { justify-self: start; }
+  .hero h1 { letter-spacing: -.022em; }
+  .hero > .u::after { display: none; }
+}
+
+/* ── 15 · เคารพค่าที่เครื่องผู้ใช้ตั้งไว้ ─────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .rv { opacity: 1 !important; transform: none !important; }
+  .hero h1 em::after { animation: none; transform: scaleX(1); }
+  .rail .mark::before { animation: none; }
+  .btn::after { display: none; }
+}
+
+/* พิมพ์ออกกระดาษ — กลับเป็นหมึกดำบนขาว ไม่กินหมึกทั้งตลับ */
+@media print {
+  :root {
+    --paper: #fff; --cream: #fff; --cream-deep: #f4f4f4;
+    --ink: #111; --ink-soft: #333; --muted: #666; --line: #ccc; --hair: #999;
+    --field: #fff; --glow: transparent; --glow-soft: transparent; --sheen: transparent;
+    --lift: none;
+  }
+  body::before, body::after, .rail, .keys, section.grp::before { display: none !important; }
+  .rv { opacity: 1 !important; transform: none !important; }
+  section.grp, .play, ul.fn > li, figure.shot { break-inside: avoid; }
+}

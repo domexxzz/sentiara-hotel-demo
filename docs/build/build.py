@@ -16,6 +16,7 @@
   รอบ 1  assemble.py   เทมเพลต + parts → deck.stage1.html → sentiara-functions.html
   รอบ 2  assemble2.py  ยกบัญชีขึ้นเป็นหัวข้อ 05 แล้วเลื่อนที่เหลือ (อ่าน stage1)
   รอบ 3  assemble3.py  เพิ่มหัวข้อ 14 Wi-Fi + ซ่อมแถบนำทาง
+  รอบ 4  assemble4.py  ทับชั้นดีไซน์ ASTRA (ธีมกลางคืน · ปุ่มลัด · เผยตัวเมื่อเลื่อนถึง)
 
 ทุกรอบมีตัวตรวจในตัว ถ้าหาข้อความที่จะแทนไม่เจอจะหยุดทันที ไม่แทนเงียบ ๆ
 (เคยพลาดตรงนี้แล้ว — `re.sub` ที่หาไม่เจอคืนข้อความเดิมเฉย ๆ ไม่ error
@@ -35,7 +36,7 @@ sys.stdout.reconfigure(encoding="utf-8")
 HERE = Path(__file__).resolve().parent
 OUT = HERE.parent / "presentation.html"
 BUILT = HERE / "sentiara-functions.html"
-PASSES = ("assemble.py", "assemble2.py", "assemble3.py")
+PASSES = ("assemble.py", "assemble2.py", "assemble3.py", "assemble4.py")
 
 
 def main() -> int:

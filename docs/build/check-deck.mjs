@@ -86,5 +86,50 @@ const mob = await p.evaluate(() => ({
 await p.screenshot({ path: './_shot-m.jpg', type: 'jpeg', quality: 82 })
 console.log('มือถือ', JSON.stringify(mob))
 
+// ── ชั้นดีไซน์ ASTRA ─────────────────────────────────────────────
+await p.setViewport({ width: 1440, height: 950 })
+await p.evaluate(() => { document.documentElement.style.scrollBehavior = 'auto'; scrollTo(0, 0) })
+await new Promise(r => setTimeout(r, 500))
+
+// ตัวนับหัวข้อต้องตรงกับแถบนำทางทุกจุด ไม่ช้ากว่ากันหนึ่งจังหวะ
+const off = []
+for (const id of ['g01', 'g04', 'g05', 'g08', 'g11', 'g14']) {
+  await p.evaluate(i => {
+    const e = document.getElementById(i)
+    scrollTo(0, e.getBoundingClientRect().top + scrollY + 120)
+  }, id)
+  await new Promise(r => setTimeout(r, 450))
+  const s = await p.evaluate(() => ({
+    nav: document.querySelector('.rail nav a[aria-current="true"]')?.textContent,
+    count: document.querySelector('.rail .count b')?.textContent,
+  }))
+  if (s.nav !== s.count) off.push(`${id} แถบ=${s.nav} ตัวนับ=${s.count}`)
+}
+console.log('ตัวนับตรงกับแถบนำทาง:', off.length ? 'ไม่ตรง ✗ ' + off.join(' · ') : 'ตรงทุกจุด')
+
+// ปุ่มลัดของคนนำเสนอ
+await p.evaluate(() => scrollTo(0, 0))
+await new Promise(r => setTimeout(r, 300))
+const y0 = await p.evaluate(() => scrollY)
+await p.keyboard.press('ArrowDown')
+await new Promise(r => setTimeout(r, 900))
+const y1 = await p.evaluate(() => scrollY)
+await p.keyboard.press('d')
+await new Promise(r => setTimeout(r, 400))
+const look = await p.evaluate(() => document.documentElement.getAttribute('data-look'))
+await p.keyboard.press('d')
+await new Promise(r => setTimeout(r, 300))
+const back = await p.evaluate(() => document.documentElement.getAttribute('data-look'))
+console.log(`ปุ่มลัด: ↓ เลื่อน ${y1 > y0 ? 'ได้' : 'ไม่ได้ ✗'} · D สลับธีม ${look === 'day' && back === null ? 'ได้ทั้งสองทาง' : 'เพี้ยน ✗'}`)
+
+// เนื้อหาต้องไม่ถูกซ่อนค้าง ถ้า IntersectionObserver ไม่ยิง
+await p.evaluate(() => scrollTo(0, document.body.scrollHeight))
+await new Promise(r => setTimeout(r, 1200))
+const rv = await p.evaluate(() => ({
+  total: document.querySelectorAll('.rv').length,
+  shown: document.querySelectorAll('.rv.in').length,
+}))
+console.log(`เผยตัวแล้ว ${rv.shown}/${rv.total} ชิ้น`)
+
 console.log('ข้อผิดพลาดในหน้า:', errs.length ? errs : 'ไม่มี')
 await b.close()
