@@ -44,8 +44,13 @@ cd docs/build && python build.py          # → docs/presentation.html
 **ตรวจด้วยเบราว์เซอร์จริงต่อทุกครั้ง** (ต้องมี Chrome ในเครื่อง):
 
 ```bash
-cd docs/build && npm i puppeteer-core && node check-deck.mjs
+npm i --no-save puppeteer-core          # จากรากของ repo
+cd docs/build && node check-deck.mjs
 ```
+
+> **`--no-save` และรันจากรากสำคัญ** — `npm i` ที่รันใน `docs/build` จะเดินขึ้นไปเจอ
+> `package.json` ของแอปที่ราก แล้วเติม `puppeteer-core` เป็น dependency ของแอปจริง
+> ทั้งที่มันเป็นเครื่องมือของเอกสารเท่านั้น (พลาดมาแล้วครั้งหนึ่ง)
 
 `check-deck.mjs` ตรวจให้สี่อย่าง: ลิงก์นำทางทั้ง 14 อันเลขตรงปลายทางและปลายทางมีจริง ·
 ตัวอย่างกดเล่นได้ทำงาน · ไม่มี error ในหน้า · มือถือไม่เลื่อนข้าง
