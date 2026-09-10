@@ -184,6 +184,27 @@ test('ตัวตน live ใช้ผู้ใช้เซิร์ฟเว�
   assert.equal(Identity(), null);
 });
 
+test('สิทธิ์ทุกบทบาทบนหน้าจอตรงกับขอบเขตที่กำหนด', () => {
+  const roles = load('src/lib/roles.ts', {});
+  const expected = {
+    owner: { flows: ['guest', 'desk', 'staff', 'owner', 'pos'], owner: true, pos: true },
+    manager: { flows: ['guest', 'desk', 'staff', 'owner', 'pos'], owner: true, pos: true },
+    front: { flows: ['guest', 'desk'], owner: false, pos: false },
+    hk: { flows: ['staff'], owner: false, pos: false },
+    tech: { flows: ['staff'], owner: false, pos: false },
+    pos: { flows: ['pos'], owner: false, pos: true },
+  };
+  for (const [role, rule] of Object.entries(expected)) {
+    for (const flow of ['guest', 'desk', 'staff', 'owner', 'pos']) {
+      assert.equal(roles.canOpen(role, flow), rule.flows.includes(flow), `${role}/${flow}`);
+    }
+    assert.equal(roles.canOpenOwnerTab(role, 'overview'), rule.owner, `${role}/owner overview`);
+    assert.equal(roles.canOpenOwnerTab(role, 'settings'), rule.owner, `${role}/owner settings`);
+    assert.equal(roles.canOpenDesk(role, 'invoice'), role === 'owner' || role === 'manager' || role === 'front');
+    assert.equal(roles.canOpenDesk(role, 'register'), role === 'owner' || role === 'manager' || role === 'front');
+  }
+});
+
 test('ปุ่มเช็กเอาต์รอ API ยืนยันก่อนแจ้งสำเร็จ และกันกดซ้ำระหว่างรอ', async () => {
   let resolve;
   let calls = 0;
