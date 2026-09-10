@@ -4,9 +4,13 @@ import { APPROVALS, WEEK, type Approval } from "./ownerData";
 export type OwnerTab =
   | "overview"
   | "finance"
+  | "ledger"
   | "guests"
+  | "team"
+  | "chivago"
   | "channels"
   | "door"
+  | "security"
   | "energy"
   | "ai"
   | "approvals"

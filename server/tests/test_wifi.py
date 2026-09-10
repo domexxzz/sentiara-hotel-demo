@@ -320,9 +320,13 @@ def test_the_report_answers_who_that_ip_was(app, c):
     """หัวใจของฟีเจอร์นี้ทั้งหมด — เจ้าหน้าที่ถามว่า "วันนั้น IP นี้คือใคร"
     และคำตอบต้องมีเลขเอกสารแสดงตนจากทะเบียนผู้พัก"""
     ref, room, _secret = _checked_in(c, "201", "ชื่อบนการจอง")
-    c.post(f"{API}/bookings/{ref}/register", json={
-        "full_name": "อนันต์ ศรีสุข", "nationality": "ไทย",
-        "id_type": "thai_id", "id_number": GOOD_ID})
+    assert c.post(f"{API}/bookings/{ref}/guests", json={
+        "full_name": "อนันต์ ศรีสุข", "nationality": "TH",
+        "id_number": GOOD_ID}).status_code == 201
+    # ห้องเดียวมีผู้พักสองคน — รายงานต้องได้ทั้งคู่ ไม่ใช่คนแรกคนเดียว
+    assert c.post(f"{API}/bookings/{ref}/guests", json={
+        "full_name": "Kenji Tanaka", "nationality": "JP",
+        "id_number": "TK7654321"}).status_code == 201
 
     g = _gw(app)
     g.post(f"{API}/wifi/accounting", json={
@@ -334,7 +338,7 @@ def test_the_report_answers_who_that_ip_was(app, c):
     assert out["sessions"] == 1
     row = out["rows"][0]
     assert row["ip"] == "10.0.5.21" and row["room"] == "201"
-    assert row["id_number"] == GOOD_ID
+    assert [g["id_number"] for g in row["guests"]] == [GOOD_ID, "TK7654321"]
     assert row["name"] == "อนันต์ ศรีสุข", "ต้องใช้ชื่อตามเอกสาร ไม่ใช่ชื่อบนการจอง"
     assert row["registered"] is True
     assert "ไม่เก็บโดยตั้งใจ" in out["note"], "ต้องบอกตรง ๆ ว่าเราไม่เก็บข้อมูลจราจร"

@@ -8,6 +8,10 @@ import { canOpenOwnerTab } from "../lib/roles";
 import { Overview } from "./Overview";
 import { Channels } from "./Channels";
 import { Finance } from "./Finance";
+import { Ledger } from "./Ledger";
+import { ChivaGo } from "./ChivaGo";
+import { Security } from "./Security";
+import { Team } from "./Team";
 import { Guests } from "./Guests";
 import { Settings } from "./Settings";
 import { Assistant } from "./Assistant";
@@ -19,10 +23,14 @@ import { Icon, type IconName } from "../components/Icon";
 const NAV: { tab: OwnerTab; label: string; icon: IconName }[] = [
   { tab: "overview", label: "ภาพรวม & รายได้", icon: "receipt" },
   { tab: "finance", label: "รายจ่าย & กำไรขาดทุน", icon: "tag" },
+  { tab: "ledger", label: "บัญชีคู่ & ส่งเข้าโปรแกรมบัญชี", icon: "receipt" },
   { tab: "guests", label: "ลูกค้า & แต้ม", icon: "star" },
+  { tab: "chivago", label: "ChivaGo · สิทธิพิเศษ", icon: "sparkle" },
   { tab: "channels", label: "ช่องทางขาย & OTA", icon: "tag" },
+  { tab: "team", label: "ทีมงาน & คลังของใช้", icon: "star" },
   { tab: "door", label: "ประตู & บัตร", icon: "key" },
   { tab: "energy", label: "ค่าไฟ & IoT", icon: "wifi" },
+  { tab: "security", label: "ความปลอดภัย & กฎหมาย", icon: "shield" },
   { tab: "ai", label: "ถาม AI ผู้ช่วย", icon: "sparkle" },
   { tab: "approvals", label: "รออนุมัติ", icon: "shield" },
   { tab: "settings", label: "ตั้งค่าระบบ", icon: "key" },
@@ -33,6 +41,14 @@ function OwnerRouter() {
   switch (state.tab) {
     case "finance":
       return <Finance />;
+    case "ledger":
+      return <Ledger />;
+    case "chivago":
+      return <ChivaGo />;
+    case "security":
+      return <Security />;
+    case "team":
+      return <Team />;
     case "guests":
       return <Guests />;
     case "settings":

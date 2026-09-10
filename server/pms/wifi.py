@@ -45,7 +45,7 @@ from sqlalchemy.orm import Session
 
 from pms import clock
 from pms.auth import hash_secret, verify_secret
-from pms.db import Booking, GuestRegister, WifiCredential, WifiSession
+from pms.db import Booking, GuestRegistration, WifiCredential, WifiSession
 
 #: ช่วงผ่อนผันหลังเช็กเอาต์ · แขกที่รอแท็กซี่อยู่ที่ล็อบบี้ยังควรใช้เน็ตได้
 GRACE_HOURS = 3
@@ -284,6 +284,10 @@ def identity_report(db: Session, since: date, until: date) -> list[dict]:
     ตอบคำถามว่า "วันนั้น IP นี้คือใคร" ได้ครบ — ชื่อ สัญชาติ เลขเอกสารแสดงตน
     ห้อง และช่วงเวลาที่ต่ออยู่ · ส่วนว่าเข้าเว็บอะไร ขอจากอุปกรณ์เครือข่าย
     ซึ่งเก็บไว้อยู่แล้ว
+
+    คืน **ผู้พักทุกคนในห้องนั้น** ไม่ใช่คนเดียว — รหัส Wi-Fi ผูกกับห้อง
+    ห้องหนึ่งมีผู้พักได้หลายคน และทะเบียนก็ลงไว้คนละแถวตาม ม.35 การเดาว่า
+    เป็นคนแรกในทะเบียนคือการชี้ตัวคนที่อาจไม่ได้ถือเครื่องนั้น
     """
     rows = db.scalars(
         select(WifiSession)
@@ -296,9 +300,11 @@ def identity_report(db: Session, since: date, until: date) -> list[dict]:
     for r in rows:
         cred = db.get(WifiCredential, r.credential_id)
         b = db.get(Booking, cred.booking_id) if cred else None
-        gr = db.scalar(
-            select(GuestRegister).where(GuestRegister.booking_id == b.id)
-        ) if b else None
+        guests = db.scalars(
+            select(GuestRegistration)
+            .where(GuestRegistration.booking_id == b.id)
+            .order_by(GuestRegistration.id)
+        ).all() if b else []
         out.append({
             "started_at": r.started_at, "ended_at": r.ended_at,
             "mac": r.mac, "ip": r.ip, "nas": r.nas,
@@ -306,11 +312,12 @@ def identity_report(db: Session, since: date, until: date) -> list[dict]:
             "booking_ref": b.ref if b else "",
             # ชื่อจากทะเบียนผู้พักก่อน เพราะเป็นชื่อตามเอกสารแสดงตน
             # ชื่อบนการจองอาจเป็นชื่อเล่นหรือชื่อคนที่จองให้
-            "name": (gr.full_name if gr else (b.guest_name if b else "")),
-            "nationality": gr.nationality if gr else "",
-            "id_type": gr.id_type if gr else "",
-            "id_number": gr.id_number if gr else "",
-            "registered": gr is not None,
+            "guests": [{
+                "name": g.full_name, "nationality": g.nationality,
+                "id_kind": g.id_kind, "id_number": g.id_number,
+            } for g in guests],
+            "name": (guests[0].full_name if guests else (b.guest_name if b else "")),
+            "registered": bool(guests),
             "bytes_in": r.bytes_in, "bytes_out": r.bytes_out,
         })
     return out

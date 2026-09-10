@@ -273,6 +273,71 @@ class Expense(Base):
     paid: Mapped[bool] = mapped_column(Boolean, default=True)
     due: Mapped[date | None] = mapped_column(Date, nullable=True)
 
+    #: ประเภทการหักภาษี ณ ที่จ่าย · หนึ่งใน WHT_RATES ของ money.py
+    #: "none" = ซื้อสินค้า ไม่ต้องหัก — ภาษีหัก ณ ที่จ่ายใช้กับ *บริการ*
+    wht_kind: Mapped[str] = mapped_column(String(16), default="none")
+    #: ยอดที่หักไว้และต้องนำส่งสรรพากรภายในวันที่ 7 ของเดือนถัดไป (ภ.ง.ด.3/53)
+    wht_satang: Mapped[int] = mapped_column(Integer, default=0)
+    #: เลขที่หนังสือรับรองการหักภาษี ณ ที่จ่ายที่ออกให้ผู้รับเงิน
+    wht_cert_no: Mapped[str] = mapped_column(String(40), default="")
+
+    @property
+    def net_payable_satang(self) -> int:
+        """ยอดที่จ่ายเจ้าหนี้จริง — หลังหักภาษี ณ ที่จ่ายแล้ว"""
+        return self.amount_satang - (self.wht_satang or 0)
+
+
+# ── ทะเบียนผู้พัก · งานที่กฎหมายบังคับ ──────────────────────────────
+class GuestRegistration(Base):
+    """ผู้พักหนึ่งคนต่อหนึ่งแถว — **ไม่ใช่หนึ่งการจองต่อหนึ่งแถว**
+
+    ม.35 พ.ร.บ.โรงแรม พ.ศ. 2547 บังคับให้ผู้ประกอบธุรกิจโรงแรมจัดให้มีทะเบียนผู้พัก
+    บันทึกให้แล้วเสร็จ **ภายใน 24 ชั่วโมง** นับแต่เวลาที่เข้าพัก และเก็บไว้ไม่น้อยกว่าหนึ่งปี
+
+    กฎหมายลงทะเบียน "ผู้พัก" ไม่ใช่ "ผู้จอง" — การจองที่มีผู้ใหญ่สองคนต้องมีสองแถว
+    ไม่ใช่แถวเดียวตามชื่อคนจอง ตรงนี้คือจุดที่ระบบส่วนใหญ่ทำผิดแล้วตรวจไม่ผ่าน
+
+    สองแบบที่ต้องแยกให้ออก
+      ร.ร.3  บัตรทะเบียนผู้พัก — ผู้พักกรอกและ **ลงลายมือชื่อทันทีที่เข้าพัก**
+      ร.ร.4  ทะเบียนผู้พัก — โรงแรมบันทึกและส่งนายทะเบียนภายใน 24 ชม.
+
+    แขกต่างชาติมีอีกชั้นคือ **ตม.30** ตาม ม.38 พ.ร.บ.คนเข้าเมือง พ.ศ. 2522
+    เจ้าบ้านต้องแจ้งพนักงานเจ้าหน้าที่ภายใน 24 ชั่วโมง ไม่แจ้งมีโทษปรับ
+    """
+
+    __tablename__ = "guest_registration"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    booking_id: Mapped[int] = mapped_column(ForeignKey("booking.id"), index=True)
+
+    full_name: Mapped[str] = mapped_column(String(160))
+    #: รหัสประเทศสองตัวตาม ISO 3166-1 · TH = ไทย
+    nationality: Mapped[str] = mapped_column(String(2), default="TH", index=True)
+    #: เลขประจำตัวประชาชน (ไทย) หรือเลขหนังสือเดินทาง (ต่างชาติ)
+    id_number: Mapped[str] = mapped_column(String(40), default="")
+    #: national_id | passport
+    id_kind: Mapped[str] = mapped_column(String(16), default="national_id")
+    occupation: Mapped[str] = mapped_column(String(80), default="")
+    address: Mapped[str] = mapped_column(String(300), default="")
+    came_from: Mapped[str] = mapped_column(String(160), default="")
+    going_to: Mapped[str] = mapped_column(String(160), default="")
+
+    arrived_at: Mapped[datetime] = mapped_column(DateTime, default=clock.now)
+    departed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+    #: ร.ร.3 — เวลาที่ผู้พักลงลายมือชื่อ · None = ยังไม่ได้เซ็น
+    rr3_signed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    #: ร.ร.4 — เวลาที่ส่งนายทะเบียน
+    rr4_filed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    rr4_batch: Mapped[str] = mapped_column(String(40), default="")
+    #: ตม.30 — ใช้เฉพาะแขกต่างชาติ
+    tm30_filed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    tm30_receipt: Mapped[str] = mapped_column(String(80), default="")
+
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=clock.now)
+
+    booking: Mapped["Booking"] = relationship()
+
 
 # ── คิวส่งออกไปยังระบบบัญชี (outbox) ─────────────────────────────────
 class LedgerOutbox(Base):
@@ -378,42 +443,6 @@ class WifiSession(Base):
     bytes_out: Mapped[int] = mapped_column(Integer, default=0)
 
     credential: Mapped[WifiCredential] = relationship()
-
-
-# ── ทะเบียนผู้พัก ────────────────────────────────────────────────────
-class GuestRegister(Base):
-    """บัตรทะเบียนผู้พัก ร.ร.3 หนึ่งใบ · รวมกันเป็นทะเบียน ร.ร.4
-
-    ม.35 พ.ร.บ.โรงแรม พ.ศ. 2547 บังคับให้จัดทำ **ทันทีที่รับผู้พัก**
-    และ ม.38 พ.ร.บ.คนเข้าเมือง บังคับให้แจ้งคนต่างด้าวภายใน 24 ชั่วโมง
-
-    หนึ่งการจองหนึ่งใบ — คีย์ไม่ซ้ำบน booking_id กันลงทะเบียนซ้ำที่ฐานข้อมูล
-    ไม่ใช่ที่โค้ด เพราะพนักงานสองคนกดพร้อมกันได้จริงตอนแขกเข้าเป็นกลุ่ม
-    """
-
-    __tablename__ = "guest_register"
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-    booking_id: Mapped[int] = mapped_column(ForeignKey("booking.id"), unique=True, index=True)
-    full_name: Mapped[str] = mapped_column(String(200))
-    nationality: Mapped[str] = mapped_column(String(64), default="ไทย")
-    #: thai_id | passport
-    id_type: Mapped[str] = mapped_column(String(16))
-    id_number: Mapped[str] = mapped_column(String(32), index=True)
-    birth_date: Mapped[date | None] = mapped_column(Date, nullable=True)
-    address: Mapped[str] = mapped_column(String(400), default="")
-    #: เดินทางมาจากที่ใด — ช่องบังคับในแบบ ตม.30
-    arrived_from: Mapped[str] = mapped_column(String(160), default="")
-    phone: Mapped[str] = mapped_column(String(32), default="")
-    #: ตัดสินจากสัญชาติ ไม่ใช่จากชนิดเอกสาร — คนไทยที่ถือพาสปอร์ตมาเช็กอิน
-    #: ก็ยังเป็นคนไทย ไม่ต้องแจ้ง ตม.30
-    foreign: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
-    #: ครบกำหนดแจ้ง ตม.30 · นับจากเวลาที่เข้าพัก ไม่ใช่เวลาที่กรอกฟอร์ม
-    tm30_due: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, index=True)
-    tm30_sent_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
-    #: เลขรับเรื่องจากระบบราชการ — เก็บไว้ให้ตรวจย้อนได้ว่าแจ้งจริง
-    tm30_receipt: Mapped[str] = mapped_column(String(64), default="")
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=clock.now)
 
 
 # ── งานแม่บ้าน ───────────────────────────────────────────────────────

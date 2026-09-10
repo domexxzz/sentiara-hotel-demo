@@ -33,7 +33,10 @@ CORE_TABLES = ("room", "room_type", "staff")
 COUNTED = (
     "room_type", "room", "booking", "room_night", "folio", "charge", "payment",
     "tax_invoice", "credit_note", "expense", "ledger_outbox",
-    "guest_register", "housekeeping_task", "staff", "audit_event",
+    "guest_registration", "housekeeping_task", "staff", "audit_event",
+    # บันทึก session Wi-Fi ต้องนับด้วย — ม.26 บังคับให้เก็บ 90 วัน
+    # ถ้ากู้คืนแล้วหายไปเงียบ ๆ เราผิดกฎหมายโดยไม่มีอะไรฟ้อง
+    "wifi_credential", "wifi_session",
 )
 
 
