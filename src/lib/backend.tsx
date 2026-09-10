@@ -12,8 +12,8 @@ import {
  *
  * สามสถานะ ไม่ใช่สอง
  * -------------------
- *   demo    ไม่ได้ตั้งที่อยู่หลังบ้าน หรือต่อไม่ติด → ข้อมูลอยู่ในเครื่อง เหมือนเดิมทุกอย่าง
- *   locked  ต่อหลังบ้านติดแล้ว แต่ยังไม่ได้แตะบัตร → ต้องล็อกอินก่อนถึงจะเห็นข้อมูลจริง
+ *   demo    ไม่ได้ตั้งที่อยู่หลังบ้าน → ข้อมูลสาธิตอยู่ในเครื่อง
+ *   locked  ตั้งหลังบ้านแล้ว แต่ยังต่อไม่ได้หรือยังไม่ล็อกอิน → ห้ามทำรายการ
  *   live    ล็อกอินแล้ว → ทุกอย่างวิ่งผ่านฐานข้อมูลจริง หลายเครื่องเห็นตรงกัน
  *
  * ที่ต้องแยก `locked` ออกมา เพราะถ้ารวมกับ `demo` แล้วคนที่ยังไม่ล็อกอินจะเห็น
@@ -71,7 +71,7 @@ export function BackendProvider({ children }: { children: ReactNode }) {
         }
       }
     } catch {
-      // ต่อไม่ติดไม่ใช่ความผิดพลาด — แค่แปลว่าวันนี้ใช้โหมดสาธิต
+      // เครื่องที่ตั้งหลังบ้านแล้วต้องพักการทำรายการ ไม่เปลี่ยนเป็นเดโมเงียบ ๆ
       setHealth(null);
       setSession(null);
     } finally {
@@ -112,7 +112,7 @@ export function BackendProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<Ctx>(() => {
     const online = health !== null;
-    const mode: Mode = !online ? "demo" : session ? "live" : "locked";
+    const mode: Mode = !API_CONFIGURED ? "demo" : online && session ? "live" : "locked";
     return {
       mode,
       online,
@@ -124,7 +124,7 @@ export function BackendProvider({ children }: { children: ReactNode }) {
       signIn,
       signOut,
       retry: probe,
-      can: (perm) => (mode === "live" ? !!session?.permissions.includes(perm) : true),
+      can: (perm) => mode === "demo" || (mode === "live" && !!session?.permissions.includes(perm)),
     };
   }, [health, session, probing, error, busy, signIn, signOut, probe]);
 

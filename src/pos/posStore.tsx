@@ -37,7 +37,7 @@ type Action =
   | { type: "ADD"; menuId: string }
   | { type: "REMOVE"; menuId: string }
   | { type: "CLEAR" }
-  | { type: "SEND" }
+  | { type: "SEND"; lines?: Line[]; targetId?: string }
   | { type: "SERVE"; id: string }
   | { type: "MOVE_TABLE"; from: string; to: string }
   | { type: "SPLIT_PAY"; table: string; picked: Line[] }
@@ -125,14 +125,19 @@ function reducer(state: State, action: Action): State {
       return { ...state, cart: [] };
 
     case "SEND": {
-      if (state.cart.length === 0) return state;
-      const target = state.targets.find((t) => t.id === state.targetId);
+      const sent = action.lines ?? state.cart;
+      if (sent.length === 0) return state;
+      const target = state.targets.find((t) => t.id === (action.targetId ?? state.targetId));
       if (!target) return state;
-      const total = cartTotal(state.cart);
+      const total = cartTotal(sent);
+      // ถ้าลงบิลได้เพียงบางรายการ เก็บรายการที่ล้มเหลวไว้ให้แก้ไข ไม่ส่งซ้ำรายการที่สำเร็จ
+      const remaining = state.cart.map((l) => ({ ...l,
+        qty: l.qty - (sent.find((s) => s.menuId === l.menuId)?.qty ?? 0),
+      })).filter((l) => l.qty > 0);
       const id = "F-" + ++tSeq;
       const mergeTab = (lines: Line[]) => {
         const next = [...lines];
-        for (const l of state.cart) {
+        for (const l of sent) {
           const hit = next.find((x) => x.menuId === l.menuId);
           if (hit) next[next.indexOf(hit)] = { ...hit, qty: hit.qty + l.qty };
           else next.push({ ...l });
@@ -142,8 +147,8 @@ function reducer(state: State, action: Action): State {
 
       return {
         ...state,
-        cart: [],
-        view: "kitchen",
+        cart: remaining,
+        view: remaining.length ? "order" : "kitchen",
         tabs: target.room
           ? state.tabs
           : { ...state.tabs, [target.id]: mergeTab(state.tabs[target.id] ?? []) },
@@ -152,7 +157,7 @@ function reducer(state: State, action: Action): State {
             id,
             target: target.label,
             room: target.room,
-            lines: state.cart,
+            lines: sent,
             total,
             status: "cooking",
             at: clock[state.tickets.length % clock.length],

@@ -3,10 +3,10 @@ import "../desk/desk.css";
 import "../owner/owner.css"; // .owner-note footnote style is shared
 import "./pos.css";
 import { MENU, SHIFT } from "./posData";
-import { PosProvider, menuOf, usePos, type PosView } from "./posStore";
+import { PosProvider, menuOf, usePos, type PosView, type Line } from "./posStore";
 import { Tables } from "./Tables";
 import { useHotel } from "../hotel/hotelStore";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { money } from "../lib/format";
 import { Icon, type IconName } from "../components/Icon";
 
@@ -21,6 +21,8 @@ function Order() {
   const { state, dispatch, total, soldOut } = usePos();
   const hotel = useHotel();
   const target = state.targets.find((t) => t.id === state.targetId);
+  const [sending, setSending] = useState(false);
+  const submitting = useRef(false);
 
   // ห้องที่คิดเงินได้ = แขกที่เช็กอินอยู่จริงตอนนี้
   const inHouseKey = hotel.inHouse.map((b) => b.room).join(",");
@@ -36,18 +38,31 @@ function Order() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inHouseKey]);
 
-  const send = () => {
-    if (target?.room) {
-      for (const line of state.cart) {
-        const m = menuOf(line.menuId);
-        hotel.dispatch({
-          type: "ADD_CHARGE",
-          room: target.room,
-          line: { label: m.name, note: "ร้านอาหาร · ยิงจาก POS", price: m.price, qty: line.qty, kind: "fnb" },
-        });
+  const send = async () => {
+    if (submitting.current || !target) return;
+    submitting.current = true;
+    setSending(true);
+    const sent: Line[] = [];
+    try {
+      if (target.room) {
+        for (const line of state.cart) {
+          const m = menuOf(line.menuId);
+          const ok = await hotel.dispatch({
+            type: "ADD_CHARGE",
+            room: target.room,
+            line: { label: m.name, note: "ร้านอาหาร · ยิงจาก POS", price: m.price, qty: line.qty, kind: "fnb" },
+          });
+          if (!ok) break;
+          sent.push(line);
+        }
+        if (sent.length) dispatch({ type: "SEND", lines: sent, targetId: target.id });
+      } else {
+        dispatch({ type: "SEND" });
       }
+    } finally {
+      submitting.current = false;
+      setSending(false);
     }
-    dispatch({ type: "SEND" });
   };
 
   return (
@@ -73,7 +88,7 @@ function Order() {
                     <button
                       key={m.id}
                       className={`mitem ${out ? "out" : ""}`}
-                      disabled={out}
+                      disabled={out || sending}
                       onClick={() => dispatch({ type: "ADD", menuId: m.id })}
                     >
                       <strong>{m.name}</strong>
@@ -101,6 +116,7 @@ function Order() {
             {state.targets.map((t) => (
               <button
                 key={t.id}
+                disabled={sending}
                 className={state.targetId === t.id ? "on" : ""}
                 onClick={() => dispatch({ type: "TARGET", id: t.id })}
               >
@@ -120,6 +136,7 @@ function Order() {
                     <button
                       className="qtybtn"
                       aria-label="ลด"
+                      disabled={sending}
                       onClick={() => dispatch({ type: "REMOVE", menuId: l.menuId })}
                     >
                       −
@@ -128,6 +145,7 @@ function Order() {
                     <button
                       className="qtybtn"
                       aria-label="เพิ่ม"
+                      disabled={sending}
                       onClick={() => dispatch({ type: "ADD", menuId: l.menuId })}
                     >
                       +
@@ -147,14 +165,14 @@ function Order() {
             </div>
             <button
               className="btn primary block"
-              disabled={state.cart.length === 0}
+              disabled={state.cart.length === 0 || sending || hotel.syncing}
               onClick={send}
             >
               <Icon name="send" size={16} />
               {target?.room ? `ยิงเข้าครัว + เข้าบิลห้อง ${target.room}` : "ยิงเข้าครัว"}
             </button>
             {state.cart.length > 0 && (
-              <button className="btn ghost sm" onClick={() => dispatch({ type: "CLEAR" })}>
+              <button className="btn ghost sm" disabled={sending} onClick={() => dispatch({ type: "CLEAR" })}>
                 ล้างออร์เดอร์
               </button>
             )}

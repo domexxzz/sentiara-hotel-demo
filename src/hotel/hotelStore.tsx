@@ -23,6 +23,8 @@ export type BookingStatus = "confirmed" | "inhouse" | "checkedout";
 export type BookingSource = "direct" | "walkin" | "ota" | "line";
 
 export type Booking = {
+  paid?: number;
+  balance?: number;
   id: string;
   guest: string;
   roomType: string;
@@ -138,6 +140,7 @@ type Action =
   | { type: "CHECK_IN"; bookingId: string; room: string }
   | { type: "ADD_CHARGE"; room: string; line: Omit<BillLine, "id" | "qty"> & { qty?: number } }
   | { type: "CHECK_OUT"; room: string }
+  | { type: "ADD_PAYMENT"; room: string; amount: number; method: "cash" | "card" | "transfer" }
   | { type: "SET_ROOM"; room: string; patch: Partial<DeskRoom> }
   | { type: "MOVE_ROOM"; from: string; to: string }
   | { type: "CHANGE_DATES"; bookingId: string; checkIn: string; checkOut: string }
@@ -972,7 +975,7 @@ function reducer(state: State, action: Action): State {
 // ── Context ───────────────────────────────────────────────────────────
 type Ctx = {
   state: State;
-  dispatch: React.Dispatch<Action>;
+  dispatch: (action: Action) => Promise<boolean>;
   /** การจองที่ยังรอเช็กอิน — ฟีดให้หน้าเคาน์เตอร์ */
   arrivals: Booking[];
   /** แขกที่กำลังพักอยู่ — ฟีดให้ POS และหน้าเช็กเอาท์ */
@@ -1062,37 +1065,41 @@ export function HotelProvider({ children }: { children: ReactNode }) {
    *             และการวาดไปก่อนแล้วค่อยรู้ว่าถูกปฏิเสธ คือครู่ที่พนักงาน
    *             เผลอบอกแขกไปแล้วว่าจองได้
    */
-  const dispatch = useCallback<React.Dispatch<Action>>(
-    (action) => {
-      if (!live) {
+  const dispatch = useCallback<(action: Action) => Promise<boolean>>(
+    async (action) => {
+      if (mode === "locked") {
+        setSyncError("กรุณาเข้าสู่ระบบก่อนทำรายการ");
+        return false;
+      }
+      if (mode === "demo") {
         rawDispatch(action);
-        return;
+        return true;
       }
       setSyncError("");
       setSyncing(true);
-      void (async () => {
-        try {
-          const handled = await push(action as never);
-          if (handled) await refresh();
-          else rawDispatch(action);   // เรื่องที่หลังบ้านยังไม่รู้จัก ทำในเครื่องต่อไป
-        } catch (e) {
-          setSyncError(e instanceof ApiError ? e.message : "หลังบ้านปฏิเสธรายการนี้");
-        } finally {
-          setSyncing(false);
-        }
-      })();
+      try {
+        const handled = await push(action as never, state.bookings);
+        if (handled) await refresh();
+        else throw new ApiError(400, "รายการนี้ยังไม่รองรับในโหมดเชื่อมต่อหลังบ้าน");
+        return true;
+      } catch (e) {
+        setSyncError(e instanceof ApiError ? e.message : "หลังบ้านปฏิเสธรายการนี้");
+        return false;
+      } finally {
+        setSyncing(false);
+      }
     },
-    [live, refresh],
+    [mode, refresh, state.bookings],
   );
 
   // บันทึกทุกครั้งที่สถานะเปลี่ยน — ไม่เก็บ session เพราะเปิดใหม่ต้องแตะบัตรใหม่
   useEffect(() => {
     // โหมดจริงไม่บันทึกลงเบราว์เซอร์ — แหล่งความจริงอยู่ที่เซิร์ฟเวอร์
     // ถ้าบันทึกด้วย เปิดเครื่องใหม่แล้วของเก่าจะทับของจริงชั่วครู่ก่อนโหลดเสร็จ
-    if (live) return;
+    if (mode !== "demo") return;
     const { session: _drop, ...rest } = state;
     save("hotel", rest);
-  }, [state, live]);
+  }, [state, mode]);
 
   // ส่งค่าจากหน้าตั้งค่าไปให้โมดูลที่คิดราคาและภาษี
   //

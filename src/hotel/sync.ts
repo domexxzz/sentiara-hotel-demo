@@ -1,4 +1,4 @@
-import { api, type ApiBooking, type ApiRoom } from "../lib/api";
+import { api, ApiError, type ApiBooking, type ApiRoom } from "../lib/api";
 import { TODAY } from "../lib/date";
 import type { Booking, BillLine } from "./hotelStore";
 import type { DeskRoom, RoomStatus } from "../desk/deskData";
@@ -6,16 +6,8 @@ import type { DeskRoom, RoomStatus } from "../desk/deskData";
 /**
  * ชั้นแปลงข้อมูลระหว่างหลังบ้านกับหน้าจอ
  *
- * ── สิ่งที่หลังบ้านยังไม่รู้ ─────────────────────────────────────────
- * หลังบ้านรู้เรื่องการขายห้องกับเงิน แต่ยังไม่รู้เรื่อง **สถานะแม่บ้าน**
- * (รอทำความสะอาด / พร้อมขาย) เพราะยังไม่มีตารางนั้น
- *
- * เวลาเทข้อมูลจริงลงผังห้อง สถานะที่คิดได้จึงมีแค่สามอย่าง — ปิดซ่อม
- * มีแขกอยู่ และว่าง · ห้องที่เพิ่งเช็กเอาต์จะขึ้นว่า "ว่าง" ทันทีทั้งที่
- * จริง ๆ ยังไม่ได้ทำความสะอาด
- *
- * **นี่คือของที่ยังขาด ไม่ใช่ของที่ออกแบบมาแบบนี้** และหน้าจอต้องบอกตามจริง
- * ไม่ใช่เดาสถานะแม่บ้านขึ้นมาเองให้ดูเหมือนครบ
+ * สถานะแม่บ้านยึดค่าจาก API เพราะห้องไม่มีแขกไม่ได้แปลว่าพร้อมขาย
+ * แขกที่เลยกำหนดเช็กเอาต์แต่ยังอยู่ ต้องอยู่ในภาพเดียวกันด้วยเสมอ
  */
 
 /** วันนี้ตามเวลาไทย · โหมดจริงใช้วันจริง ไม่ใช่วันที่ตรึงไว้ของเดโม */
@@ -45,6 +37,8 @@ export function toBooking(b: ApiBooking, rateOfRoom: (no: string) => number): Bo
       ? Math.round(b.folio.gross / b.nights)
       : rateOfRoom(b.room),
     deposit: b.deposit,
+    paid: b.folio?.paid ?? 0,
+    balance: b.folio?.balance ?? 0,
     status: b.status === "cancelled" ? "checkedout" : b.status,
     source: b.source,
   };
@@ -65,6 +59,9 @@ export function toRooms(rooms: ApiRoom[], bookings: ApiBooking[], today: string)
     else if (inhouse.has(r.no)) {
       status = "occupied";
       guest = inhouse.get(r.no);
+    } else if (!r.sellable || r.housekeeping !== "clean") {
+      status = "dirty";
+      guest = arriving.get(r.no);
     } else if (arriving.has(r.no)) {
       status = "arriving";
       guest = arriving.get(r.no);
@@ -88,10 +85,13 @@ export type Snapshot = {
  */
 export async function pull(): Promise<Snapshot> {
   const today = realToday();
-  const [{ rooms }, { bookings }] = await Promise.all([
+  const [{ rooms }, { bookings: upcoming }, { bookings: inhouse }] = await Promise.all([
     api.rooms(),
     api.bookings({ since: today }),
+    // แขกที่ครบวันเช็กเอาต์แล้วยังอยู่ ต้องไม่หายจากผังห้อง
+    api.bookings({ status: "inhouse" }),
   ]);
+  const bookings = [...new Map([...upcoming, ...inhouse].map((b) => [b.ref, b])).values()];
 
   const rateOf = new Map(rooms.map((r) => [r.no, r.rate]));
   const typeOf = new Map(rooms.map((r) => [r.no, r.type]));
@@ -105,7 +105,7 @@ export async function pull(): Promise<Snapshot> {
   const bills: Record<string, BillLine[]> = {};
   const staying = bookings.filter((b) => b.status === "inhouse");
   const folios = await Promise.all(
-    staying.map((b) => api.folio(b.ref).catch(() => null)),
+    staying.map((b) => api.folio(b.ref)),
   );
   folios.forEach((f, i) => {
     if (!f) return;
@@ -113,7 +113,7 @@ export async function pull(): Promise<Snapshot> {
       id: `${staying[i].ref}-${n}`,
       label: c.label,
       qty: c.qty,
-      price: c.unit,
+      price: c.kind === "discount" ? -c.unit : c.unit,
       kind: c.kind === "discount" ? "service" : c.kind,
     }));
   });
@@ -125,20 +125,28 @@ export async function pull(): Promise<Snapshot> {
  * ส่งการกระทำหนึ่งอย่างไปให้หลังบ้านตัดสิน
  *
  * คืน `true` ถ้าหลังบ้านรับผิดชอบการกระทำนั้นแล้ว (หน้าจอต้องดึงข้อมูลใหม่)
- * คืน `false` ถ้าเป็นเรื่องที่หลังบ้านยังไม่รู้จัก (ทำในเครื่องต่อไปตามเดิม)
+ * คืน `false` ถ้ายังไม่มีเส้นทางรองรับ ผู้เรียกต้องแจ้งว่าใช้ในโหมดจริงไม่ได้
  *
  * **ไม่อัปเดตหน้าจอแบบมองโลกในแง่ดี** — ยิงไปก่อนแล้วค่อยวาด ถ้าหลังบ้าน
  * ปฏิเสธเพราะห้องถูกจองไปแล้ว หน้าจอที่วาดไปก่อนจะโกหกอยู่ครู่หนึ่ง
  * ซึ่งเป็นครู่ที่พนักงานใช้บอกแขกไปแล้วว่าจองได้
  */
-export async function push(action: { type: string; [k: string]: unknown }): Promise<boolean> {
+export async function push(
+  action: { type: string; [k: string]: unknown },
+  bookings: Pick<Booking, "id" | "room" | "status">[] = [],
+): Promise<boolean> {
+  const roomRef = () => {
+    const matches = bookings.filter((b) => b.room === action.room && b.status === "inhouse");
+    if (matches.length !== 1) throw new ApiError(400, "ไม่พบการเข้าพักที่ระบุได้แน่นอนสำหรับห้องนี้ กรุณาโหลดข้อมูลใหม่");
+    return matches[0].id;
+  };
   switch (action.type) {
     case "CREATE_BOOKING": {
       const b = action.booking as {
         room?: string; guest: string; checkIn: string; checkOut: string;
         adults?: number; children?: number; source?: string;
       };
-      if (!b.room) return false;      // ยังไม่ได้เลือกห้อง หลังบ้านรับไม่ได้
+      if (!b.room) throw new ApiError(400, "กรุณาเลือกห้องก่อนจอง");
       await api.createBooking({
         room_no: b.room,
         guest_name: b.guest,
@@ -161,8 +169,7 @@ export async function push(action: { type: string; [k: string]: unknown }): Prom
 
     case "ADD_CHARGE": {
       const line = action.line as { label: string; price: number; qty?: number; kind: string };
-      const ref = action.bookingRef as string | undefined;
-      if (!ref) return false;         // หน้าจอยังไม่ได้บอกว่าเป็นบิลของการจองใบไหน
+      const ref = roomRef();
       await api.addCharge(ref, {
         kind: line.kind === "room" ? "room" : line.kind === "fnb" ? "fnb" : "service",
         label: line.label,
@@ -173,14 +180,25 @@ export async function push(action: { type: string; [k: string]: unknown }): Prom
     }
 
     case "CHECK_OUT": {
-      const ref = action.bookingRef as string | undefined;
-      if (!ref) return false;
+      const ref = roomRef();
+      const folio = await api.folio(ref);
+      if (folio.totals.balance > 0) throw new ApiError(400, "บิลยังมียอดค้างชำระ กรุณารับชำระก่อนปิดบิล");
       await api.closeFolio(ref);
       return true;
     }
 
+    case "ADD_PAYMENT": {
+      const ref = roomRef();
+      const folio = await api.folio(ref);
+      if (folio.totals.balance !== Number(action.amount) || folio.totals.balance <= 0) {
+        throw new ApiError(400, "ยอดค้างชำระเปลี่ยนแล้ว กรุณาโหลดข้อมูลใหม่ก่อนรับชำระ");
+      }
+      await api.addPayment(ref, { method: String(action.method), amount: Number(action.amount) });
+      return true;
+    }
+
     default:
-      // แม่บ้าน แชท ใบงานช่าง แต้ม ตั้งค่า — หลังบ้านยังไม่มีตารางพวกนี้
+      // ยังไม่มีตัวเชื่อมสำหรับคำสั่งนี้ ห้ามแอบเปลี่ยนข้อมูลเฉพาะในเครื่อง
       return false;
   }
 }

@@ -6,7 +6,7 @@
  * พังเครื่องมือขาย · บิลด์เดียวจึงต้องทำงานสองโหมด
  *
  *   ต่อหลังบ้านได้    → ใช้ข้อมูลจริง หลายเครื่องเห็นตรงกัน มีสิทธิ์ผู้ใช้จริง
- *   ต่อไม่ได้          → ถอยไปเป็นเดโมเหมือนเดิม ไม่มีอะไรพัง ไม่มีจอแดง
+ *   ตั้งค่าแล้วต่อไม่ได้ → พักการทำรายการจนเชื่อมต่อได้ ไม่บันทึกของจริงเป็นข้อมูลสาธิต
  *
  * ตั้งที่อยู่หลังบ้านผ่าน `VITE_API_URL` ตอน build · ไม่ตั้ง = โหมดสาธิตล้วน
  *
@@ -148,6 +148,8 @@ export type ApiRoom = {
   type_code: string;
   floor: string;
   out_of_order: boolean;
+  housekeeping: "clean" | "dirty" | "cleaning" | "inspect";
+  sellable: boolean;
   rate: number;
 };
 
@@ -188,9 +190,8 @@ export type ApiFolio = {
   charges: ApiCharge[];
   payments: { method: string; amount: number; at?: string }[];
   room_total?: number;
-  gross: number;
-  paid: number;
-  balance: number;
+  totals: { room: number; fnb: number; service: number; discount: number;
+    gross: number; paid: number; balance: number };
 };
 
 export type Session = {

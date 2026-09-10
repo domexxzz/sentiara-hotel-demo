@@ -12,7 +12,7 @@ import { Icon } from "./Icon";
  * จากตัวเลขสาธิต หรือกลัวไม่กล้ากดอะไรเลยเพราะไม่แน่ใจว่าของจริงหรือเปล่า
  */
 export function ConnectionBar() {
-  const { mode, probing, health, session, signOut } = useBackend();
+  const { mode, probing, online, health, session, signOut, retry } = useBackend();
   if (probing) {
     return (
       <div className="conn probing">
@@ -39,9 +39,10 @@ export function ConnectionBar() {
       <div className="conn locked">
         <Icon name="key" size={14} className="ic" />
         <div className="txt">
-          <b>ต่อหลังบ้านได้แล้ว — ยังไม่ได้แตะบัตร</b>
-          <span>{health?.hotel} · แตะบัตรเข้าระบบเพื่อดูข้อมูลจริง</span>
+          <b>{online ? "ต่อหลังบ้านได้แล้ว — ยังไม่ได้แตะบัตร" : "ต่อหลังบ้านไม่ได้ — พักการทำรายการ"}</b>
+          <span>{online ? `${health?.hotel} · แตะบัตรเข้าระบบเพื่อดูข้อมูลจริง` : "ตรวจว่าเซิร์ฟเวอร์เปิดอยู่ แล้วลองเชื่อมต่อใหม่"}</span>
         </div>
+        {!online && <button type="button" className="out" onClick={() => void retry()}>ลองใหม่</button>}
       </div>
     );
   }
