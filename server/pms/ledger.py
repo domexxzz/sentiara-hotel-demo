@@ -260,7 +260,14 @@ class LedgerClient:
         """
         realigned = 0
         if not self.dry_run:
-            realigned = align_sequence(db, self.watermark())
+            try:
+                realigned = align_sequence(db, self.watermark())
+            except BridgeError as e:
+                # หลัง timeout เราอาจเช็ค watermark ไม่ได้ชั่วคราว ทั้งที่
+                # คำขอเดิมอาจถึงปลายทางแล้ว ให้ลองส่ง eventId เดิมต่อได้
+                # แทนการทำให้คิวหยุดค้างเพราะขั้นตรวจสถานะเพียงขั้นเดียว
+                if not e.retryable:
+                    raise
 
         rows = list(db.scalars(
             select(LedgerOutbox)
@@ -292,7 +299,18 @@ class LedgerClient:
                 # เพราะลำดับต่ำกว่า watermark — กรณีหลังรายงานเป็น `duplicates`
                 # ซึ่งหน้าตาเหมือนความสำเร็จทุกประการ ต้องนับ `inserted` เอง
                 inserted = int(out.get("inserted", 0))
-                ok = inserted == len(rows)
+                duplicates = int(out.get("duplicates", 0))
+                # ถ้าคำขอรอบก่อนถึงปลายทางแล้ว แต่ response หายระหว่างทาง
+                # รอบนี้จะได้ duplicates แทน inserted ถือว่าส่งสำเร็จได้
+                # ก็ต่อเมื่อ watermark ครอบคลุม seq ชุดนี้จริง ป้องกันการ
+                # กลบข้อมูลที่ถูกทิ้งเพราะ seq ต่ำด้วยคำตอบ 202 ปลอม ๆ
+                watermark = int(out.get("watermark", 0) or 0)
+                replayed = (
+                    inserted + duplicates == len(rows)
+                    and duplicates > 0
+                    and watermark >= max(r.seq for r in rows)
+                )
+                ok = inserted == len(rows) or replayed
                 if not ok:
                     detail = (
                         f"ปลายทางรับเข้าคิวจริงแค่ {inserted} จาก {len(rows)} รายการ · "

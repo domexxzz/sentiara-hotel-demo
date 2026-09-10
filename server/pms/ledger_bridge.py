@@ -60,7 +60,9 @@ class LedgerError(Exception):
         5xx และ 429 คือฝั่งเราหรือจังหวะไม่ดี · ลองใหม่ได้
         4xx ที่เหลือคือข้อมูลผิด ลองกี่ครั้งก็ได้ผลเดิม อย่าวนลูป
         """
-        return self.status >= 500 or self.status == 429
+        # status=0 means urllib could not establish/read the connection.
+        # It is transient too: the caller must keep the outbox and retry.
+        return self.status == 0 or self.status >= 500 or self.status == 429
 
 
 def money(satang: int) -> str:

@@ -450,3 +450,37 @@ def test_partial_insert_is_reported_as_failure(c, db, monkeypatch):
     assert r["failed"] == r["queued"] and r["sent"] == 0
     assert "รับเข้าคิวจริงแค่ 0" in r["errors"][0]["detail"]
     assert all(x.status == "failed" for x in db.scalars(select(LedgerOutbox)))
+
+
+def test_replay_after_timeout_is_confirmed_by_watermark(c, db, monkeypatch):
+    """เน็ตขาดหลังปลายทางบันทึกแล้ว · ส่งซ้ำได้และปิดคิวเมื่อเห็น watermark"""
+    _stay(c)
+    collect(db, MON, 7)
+    client = LedgerClient(dry_run=False)
+    class FakeBridge:
+        def ingest_status(self):
+            return {"watermark": 0}
+        def send_events(self, events):
+            return {"received": len(events), "inserted": 0,
+                    "duplicates": len(events), "watermark": max(e["seq"] for e in events)}
+    monkeypatch.setattr(client, "bridge", lambda: FakeBridge())
+    r = client.send_pending(db)
+    assert r["sent"] == r["queued"] and r["failed"] == 0
+    assert all(x.status == "sent" for x in db.scalars(select(LedgerOutbox)))
+
+
+def test_retry_continues_when_watermark_check_times_out(c, db, monkeypatch):
+    """เช็คสถานะล้มชั่วคราวไม่ควรทำให้คิวหยุดส่งทั้งชุด"""
+    _stay(c)
+    collect(db, MON, 7)
+    client = LedgerClient(dry_run=False)
+    class FakeBridge:
+        def ingest_status(self):
+            from pms.ledger_bridge import LedgerError
+            raise LedgerError(0, "NOT_RUNNING", "ชั่วคราว")
+        def send_events(self, events):
+            return {"received": len(events), "inserted": len(events),
+                    "duplicates": 0, "watermark": max(e["seq"] for e in events)}
+    monkeypatch.setattr(client, "bridge", lambda: FakeBridge())
+    r = client.send_pending(db)
+    assert r["sent"] == r["queued"] and r["failed"] == 0
