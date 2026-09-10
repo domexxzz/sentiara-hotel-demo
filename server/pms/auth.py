@@ -91,6 +91,7 @@ PERMISSIONS = (
     "staff",      # จัดการผู้ใช้และสิทธิ์
     "housekeeping",  # รับงานทำความสะอาดและส่งตรวจ
     "inspect",       # ตรวจงานแล้วผ่านหรือตีกลับ — ห้องกลับไปขายได้ตรงนี้
+    "wifi",        # ออกและตัดรหัส Wi-Fi ของแขก · ดูรายงานตาม ม.26
 )
 
 ROLES: dict[str, frozenset[str]] = {
@@ -98,7 +99,7 @@ ROLES: dict[str, frozenset[str]] = {
     "manager": frozenset(PERMISSIONS),
     # พนักงานเคาน์เตอร์ทำงานหน้าบ้านได้ครบ แต่ไม่เห็นตัวเลขทั้งกิจการ
     # และอนุมัติส่วนลดให้ตัวเองไม่ได้ — นั่นคือจุดที่การตรวจสอบมีความหมาย
-    "front":   frozenset({"booking", "folio", "fnb", "invoice", "register"}),
+    "front":   frozenset({"booking", "folio", "fnb", "invoice", "register", "wifi"}),
     # หัวหน้าแม่บ้านทั้งทำและตรวจ · จอเดียวกันสลับบทบาทได้เหมือนฝั่งหน้าจอ
     "hk":      frozenset({"housekeeping", "inspect"}),
     # ช่างรับงานห้องได้ แต่ไม่ใช่คนตัดสินว่าห้องสะอาดพอขายหรือยัง

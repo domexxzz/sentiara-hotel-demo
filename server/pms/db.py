@@ -318,6 +318,68 @@ class LedgerOutbox(Base):
     __table_args__ = ({"sqlite_autoincrement": True},)
 
 
+# ── Wi-Fi ที่พัก ─────────────────────────────────────────────────────
+class WifiCredential(Base):
+    """รหัส Wi-Fi ของการเข้าพักหนึ่งครั้ง
+
+    ออกให้ตอนเช็กอินเอง ใช้ได้ตามช่วงวันที่พักจริง แล้วหมดอายุเอง —
+    รหัสเดียวที่แชร์กันทั้งโรงแรมคือรหัสที่ไม่มีใครรู้ว่าใครใช้ ซึ่งทำให้
+    ทำตาม ม.26 พ.ร.บ.คอมพิวเตอร์ ไม่ได้เลย เพราะโยง session กลับไปหาคนไม่ได้
+
+    ชื่อผู้ใช้เป็นเลขห้อง เพราะแขกจำได้อยู่แล้วและไม่ต้องพิมพ์อะไรที่จำยาก
+    ส่วนรหัสสุ่ม — เลขห้องเดาได้ แต่เดารหัสไม่ได้ และช่วงเวลาที่ใช้ได้ก็แคบ
+    """
+
+    __tablename__ = "wifi_credential"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    booking_id: Mapped[int] = mapped_column(ForeignKey("booking.id"), unique=True, index=True)
+    #: เลขห้อง · แขกจำได้เอง
+    username: Mapped[str] = mapped_column(String(32), index=True)
+    #: เก็บแค่แฮช เหมือนรหัสพนักงาน — ฐานรั่วแล้วสวมสิทธิ์แขกไม่ได้
+    #: (แขกทำรหัสหาย เคาน์เตอร์ออกใหม่ ไม่ใช่อ่านของเดิมให้ฟัง)
+    secret_hash: Mapped[str] = mapped_column(String(200))
+    valid_from: Mapped[datetime] = mapped_column(DateTime, index=True)
+    #: หมดอายุหลังเช็กเอาต์ **บวกช่วงผ่อนผัน** — แขกที่รอแท็กซี่อยู่ที่ล็อบบี้
+    #: ยังควรใช้เน็ตได้ ตัดทันทีที่ปิดบิลคือความสะดวกที่หายไปโดยไม่ได้อะไรคืน
+    valid_until: Mapped[datetime] = mapped_column(DateTime, index=True)
+    #: กี่เครื่องต่อห้อง · มือถือ โน้ตบุ๊ก แท็บเล็ต สามเครื่องพอสำหรับคนทั่วไป
+    device_limit: Mapped[int] = mapped_column(Integer, default=3)
+    revoked: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=clock.now)
+
+    booking: Mapped["Booking"] = relationship()
+
+
+class WifiSession(Base):
+    """หนึ่งครั้งที่เครื่องหนึ่งต่อเน็ต
+
+    **นี่คือครึ่งที่อุปกรณ์เครือข่ายให้ไม่ได้** — เราเตอร์รู้ว่า MAC นี้ทำอะไร
+    แต่ไม่รู้ว่า MAC นี้คือใคร · ตารางนี้ต่อสองฝั่งเข้าด้วยกัน แล้วรายงาน
+    ตาม ม.26 จึงตอบได้ว่า "ในวันนั้น IP นี้คือคุณใคร ห้องไหน เลขพาสปอร์ตอะไร"
+
+    **เก็บแค่ metadata ของ session ไม่เก็บว่าเข้าเว็บอะไร** — ข้อมูลจราจรเป็น
+    หน้าที่ของอุปกรณ์ซึ่งทำได้ดีกว่า และเป็นข้อมูลที่ร้อนกว่ามากในสายตา PDPA
+    """
+
+    __tablename__ = "wifi_session"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    credential_id: Mapped[int] = mapped_column(ForeignKey("wifi_credential.id"), index=True)
+    #: รหัสที่อุปกรณ์เครือข่ายตั้งให้ session นั้น · ใช้จับคู่ตอนปิด
+    acct_session_id: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    mac: Mapped[str] = mapped_column(String(32), index=True)
+    ip: Mapped[str] = mapped_column(String(64), default="", index=True)
+    #: ชื่ออุปกรณ์กระจายสัญญาณที่แขกเกาะ · ใช้ไล่หาว่าอยู่โซนไหนของตึก
+    nas: Mapped[str] = mapped_column(String(64), default="")
+    started_at: Mapped[datetime] = mapped_column(DateTime, default=clock.now, index=True)
+    ended_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, index=True)
+    bytes_in: Mapped[int] = mapped_column(Integer, default=0)
+    bytes_out: Mapped[int] = mapped_column(Integer, default=0)
+
+    credential: Mapped[WifiCredential] = relationship()
+
+
 # ── ทะเบียนผู้พัก ────────────────────────────────────────────────────
 class GuestRegister(Base):
     """บัตรทะเบียนผู้พัก ร.ร.3 หนึ่งใบ · รวมกันเป็นทะเบียน ร.ร.4

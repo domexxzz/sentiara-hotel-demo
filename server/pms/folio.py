@@ -114,6 +114,11 @@ def close_folio(db: Session, folio: Folio) -> FolioTotals:
     open_task(db, b.room.no, kind="checkout",
               note=f"เช็กเอาต์ {b.guest_name}")
 
+    # Wi-Fi หมดอายุหลังเช็กเอาต์บวกช่วงผ่อนผัน ไม่ใช่ตัดทันที —
+    # แขกที่ยืนรอแท็กซี่อยู่ที่ล็อบบี้ยังควรใช้เน็ตได้
+    from pms.wifi import extend_to_checkout
+    extend_to_checkout(db, b)
+
     db.commit()
     return t
 

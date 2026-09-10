@@ -16,6 +16,7 @@ from pms import booking as bk
 from pms import folio as fo
 from pms import housekeeping as hk
 from pms import registry as reg
+from pms import wifi as wf
 from pms.db import (EXPENSE_CATEGORIES, Booking, Expense, Folio, HousekeepingTask,
                     LedgerOutbox, Room, RoomType)
 from pms.auth import AuthError, current_staff, login, logout, record, require
@@ -178,9 +179,17 @@ def get_booking(ref: str, db: Session = Depends(get_db)):
              dependencies=[Depends(require("booking"))])
 def check_in(ref: str, db: Session = Depends(get_db)):
     try:
-        return _booking_out(db, bk.check_in_booking(db, ref))
+        b = bk.check_in_booking(db, ref)
     except bk.BookingError as e:
         raise HTTPException(400, str(e))
+    out = _booking_out(db, b)
+    # รหัส Wi-Fi ที่ออกให้ตอนเช็กอิน · แสดงครั้งเดียวให้เคาน์เตอร์พิมพ์ใบให้แขก
+    # หลังจากนี้อ่านย้อนไม่ได้ เพราะฐานข้อมูลเก็บแค่แฮช
+    secret = getattr(b, "wifi_secret_once", None)
+    if secret:
+        out["wifi"] = {"room": b.room.no, "secret": secret,
+                       "note": "แสดงครั้งเดียว · อ่านย้อนไม่ได้ ทำหายต้องออกใหม่"}
+    return out
 
 
 @router.post("/bookings/{ref}/cancel", summary="ยกเลิกการจอง · คืนห้องให้ขายต่อได้",
@@ -398,6 +407,119 @@ def list_credit_notes(ref: str, db: Session = Depends(get_db)):
         {"number": c.number, "reason": c.reason, "gross": _b(c.gross_satang),
          "vat": _b(c.vat_satang), "issued_at": c.issued_at} for c in rows
     ]}
+
+
+
+# ── Wi-Fi ที่พัก ─────────────────────────────────────────────────────
+#
+# แบ่งเป็นสองกลุ่มที่ยืนยันตัวตนคนละแบบโดยตั้งใจ
+#   /wifi/authorize · /wifi/accounting   อุปกรณ์เครือข่ายเรียก → ความลับร่วม
+#   ที่เหลือ                              พนักงานเรียก → โทเคนกับสิทธิ์ wifi
+#
+# เราเตอร์ไม่ใช่คน จะให้ถือบัญชีพนักงานไม่ได้ · และช่องของอุปกรณ์ต้องอยู่บน
+# วงในเท่านั้น ห้ามเปิดออกอินเทอร์เน็ต
+def _gateway(x_wifi_secret: str = Header(default="")) -> None:
+    """ตัวประกอบสำหรับช่องที่อุปกรณ์เรียก · ไม่ตั้งค่า = ปฏิเสธทุกคำขอ"""
+    if not wf.gateway_ok(x_wifi_secret):
+        raise HTTPException(
+            401,
+            "อุปกรณ์ไม่ได้รับอนุญาต — ตั้ง PMS_WIFI_SECRET ให้ตรงกันทั้งสองฝั่ง "
+            "(ไม่ตั้งค่าคือปฏิเสธทุกคำขอโดยตั้งใจ ไม่ใช่ปล่อยผ่าน)",
+        )
+
+
+class WifiAuthIn(BaseModel):
+    username: str = Field(min_length=1, max_length=32)
+    secret: str = Field(min_length=1, max_length=64)
+    mac: str = Field(min_length=1, max_length=32)
+
+
+@router.post("/wifi/authorize", summary="อุปกรณ์ถามว่าให้เครื่องนี้ต่อได้ไหม",
+             dependencies=[Depends(_gateway)])
+def wifi_authorize(body: WifiAuthIn, db: Session = Depends(get_db)):
+    try:
+        return wf.authorize(db, body.username, body.secret, body.mac)
+    except wf.WifiError as e:
+        # 403 ไม่ใช่ 401 — คำขอมีสิทธิ์เรียกเส้นทางนี้ แต่แขกคนนั้นต่อไม่ได้
+        raise HTTPException(403, str(e)) from None
+
+
+class WifiAcctIn(BaseModel):
+    action: str = Field(pattern="^(start|update|stop)$")
+    username: str = Field(min_length=1, max_length=32)
+    session_id: str = Field(min_length=1, max_length=64)
+    mac: str = Field(min_length=1, max_length=32)
+    ip: str = ""
+    nas: str = ""
+    bytes_in: int = 0
+    bytes_out: int = 0
+
+
+@router.post("/wifi/accounting", summary="อุปกรณ์รายงานการเปิด–ปิด session",
+             dependencies=[Depends(_gateway)])
+def wifi_accounting(body: WifiAcctIn, db: Session = Depends(get_db)):
+    try:
+        row = wf.accounting(db, **body.model_dump())
+    except wf.WifiError as e:
+        raise HTTPException(400, str(e)) from None
+    db.commit()
+    return {"session_id": row.acct_session_id, "ended_at": row.ended_at}
+
+
+@router.post("/bookings/{ref}/wifi", summary="ออกรหัส Wi-Fi ใหม่ · แสดงครั้งเดียว",
+             dependencies=[Depends(require("wifi"))])
+def wifi_issue(ref: str, staff: Staff = Depends(current_staff),
+               db: Session = Depends(get_db)):
+    """ใช้ตอนแขกทำใบหาย · ออกใหม่แล้วรหัสเดิมใช้ไม่ได้ทันที
+
+    เก็บแค่แฮช จึงอ่านรหัสเดิมให้ฟังไม่ได้ ต้องออกใหม่อย่างเดียว
+    """
+    try:
+        cred, secret = wf.issue(db, ref)
+    except wf.WifiError as e:
+        raise HTTPException(400, str(e)) from None
+    record(db, staff, "wifi.issue", "booking", ref, f"ห้อง {cred.username}")
+    db.commit()
+    return {
+        "room": cred.username, "secret": secret,
+        "valid_until": cred.valid_until, "device_limit": cred.device_limit,
+        "note": "รหัสนี้แสดงครั้งเดียว · ระบบเก็บแค่แฮช อ่านย้อนไม่ได้",
+    }
+
+
+@router.post("/bookings/{ref}/wifi/revoke", summary="ตัดสิทธิ์ Wi-Fi ทันที",
+             dependencies=[Depends(require("wifi"))])
+def wifi_revoke(ref: str, staff: Staff = Depends(current_staff),
+                db: Session = Depends(get_db)):
+    try:
+        cred = wf.revoke(db, ref)
+    except wf.WifiError as e:
+        raise HTTPException(400, str(e)) from None
+    record(db, staff, "wifi.revoke", "booking", ref, f"ห้อง {cred.username}")
+    db.commit()
+    return {"room": cred.username, "revoked": True}
+
+
+@router.get("/wifi/online", summary="ใครกำลังต่ออยู่ตอนนี้",
+            dependencies=[Depends(require("wifi"))])
+def wifi_online(db: Session = Depends(get_db)):
+    rows = wf.online(db)
+    return {"devices": len(rows), "rows": rows}
+
+
+@router.get("/wifi/report",
+            summary="รายงานตัวตนตาม ม.26 พ.ร.บ.คอมพิวเตอร์ · IP นี้คือใคร",
+            dependencies=[Depends(require("wifi"))])
+def wifi_report(since: date, until: date, db: Session = Depends(get_db)):
+    rows = wf.identity_report(db, since, until)
+    return {
+        "since": since, "until": until,
+        "sessions": len(rows),
+        "unregistered": sum(1 for r in rows if not r["registered"]),
+        "rows": rows,
+        "note": ("รายงานนี้ตอบว่า session ไหนคือใคร · ข้อมูลจราจร (เข้าเว็บอะไร) "
+                 "อยู่ที่อุปกรณ์เครือข่าย ขอจากที่นั่น — ระบบนี้ไม่เก็บโดยตั้งใจ"),
+    }
 
 
 # ── ทะเบียนผู้พัก ────────────────────────────────────────────────────

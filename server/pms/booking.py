@@ -176,7 +176,15 @@ def check_in_booking(db: Session, ref: str) -> Booking:
     if b.status != "confirmed":
         raise BookingError(f"เช็กอินไม่ได้ · สถานะปัจจุบันคือ {b.status}")
     b.status = "inhouse"
+
+    # ออกรหัส Wi-Fi ให้เลย ไม่ต้องมีใครสั่ง — แขกถามหา Wi-Fi เป็นคำถามแรก
+    # หลังได้กุญแจห้อง และรหัสที่ต้องรอพนักงานไปกดคือรหัสที่มักถูกแทนด้วย
+    # รหัสรวมของโรงแรม ซึ่งทำให้โยง session กลับไปหาคนไม่ได้เลย
+    from pms.wifi import issue as issue_wifi
+    _cred, secret = issue_wifi(db, b.ref)
     db.commit()
+    # แนบรหัสจริงกลับไปครั้งเดียวให้เคาน์เตอร์พิมพ์ใบให้แขก
+    b.wifi_secret_once = secret      # type: ignore[attr-defined]
     return b
 
 
