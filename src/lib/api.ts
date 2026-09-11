@@ -16,6 +16,7 @@
  */
 
 import type { Role } from "./roles";
+import type { Settings } from "./settings";
 
 /** ที่อยู่หลังบ้าน · ว่าง = ไม่ต้องลองต่อเลย */
 export const API_BASE: string = (import.meta.env.VITE_API_URL ?? "").replace(/\/+$/, "");
@@ -231,6 +232,10 @@ export const api = {
   logout: () => call<{ ok: boolean }>("POST", "/auth/logout"),
 
   me: () => call<Omit<Session, "token">>("GET", "/auth/me"),
+
+  settings: () => call<Settings>("GET", "/settings"),
+
+  updateSettings: (value: Settings) => call<Settings>("POST", "/settings", value),
 
   rooms: () => call<{ rooms: ApiRoom[] }>("GET", "/rooms"),
 

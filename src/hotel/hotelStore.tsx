@@ -169,7 +169,8 @@ type Action =
   | { type: "REDEEM"; guestId: string; rewardId: string; cost: number; label: string }
   | { type: "RESET" }
   /** เทข้อมูลจากหลังบ้านทับของเดิมทั้งชุด · เซิร์ฟเวอร์เป็นแหล่งความจริง */
-  | { type: "HYDRATE"; rooms: DeskRoom[]; bookings: Booking[]; bills: Record<string, BillLine[]> };
+  | { type: "HYDRATE"; rooms: DeskRoom[]; bookings: Booking[];
+      bills: Record<string, BillLine[]>; settings?: Settings };
 
 // ── Seed ──────────────────────────────────────────────────────────────
 const SEED_BOOKINGS: Booking[] = [
@@ -466,7 +467,7 @@ function reducer(state: State, action: Action): State {
       /* เทของจากหลังบ้านทับ ไม่ใช่ผสาน — ถ้าผสาน ของที่ถูกลบบนเซิร์ฟเวอร์
          จะค้างอยู่บนจอนี้ตลอดไปโดยไม่มีใครรู้
 
-         ส่วนที่หลังบ้านยังไม่มี (แม่บ้าน แชท ใบงานช่าง แต้ม ตั้งค่า) คงไว้
+         ส่วนที่หลังบ้านยังไม่มี (แชท ใบงานช่าง แต้ม ChivaGo) คงไว้
          ตามเดิม เพราะยังไม่มีของจริงมาแทน — และหน้าจอบอกผู้ใช้ตรง ๆ
          ว่าส่วนไหนยังเป็นข้อมูลสาธิต */
       return {
@@ -474,6 +475,7 @@ function reducer(state: State, action: Action): State {
         rooms: action.rooms,
         bookings: action.bookings,
         bills: action.bills,
+        settings: action.settings ?? state.settings,
       };
     }
 
@@ -1039,18 +1041,19 @@ export function HotelProvider({ children }: { children: ReactNode }) {
   const [state, rawDispatch] = useReducer(reducer, undefined, boot);
   const { mode, session: backendSession } = useBackend();
   const live = mode === "live";
+  const canLoadSettings = backendSession?.permissions.includes("settings") ?? false;
   const [syncing, setSyncing] = useState(false);
   const [syncError, setSyncError] = useState("");
 
   /* เทข้อมูลจริงลงจอทุกครั้งที่เข้าโหมดจริง และหลังทุกรายการที่หลังบ้านรับไป */
   const refresh = useCallback(async () => {
     try {
-      const snap = await pull();
+      const snap = await pull(canLoadSettings);
       rawDispatch({ type: "HYDRATE", ...snap });
     } catch (e) {
       setSyncError(e instanceof ApiError ? e.message : "ดึงข้อมูลจากหลังบ้านไม่สำเร็จ");
     }
-  }, []);
+  }, [canLoadSettings]);
 
   useEffect(() => {
     if (live) void refresh();

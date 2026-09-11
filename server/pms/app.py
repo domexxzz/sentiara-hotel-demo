@@ -7,11 +7,13 @@ from __future__ import annotations
 
 import os
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.orm import Session
 
 from pms.api import router
-from pms.session import settings, setup
+from pms import property_settings as ps
+from pms.session import get_db, setup
 
 API_PREFIX = "/api/v1"
 
@@ -38,12 +40,13 @@ def create_app(db_url: str | None = None) -> FastAPI:
     app.include_router(router, prefix=API_PREFIX)
 
     @app.get("/health", tags=["meta"])
-    def health() -> dict:
+    def health(db: Session = Depends(get_db)) -> dict:
+        cfg = ps.get(db)
         return {
             "ok": True,
-            "hotel": settings.hotel_name,
-            "vat_pct": settings.vat_pct,
-            "weekend_pct": settings.weekend_pct,
+            "hotel": cfg.hotel_name,
+            "vat_pct": cfg.vat_pct,
+            "weekend_pct": cfg.weekend_pct,
             "ledger_dry_run": os.environ.get("LEDGER_DRY_RUN", "1") not in ("0", "false"),
         }
 

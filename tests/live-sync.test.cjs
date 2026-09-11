@@ -71,6 +71,17 @@ test('ข้อมูลแขกจากสอง query ไม่ซ้ำก�
   assert.equal((await pull()).bookings.length, 1);
 });
 
+test('โหมดเจ้าของโหลดและบันทึกค่ากลางผ่าน API จริง', async () => {
+  const settings = { hotelName: 'โรงแรมกลาง', types: [] };
+  const { pull, push, calls } = fixture({
+    settings: async () => settings,
+    updateSettings: async (value) => { calls.push(['settings', value]); return value; },
+  });
+  assert.equal((await pull(true)).settings, settings);
+  assert.equal(await push({ type: 'SET_SETTINGS', patch: settings }), true);
+  assert.deepEqual(calls[0], ['settings', settings]);
+});
+
 test('โหลดบิลล้มเหลวต้องแจ้งปัญหา ไม่แทนบิลจริงด้วยบิลว่าง', async () => {
   const { pull } = fixture({ folio: async () => { throw new Error('offline'); } });
   await assert.rejects(pull(), /offline/);

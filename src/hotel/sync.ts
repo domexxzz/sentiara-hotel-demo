@@ -2,6 +2,7 @@ import { api, ApiError, type ApiBooking, type ApiRoom } from "../lib/api";
 import { TODAY } from "../lib/date";
 import type { Booking, BillLine } from "./hotelStore";
 import type { DeskRoom, RoomStatus } from "../desk/deskData";
+import type { Settings } from "../lib/settings";
 
 /**
  * ชั้นแปลงข้อมูลระหว่างหลังบ้านกับหน้าจอ
@@ -74,6 +75,7 @@ export type Snapshot = {
   rooms: DeskRoom[];
   bookings: Booking[];
   bills: Record<string, BillLine[]>;
+  settings?: Settings;
 };
 
 /**
@@ -83,13 +85,14 @@ export type Snapshot = {
  * เป็นพัน การโหลดทั้งหมดทุกครั้งที่กดปุ่มคือสิ่งที่ทำให้ระบบช้าลงเรื่อย ๆ
  * จนใช้ไม่ได้ในปีที่สอง
  */
-export async function pull(): Promise<Snapshot> {
+export async function pull(includeSettings = false): Promise<Snapshot> {
   const today = realToday();
-  const [{ rooms }, { bookings: upcoming }, { bookings: inhouse }] = await Promise.all([
+  const [{ rooms }, { bookings: upcoming }, { bookings: inhouse }, liveSettings] = await Promise.all([
     api.rooms(),
     api.bookings({ since: today }),
     // แขกที่ครบวันเช็กเอาต์แล้วยังอยู่ ต้องไม่หายจากผังห้อง
     api.bookings({ status: "inhouse" }),
+    includeSettings ? api.settings() : Promise.resolve(undefined),
   ]);
   const bookings = [...new Map([...upcoming, ...inhouse].map((b) => [b.ref, b])).values()];
 
@@ -118,7 +121,7 @@ export async function pull(): Promise<Snapshot> {
     }));
   });
 
-  return { rooms: toRooms(rooms, bookings, today), bookings: list, bills };
+  return { rooms: toRooms(rooms, bookings, today), bookings: list, bills, settings: liveSettings };
 }
 
 /**
@@ -196,6 +199,10 @@ export async function push(
       await api.addPayment(ref, { method: String(action.method), amount: Number(action.amount) });
       return true;
     }
+
+    case "SET_SETTINGS":
+      await api.updateSettings(action.patch as Settings);
+      return true;
 
     default:
       // ยังไม่มีตัวเชื่อมสำหรับคำสั่งนี้ ห้ามแอบเปลี่ยนข้อมูลเฉพาะในเครื่อง

@@ -87,6 +87,33 @@ class RoomType(Base):
     rooms: Mapped[list["Room"]] = relationship(back_populates="room_type")
 
 
+class PropertySetting(Base):
+    """ค่ากิจการหนึ่งชุดต่อฐานข้อมูล เพื่อให้ทุกเครื่องเห็นค่าเดียวกัน"""
+
+    __tablename__ = "property_setting"
+
+    id: Mapped[int] = mapped_column(primary_key=True, default=1)
+    hotel_name: Mapped[str] = mapped_column(String(128))
+    city: Mapped[str] = mapped_column(String(80), default="")
+    phone: Mapped[str] = mapped_column(String(40), default="")
+    vat_pct: Mapped[int] = mapped_column(Integer, default=7)
+    weekend_pct: Mapped[int] = mapped_column(Integer, default=20)
+    deposit_pct: Mapped[int] = mapped_column(Integer, default=30)
+    ma_pct: Mapped[int] = mapped_column(Integer, default=15)
+    check_in_time: Mapped[str] = mapped_column(String(5), default="14:00")
+    check_out_time: Mapped[str] = mapped_column(String(5), default="12:00")
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=clock.now,
+                                                  onupdate=clock.now)
+
+    __table_args__ = (
+        CheckConstraint("id = 1", name="ck_property_setting_singleton"),
+        CheckConstraint("vat_pct BETWEEN 0 AND 30", name="ck_property_setting_vat"),
+        CheckConstraint("weekend_pct BETWEEN 0 AND 200", name="ck_property_setting_weekend"),
+        CheckConstraint("deposit_pct BETWEEN 0 AND 100", name="ck_property_setting_deposit"),
+        CheckConstraint("ma_pct BETWEEN 0 AND 100", name="ck_property_setting_ma"),
+    )
+
+
 class Room(Base):
     __tablename__ = "room"
 

@@ -41,10 +41,10 @@ export function Settings() {
   // ประเภทห้องที่มีอยู่จริงในผังห้อง — เตือนถ้าตั้งราคาให้ประเภทที่ไม่มีห้องเลย
   const inRack = new Set(hotel.state.rooms.map((r) => r.type));
 
-  const apply = () => {
+  const apply = async () => {
     if (errors.length) return;
-    hotel.dispatch({ type: "SET_SETTINGS", patch: draft });
-    setSaved(true);
+    const ok = await hotel.dispatch({ type: "SET_SETTINGS", patch: draft });
+    setSaved(ok);
   };
 
   return (
@@ -54,7 +54,7 @@ export function Settings() {
           <span className="k">ตั้งค่าระบบ · เจ้าของและผู้จัดการเท่านั้น</span>
           <h2>ตั้งค่ากิจการ ราคา และพนักงาน</h2>
         </div>
-        <button className="btn primary" disabled={!dirty || errors.length > 0} onClick={apply}>
+        <button className="btn primary" disabled={!dirty || errors.length > 0 || hotel.syncing} onClick={apply}>
           <Icon name="check" size={15} />
           {saved && !dirty ? "บันทึกแล้ว" : "บันทึกการเปลี่ยนแปลง"}
         </button>
@@ -271,7 +271,12 @@ export function Settings() {
         <strong>ข้อมูลถูกเก็บที่ไหน — พูดตรง ๆ</strong>
         <ul>
           <li>
-            {hotel.persisted ? (
+            {hotel.live ? (
+              <>
+                <b>บันทึกในฐานข้อมูลกลางแล้ว</b> — ทุกเครื่องที่เข้าสู่ระบบจะเห็นชื่อกิจการ
+                นโยบายราคา และประเภทห้องชุดเดียวกัน
+              </>
+            ) : hotel.persisted ? (
               <>
                 <b>ตอนนี้จำข้ามการรีเฟรชได้แล้ว</b> — บันทึกลงเบราว์เซอร์เครื่องนี้
                 ปิดแล้วเปิดใหม่ข้อมูลยังอยู่
@@ -283,13 +288,17 @@ export function Settings() {
               </>
             )}
           </li>
-          <li>
-            <b>แต่นี่ยังไม่ใช่ฐานข้อมูล</b> — เปิดอีกเครื่องคือข้อมูลคนละชุด
-            สองคนแก้พร้อมกันไม่เห็นกัน และไม่มีการสำรองข้อมูล
-          </li>
-          <li>
-            ของจริงต้องมีเซิร์ฟเวอร์และฐานข้อมูล ซึ่งอยู่ในขอบเขตงานติดตั้ง ไม่ใช่ในเดโมนี้
-          </li>
+          {hotel.live ? (
+            <li>ราคาที่แก้มีผลกับการจอง บิล ภาษี และข้อมูลที่หน้าจออื่นอ่านจากเซิร์ฟเวอร์</li>
+          ) : (
+            <>
+              <li>
+                <b>แต่นี่ยังไม่ใช่ฐานข้อมูล</b> — เปิดอีกเครื่องคือข้อมูลคนละชุด
+                สองคนแก้พร้อมกันไม่เห็นกัน และไม่มีการสำรองข้อมูล
+              </li>
+              <li>โหมดติดตั้งจริงจะเก็บค่าเหล่านี้ในเซิร์ฟเวอร์และฐานข้อมูลกลาง</li>
+            </>
+          )}
         </ul>
         <button
           className="btn ghost sm"

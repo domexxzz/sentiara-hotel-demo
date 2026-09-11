@@ -16,6 +16,7 @@ from pms import booking as bk
 from pms import folio as fo
 from pms import housekeeping as hk
 from pms import registry as reg
+from pms import property_settings as ps
 from pms import wifi as wf
 from pms.auth import AuthError, current_staff, login, logout, record, require
 from pms.db import (EXPENSE_CATEGORIES, AuditEvent, Booking, Expense, Folio,
@@ -24,7 +25,7 @@ from pms.db import (EXPENSE_CATEGORIES, AuditEvent, Booking, Expense, Folio,
 from pms.events import EventError, night_audit_events
 from pms.ledger import LedgerClient, collect, outbox_summary
 from pms.money import baht_text, to_baht
-from pms.session import get_db, settings
+from pms.session import get_db
 
 router = APIRouter()
 
@@ -69,6 +70,49 @@ def auth_me(staff: Staff = Depends(current_staff)):
         "ref": staff.ref, "name": staff.name, "title": staff.title,
         "role": staff.role, "permissions": sorted(ROLES[staff.role]),
     }
+
+
+# ── ตั้งค่ากิจการ ────────────────────────────────────────────────────
+class RoomTypeSettingIn(BaseModel):
+    code: str | None = Field(default=None, max_length=32)
+    name: str = Field(min_length=1, max_length=64)
+    rate: int = Field(gt=0)
+    ota: int = Field(ge=0)
+
+
+class PropertySettingIn(BaseModel):
+    hotelName: str = Field(min_length=1, max_length=128)
+    city: str = Field(default="", max_length=80)
+    phone: str = Field(default="", max_length=40)
+    vatPct: int = Field(ge=0, le=30)
+    weekendPct: int = Field(ge=0, le=200)
+    depositPct: int = Field(ge=0, le=100)
+    maPct: int = Field(ge=0, le=100)
+    checkInTime: str = Field(pattern=r"^(?:[01]\d|2[0-3]):[0-5]\d$")
+    checkOutTime: str = Field(pattern=r"^(?:[01]\d|2[0-3]):[0-5]\d$")
+    types: list[RoomTypeSettingIn] = Field(min_length=1)
+
+
+@router.get("/settings", summary="อ่านค่ากิจการและราคาห้อง",
+            dependencies=[Depends(require("settings"))])
+def get_settings(db: Session = Depends(get_db)):
+    return ps.output(db)
+
+
+@router.post("/settings", summary="บันทึกค่ากิจการและราคาห้อง",
+             dependencies=[Depends(require("settings"))])
+def save_settings(body: PropertySettingIn, db: Session = Depends(get_db)):
+    names = [t.name.strip() for t in body.types]
+    if len(set(names)) != len(names):
+        raise HTTPException(400, "ชื่อประเภทห้องซ้ำกัน")
+    for t in body.types:
+        if t.ota and t.ota < t.rate:
+            raise HTTPException(400, f"ราคา OTA ของ {t.name} ต่ำกว่าราคาจองตรง")
+    try:
+        return ps.save(db, body)
+    except ValueError as e:
+        db.rollback()
+        raise HTTPException(409, str(e)) from None
 
 
 # ── ห้อง ─────────────────────────────────────────────────────────────
@@ -122,12 +166,13 @@ class BookIn(BaseModel):
 @router.post("/bookings", status_code=201, summary="จองห้อง",
              dependencies=[Depends(require("booking"))])
 def create_booking(body: BookIn, db: Session = Depends(get_db)):
+    cfg = ps.get(db)
     try:
         b = bk.create_booking(
             db, body.room_no, body.guest_name, body.check_in, body.check_out,
             adults=body.adults, children=body.children, source=body.source,
             guest_phone=body.guest_phone,
-            weekend_pct=settings.weekend_pct, deposit_pct=settings.deposit_pct,
+            weekend_pct=cfg.weekend_pct, deposit_pct=cfg.deposit_pct,
         )
     except bk.RoomNotAvailable as e:
         raise HTTPException(409, {
@@ -358,7 +403,7 @@ def tax_invoice(ref: str, body: InvoiceIn, db: Session = Depends(get_db)):
         f = fo.get_folio(db, ref)
         inv = fo.issue_tax_invoice(
             db, f, buyer_name=body.buyer_name, buyer_taxid=body.buyer_taxid,
-            buyer_address=body.buyer_address, vat_pct=settings.vat_pct,
+            buyer_address=body.buyer_address, vat_pct=ps.get(db).vat_pct,
         )
     except fo.FolioError as e:
         raise HTTPException(400, str(e))
@@ -577,7 +622,7 @@ def preview(business_date: date | None = None, db: Session = Depends(get_db)):
     from pms import clock
     day = business_date or clock.today()
     try:
-        events = night_audit_events(db, day, settings.vat_pct)
+        events = night_audit_events(db, day, ps.get(db).vat_pct)
     except EventError as ex:
         raise HTTPException(400, str(ex))
     return {
@@ -591,7 +636,7 @@ def preview(business_date: date | None = None, db: Session = Depends(get_db)):
 @router.post("/ledger/collect", summary="กวาดเหตุการณ์ของวันทำการเข้าคิว (night audit)",
              dependencies=[Depends(require("ledger"))])
 def collect_events(business_date: date | None = None, db: Session = Depends(get_db)):
-    return collect(db, business_date, settings.vat_pct)
+    return collect(db, business_date, ps.get(db).vat_pct)
 
 
 @router.post("/ledger/send", summary="ส่งคิวที่ยังไม่เคยส่งสำเร็จ",
