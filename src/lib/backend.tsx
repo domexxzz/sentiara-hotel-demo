@@ -80,6 +80,8 @@ export function BackendProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    // probe คือการ sync กับ API ภายนอกโดยตรง จึงเริ่มจาก effect เมื่อ provider mount
+    // oxlint-disable-next-line react/set-state-in-effect
     void probe();
   }, [probe]);
 

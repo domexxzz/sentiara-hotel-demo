@@ -1,5 +1,5 @@
 import {
-  createContext, useCallback, useContext, useEffect, useMemo, useReducer,
+  createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useReducer,
   useState, type ReactNode,
 } from "react";
 import { ROOM_RACK, type DeskRoom, type RoomStatus } from "../desk/deskData";
@@ -435,8 +435,22 @@ const initial: State = {
   staff: STAFF,
 };
 
+const syncRuntimeSettings = (value: Settings) => {
+  setWeekendPct(value.weekendPct);
+  setVatPct(value.vatPct);
+  HOTEL.depositPct = value.depositPct;
+  HOTEL.name = value.hotelName;
+  HOTEL.city = value.city;
+  HOTEL.phone = value.phone;
+};
+
 /** โหลดของที่เคยบันทึกไว้ทับค่าตั้งต้น · ไม่คืนสถานะล็อกอิน — เปิดใหม่ต้องแตะบัตรใหม่ */
-const boot = (): State => ({ ...load<State>("hotel", initial), session: null });
+const boot = (): State => {
+  const state = { ...load<State>("hotel", initial), session: null };
+  // ตั้งก่อน render แรก เพื่อให้โมดูลเก่าไม่แสดงราคาเริ่มต้นชั่วครู่
+  syncRuntimeSettings(state.settings);
+  return state;
+};
 
 let seq = 2431;
 let cardSeq = 100;
@@ -1041,23 +1055,29 @@ export function HotelProvider({ children }: { children: ReactNode }) {
   const [state, rawDispatch] = useReducer(reducer, undefined, boot);
   const { mode, session: backendSession } = useBackend();
   const live = mode === "live";
+  const canPullHotel = backendSession?.permissions.includes("booking") ?? false;
   const canLoadSettings = backendSession?.permissions.includes("settings") ?? false;
   const [syncing, setSyncing] = useState(false);
   const [syncError, setSyncError] = useState("");
 
   /* เทข้อมูลจริงลงจอทุกครั้งที่เข้าโหมดจริง และหลังทุกรายการที่หลังบ้านรับไป */
   const refresh = useCallback(async () => {
+    // แม่บ้าน ช่าง และ POS ไม่มีสิทธิ์ booking และใช้ store/API ของจอตัวเอง
+    // อย่าดึงข้อมูลโรงแรมให้ได้ 403 ทุกครั้งที่ล็อกอินหรือทำรายการ
+    if (!canPullHotel) return;
     try {
       const snap = await pull(canLoadSettings);
       rawDispatch({ type: "HYDRATE", ...snap });
     } catch (e) {
       setSyncError(e instanceof ApiError ? e.message : "ดึงข้อมูลจากหลังบ้านไม่สำเร็จ");
     }
-  }, [canLoadSettings]);
+  }, [canLoadSettings, canPullHotel]);
 
   useEffect(() => {
-    if (live) void refresh();
-  }, [live, refresh]);
+    // การเรียก API เป็นการ sync กับระบบภายนอกโดยตรง จึงต้องเริ่มจาก effect
+    // oxlint-disable-next-line react/set-state-in-effect
+    if (live && canPullHotel) void refresh();
+  }, [live, canPullHotel, refresh]);
 
   /**
    * ชั้นกลางเหนือ dispatch — หน้าจอทุกจอยังเรียกเหมือนเดิม ไม่ต้องแก้สักบรรทัด
@@ -1104,18 +1124,9 @@ export function HotelProvider({ children }: { children: ReactNode }) {
     save("hotel", rest);
   }, [state, mode]);
 
-  // ส่งค่าจากหน้าตั้งค่าไปให้โมดูลที่คิดราคาและภาษี
-  //
-  // ทำระหว่างเรนเดอร์ ไม่ใช่ใน useEffect — เพราะ effect ทำงาน *หลัง* ลูกวาดเสร็จ
-  // เปิดหน้าใหม่ทั้งที่โหลดค่าที่บันทึกไว้แล้ว จอแรกจะยังใช้เรตเก่าจนกว่าจะรีเรนเดอร์
-  // (เจอจริงตอนทดสอบ: บันทึกเรตวันหยุด 35% แล้วรีเฟรช การ์ดห้องยังคิด 20%)
-  // การเขียนทับค่าเดิมด้วยค่าเดิมไม่มีผลข้างเคียง จึงปลอดภัยที่จะทำตรงนี้
-  setWeekendPct(state.settings.weekendPct);
-  setVatPct(state.settings.vatPct);
-  HOTEL.depositPct = state.settings.depositPct;
-  HOTEL.name = state.settings.hotelName;
-  HOTEL.city = state.settings.city;
-  HOTEL.phone = state.settings.phone;
+  // โมดูลเก่าบางส่วนยังอ่านค่าแบบ live binding; layout effect ทำให้ค่าพร้อมก่อน paint
+  // ส่วน render แรกถูกตั้งไว้แล้วใน boot() จึงไม่กะพริบเป็นค่าเริ่มต้น
+  useLayoutEffect(() => syncRuntimeSettings(state.settings), [state.settings]);
 
   const value = useMemo<Ctx>(() => {
     /** สองช่วงวันชนกันเมื่อเริ่มก่อนอีกช่วงจบ และจบหลังอีกช่วงเริ่ม (วันเช็กเอาท์ไม่นับว่าชน) */

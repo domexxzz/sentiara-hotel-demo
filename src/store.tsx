@@ -185,7 +185,7 @@ export function BookingProvider({ children }: { children: ReactNode }) {
       });
     });
     dispatch({ type: "BOOKED", bookingNo: id, allocation: state.rooms > 1 ? plan.note : null });
-  }, [state.room, state.checkIn, state.checkOut, state.adults, state.children, nights, pax, hotel]);
+  }, [state.room, state.rooms, state.checkIn, state.checkOut, state.adults, state.children, nights, pax, hotel]);
 
   /** แขกมาถึงและเช็กอิน — ระบบจัดห้องว่างของประเภทที่จองให้ */
   const arrive = useCallback(() => {
@@ -198,7 +198,7 @@ export function BookingProvider({ children }: { children: ReactNode }) {
     const no = booked?.room ?? free?.no ?? GUEST.room;
     hotel.dispatch({ type: "CHECK_IN", bookingId: state.bookingNo, room: no });
     dispatch({ type: "ARRIVED", room: no });
-  }, [state.bookingNo, state.room, hotel]);
+  }, [state.bookingNo, state.room, state.checkIn, state.checkOut, hotel]);
 
   /** แขกเปลี่ยนจำนวนห้อง — ราคาและการตรวจห้องว่างขยับตาม */
   const changeRooms = useCallback((rooms: number) => {
