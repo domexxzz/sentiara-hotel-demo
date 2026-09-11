@@ -11,7 +11,7 @@ Sentiara PMS — ระบบจัดการโรงแรมและคอ
 
 ```bash
 git status                      # ← เครื่องนี้มีคนทำงานคู่ขนานอยู่ อย่าคิดว่า tree ว่าง
-cd server && python -m pytest -q   # ต้องได้ 191 passed — นี่คือเส้นฐาน
+cd server && python -m pytest -q   # ต้องได้ 193 passed — นี่คือเส้นฐาน
 npm test                        # เทสตัวเชื่อมหน้าจอ–หลังบ้าน
 ```
 
@@ -76,7 +76,7 @@ repo นี้เคยมีคนทำงานพร้อมกันสอ
 
 ```bash
 cd server && ./เริ่มระบบ.bat                        # เปิดหลังบ้าน (ครั้งแรกเตรียมของให้เอง)
-cd server && python -m pytest -q                    # 191 เทส
+cd server && python -m pytest -q                    # 193 เทส
 cd server && python -m pytest tests/test_wifi.py -q # เฉพาะไฟล์
 npm run dev                                         # หน้าจอ
 npm run build && npx tsc --noEmit                   # ต้องผ่านทั้งคู่ก่อน commit

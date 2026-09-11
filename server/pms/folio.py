@@ -13,6 +13,7 @@ from dataclasses import dataclass
 from datetime import datetime
 
 from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from pms import clock
@@ -82,14 +83,39 @@ def add_charge(
     return c
 
 
-def add_payment(db: Session, folio: Folio, method: str, amount_satang: int) -> Payment:
+def add_payment(
+    db: Session, folio: Folio, method: str, amount_satang: int,
+    ref: str | None = None,
+) -> Payment:
+    # ref ที่หน้าจอสร้างคงที่ตลอดการ retry ทำให้คำขอเดิมคืนผลเดิมได้
+    # แม้คำตอบรอบแรกหายหลังฐานข้อมูล commit แล้ว
+    if ref:
+        existing = db.scalar(select(Payment).where(Payment.ref == ref))
+        if existing is not None:
+            if (existing.folio_id, existing.method, existing.amount_satang) != (
+                folio.id, method, amount_satang,
+            ):
+                raise FolioError("รหัสคำขอรับเงินถูกใช้กับข้อมูลคนละรายการ")
+            return existing
     if folio.status != "open":
         raise FolioError("บิลปิดแล้ว รับชำระเพิ่มไม่ได้")
     if amount_satang <= 0:
         raise FolioError("ยอดชำระต้องมากกว่าศูนย์")
-    p = Payment(folio_id=folio.id, method=method, amount_satang=amount_satang)
+    p = Payment(ref=ref, folio_id=folio.id, method=method,
+                amount_satang=amount_satang) if ref else Payment(
+                    folio_id=folio.id, method=method, amount_satang=amount_satang)
     db.add(p)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        # สองคำขอรหัสเดียวกันอาจชนพร้อมกัน ให้ผู้ชนะเป็นผลลัพธ์ของทั้งคู่
+        existing = db.scalar(select(Payment).where(Payment.ref == ref)) if ref else None
+        if existing is None or (
+            existing.folio_id, existing.method, existing.amount_satang
+        ) != (folio.id, method, amount_satang):
+            raise FolioError("บันทึกรับชำระชนกับรายการอื่น กรุณาโหลดใหม่") from None
+        return existing
     db.refresh(p)
     return p
 

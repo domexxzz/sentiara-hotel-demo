@@ -331,6 +331,7 @@ class ChargeIn(BaseModel):
 class PayIn(BaseModel):
     method: str = Field(pattern="^(cash|card|transfer|deposit)$")
     amount: float = Field(gt=0)
+    request_id: str | None = Field(default=None, pattern=r"^PY-[A-F0-9]{16}$")
 
 
 @router.get("/folios/{ref}", summary="ดูบิล",
@@ -372,10 +373,10 @@ def post_payment(ref: str, body: PayIn, db: Session = Depends(get_db)):
     from pms.money import baht
     try:
         f = fo.get_folio(db, ref)
-        p = fo.add_payment(db, f, body.method, baht(body.amount))
+        p = fo.add_payment(db, f, body.method, baht(body.amount), body.request_id)
     except fo.FolioError as e:
         raise HTTPException(400, str(e))
-    return {"id": p.id, "amount": _b(p.amount_satang)}
+    return {"id": p.id, "ref": p.ref, "amount": _b(p.amount_satang)}
 
 
 @router.post("/folios/{ref}/close", summary="ปิดบิลและเช็กเอาต์",

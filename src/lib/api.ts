@@ -48,6 +48,12 @@ export const setToken = (t: string): void => {
   }
 };
 
+/** รหัสคงที่หนึ่งรหัสต่อการกด เพื่อให้ retry หลัง timeout ไม่รับเงินซ้ำ */
+const paymentRequestId = (): string => {
+  const bytes = crypto.getRandomValues(new Uint8Array(8));
+  return "PY-" + Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("").toUpperCase();
+};
+
 /** ข้อผิดพลาดจากหลังบ้าน พร้อมรหัสสถานะให้ตัดสินใจได้ ไม่ใช่แค่ข้อความ */
 export class ApiError extends Error {
   /* ประกาศฟิลด์แยกจาก constructor เพราะ erasableSyntaxOnly ของโปรเจ็คนี้
@@ -285,8 +291,16 @@ export const api = {
     c: { kind: string; label: string; amount: number; qty?: number },
   ) => call<unknown>("POST", `/folios/${ref}/charges`, c),
 
-  addPayment: (ref: string, p: { method: string; amount: number }) =>
-    call<unknown>("POST", `/folios/${ref}/payments`, p),
+  addPayment: async (ref: string, p: { method: string; amount: number }) => {
+    const body = { ...p, request_id: paymentRequestId() };
+    try {
+      return await call<unknown>("POST", `/folios/${ref}/payments`, body);
+    } catch (error) {
+      // retry เฉพาะกรณีไม่รู้ผลเพราะสายขาด ใช้ request_id เดิมให้ฐานข้อมูลกันซ้ำ
+      if (!(error instanceof ApiError) || !error.retryable) throw error;
+      return call<unknown>("POST", `/folios/${ref}/payments`, body);
+    }
+  },
 
   closeFolio: (ref: string) => call<unknown>("POST", `/folios/${ref}/close`),
 

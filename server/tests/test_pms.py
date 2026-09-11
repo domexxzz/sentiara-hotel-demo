@@ -250,6 +250,29 @@ def test_unpaid_balance_becomes_receivable(c):
     assert out["balance"] == 2300.0
 
 
+def test_payment_retry_uses_same_request_without_charging_twice(c):
+    """คำตอบหายหลัง commit แล้วส่ง request_id เดิมซ้ำ ต้องคืนรายการเดิม"""
+    ref = _stay(c)
+    body = {"method": "cash", "amount": 1000,
+            "request_id": "PY-0123456789ABCDEF"}
+    first = c.post(f"{API}/folios/{ref}/payments", json=body)
+    second = c.post(f"{API}/folios/{ref}/payments", json=body)
+    assert first.status_code == second.status_code == 201
+    assert first.json()["ref"] == second.json()["ref"] == body["request_id"]
+    assert c.get(f"{API}/folios/{ref}").json()["totals"]["paid"] == 1000
+
+
+def test_payment_request_id_cannot_be_reused_for_different_money(c):
+    ref = _stay(c)
+    request_id = "PY-FEDCBA9876543210"
+    c.post(f"{API}/folios/{ref}/payments",
+           json={"method": "cash", "amount": 1000, "request_id": request_id})
+    changed = c.post(f"{API}/folios/{ref}/payments",
+                     json={"method": "cash", "amount": 1001, "request_id": request_id})
+    assert changed.status_code == 400
+    assert c.get(f"{API}/folios/{ref}").json()["totals"]["paid"] == 1000
+
+
 # ══ ใบกำกับภาษี ══════════════════════════════════════════════════════
 def test_tax_invoice_needs_closed_folio(c):
     ref = _stay(c)
