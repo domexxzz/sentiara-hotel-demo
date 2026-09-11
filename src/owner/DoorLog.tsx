@@ -1,4 +1,4 @@
-import { useHotel } from "../hotel/hotelStore";
+import { useHotel } from "../contexts";
 import { Icon, type IconName } from "../components/Icon";
 
 const KIND: Record<string, { label: string; cls: string; icon: IconName }> = {

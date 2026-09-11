@@ -1,5 +1,5 @@
 import {
-  createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useReducer,
+  useCallback, useEffect, useLayoutEffect, useMemo, useReducer,
   useState, type ReactNode,
 } from "react";
 import { ROOM_RACK, type DeskRoom, type RoomStatus } from "../desk/deskData";
@@ -14,7 +14,7 @@ import { DEFAULT_SETTINGS, rateOf, type Settings } from "../lib/settings";
 import { type Expense, type Receivable } from "../lib/finance";
 import { pointsFor, type Feedback, type Guest } from "../lib/loyalty";
 import { canPersist, load, save, wipe } from "../lib/persist";
-import { useBackend } from "../lib/backend";
+import { HotelContext, useBackend } from "../contexts";
 import { ApiError } from "../lib/api";
 import { pull, push } from "./sync";
 
@@ -989,7 +989,7 @@ function reducer(state: State, action: Action): State {
 }
 
 // ── Context ───────────────────────────────────────────────────────────
-type Ctx = {
+export type Ctx = {
   state: State;
   dispatch: (action: Action) => Promise<boolean>;
   /** การจองที่ยังรอเช็กอิน — ฟีดให้หน้าเคาน์เตอร์ */
@@ -1048,8 +1048,6 @@ type Ctx = {
   /** ปิดข้อความผิดพลาดหลังผู้ใช้อ่านแล้ว */
   clearSyncError: () => void;
 };
-
-const HotelContext = createContext<Ctx | null>(null);
 
 export function HotelProvider({ children }: { children: ReactNode }) {
   const [state, rawDispatch] = useReducer(reducer, undefined, boot);
@@ -1296,12 +1294,6 @@ export function HotelProvider({ children }: { children: ReactNode }) {
   }, [state, dispatch, live, mode, backendSession, syncing, syncError]);
 
   return <HotelContext.Provider value={value}>{children}</HotelContext.Provider>;
-}
-
-export function useHotel() {
-  const ctx = useContext(HotelContext);
-  if (!ctx) throw new Error("useHotel must be used within HotelProvider");
-  return ctx;
 }
 
 export type { DeskRoom, RoomStatus };

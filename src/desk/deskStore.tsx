@@ -1,5 +1,6 @@
-import { createContext, useContext, useMemo, useReducer, type ReactNode } from "react";
+import { useMemo, useReducer, type ReactNode } from "react";
 import type { Booking } from "../hotel/hotelStore";
+import { DeskContext } from "../contexts";
 
 /** เหลือเฉพาะสถานะหน้าจอ — ห้อง/การจอง/บิล อยู่ใน hotelStore ที่ทุก flow ใช้ร่วมกัน */
 export type DeskView =
@@ -78,18 +79,10 @@ function reducer(state: State, action: Action): State {
   }
 }
 
-type Ctx = { state: State; dispatch: React.Dispatch<Action> };
-
-const DeskContext = createContext<Ctx | null>(null);
+export type Ctx = { state: State; dispatch: React.Dispatch<Action> };
 
 export function DeskProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, initial);
   const value = useMemo(() => ({ state, dispatch }), [state]);
   return <DeskContext.Provider value={value}>{children}</DeskContext.Provider>;
-}
-
-export function useDesk() {
-  const ctx = useContext(DeskContext);
-  if (!ctx) throw new Error("useDesk must be used within DeskProvider");
-  return ctx;
 }

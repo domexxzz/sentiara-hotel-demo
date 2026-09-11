@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { useDesk } from "./deskStore";
-import { useHotel } from "../hotel/hotelStore";
+import { useDesk, useHotel } from "../contexts";
 import { TODAY, fmtLong, fmtShort, nightsBetween } from "../lib/date";
 import { Icon } from "../components/Icon";
 

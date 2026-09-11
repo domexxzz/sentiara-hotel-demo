@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { useOwner } from "./ownerStore";
-import { useHotel } from "../hotel/hotelStore";
+import { useHotel, useOwner } from "../contexts";
 import { money } from "../lib/format";
 import { TODAY, addDays, fmtShort } from "../lib/date";
 import {

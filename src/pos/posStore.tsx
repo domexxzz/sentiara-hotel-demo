@@ -1,5 +1,7 @@
-import { createContext, useContext, useMemo, useReducer, type ReactNode } from "react";
+import { useMemo, useReducer, type ReactNode } from "react";
+import { PosContext } from "../contexts";
 import { MENU, STOCK, type Ingredient, type MenuItem } from "./posData";
+import { isSoldOut, menuOf } from "./posSelectors";
 
 export type PosView = "order" | "tables" | "kitchen" | "stock";
 
@@ -64,17 +66,8 @@ const initial: State = {
   banner: null,
 };
 
-const menuOf = (id: string) => MENU.find((m) => m.id === id) as MenuItem;
-
 const cartTotal = (cart: Line[]) =>
   cart.reduce((s, l) => s + menuOf(l.menuId).price * l.qty, 0);
-
-/** เมนูขายไม่ได้เมื่อวัตถุดิบในสูตรตัวใดตัวหนึ่งไม่พอ */
-export const isSoldOut = (m: MenuItem, stock: Ingredient[]) =>
-  m.recipe.some((r) => {
-    const ing = stock.find((s) => s.id === r.ing);
-    return !ing || ing.qty < r.use;
-  });
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
@@ -282,7 +275,7 @@ function reducer(state: State, action: Action): State {
   }
 }
 
-type Ctx = {
+export type Ctx = {
   state: State;
   dispatch: React.Dispatch<Action>;
   total: number;
@@ -292,8 +285,6 @@ type Ctx = {
   openTabs: { id: string; label: string; lines: Line[]; total: number }[];
   tabTotal: (lines: Line[]) => number;
 };
-
-const PosContext = createContext<Ctx | null>(null);
 
 export function PosProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, initial);
@@ -318,11 +309,3 @@ export function PosProvider({ children }: { children: ReactNode }) {
 
   return <PosContext.Provider value={value}>{children}</PosContext.Provider>;
 }
-
-export function usePos() {
-  const ctx = useContext(PosContext);
-  if (!ctx) throw new Error("usePos must be used within PosProvider");
-  return ctx;
-}
-
-export { menuOf };

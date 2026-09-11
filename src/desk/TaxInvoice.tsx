@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { useDesk } from "./deskStore";
-import { useHotel } from "../hotel/hotelStore";
+import { useDesk, useHotel } from "../contexts";
 import { money } from "../lib/format";
 import { TODAY, fmtLong } from "../lib/date";
 import { ISSUER, VAT_PCT, buildInvoice, nextInvoiceNo, splitVat, type Buyer } from "../lib/tax";

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useHotel } from "../hotel/hotelStore";
+import { useHotel } from "../contexts";
 import { money } from "../lib/format";
 import {
   DEFAULT_SETTINGS,

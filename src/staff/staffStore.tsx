@@ -1,5 +1,7 @@
-import { createContext, useContext, useMemo, useReducer, type ReactNode } from "react";
-import { useHotel, type DeskRoom, type WorkOrder } from "../hotel/hotelStore";
+import { useMemo, useReducer, type ReactNode } from "react";
+import { StaffContext } from "../contexts";
+import type { DeskRoom, WorkOrder } from "../hotel/hotelStore";
+import { useHotel } from "../contexts";
 
 export type Role = "hk" | "sup" | "tech";
 export type StaffView = "list" | "job" | "review" | "tech";
@@ -210,7 +212,7 @@ function toJob(room: DeskRoom, p?: Progress): LiveJob {
   };
 }
 
-type Ctx = {
+export type Ctx = {
   state: State;
   dispatch: React.Dispatch<Action>;
   /** คิวของแม่บ้าน — ห้องสกปรกที่ยังไม่ได้ส่งตรวจ */
@@ -221,8 +223,6 @@ type Ctx = {
   activeWo: WorkOrder | null;
   counts: { todo: number; review: number; done: number; wo: number };
 };
-
-const StaffContext = createContext<Ctx | null>(null);
 
 export function StaffProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, initial);
@@ -254,10 +254,4 @@ export function StaffProvider({ children }: { children: ReactNode }) {
   }, [state, hotel.state.rooms, hotel.state.workOrders]);
 
   return <StaffContext.Provider value={value}>{children}</StaffContext.Provider>;
-}
-
-export function useStaff() {
-  const ctx = useContext(StaffContext);
-  if (!ctx) throw new Error("useStaff must be used within StaffProvider");
-  return ctx;
 }

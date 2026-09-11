@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import "./desk.css";
 import { SHIFT } from "./deskData";
-import { DeskProvider, useDesk, type DeskView } from "./deskStore";
-import { useHotel } from "../hotel/hotelStore";
+import { DeskProvider, type DeskView } from "./deskStore";
+import { useDesk, useHotel } from "../contexts";
 import { canOpenDesk } from "../lib/roles";
 import { Rack } from "./Rack";
 import { Calendar } from "./Calendar";

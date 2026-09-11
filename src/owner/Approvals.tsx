@@ -1,5 +1,4 @@
-import { useOwner } from "./ownerStore";
-import { useHotel } from "../hotel/hotelStore";
+import { useHotel, useOwner } from "../contexts";
 import { money } from "../lib/format";
 import { Icon } from "../components/Icon";
 

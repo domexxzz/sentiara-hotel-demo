@@ -1,6 +1,5 @@
 import { HK } from "./staffData";
-import { useStaff } from "./staffStore";
-import { useHotel } from "../hotel/hotelStore";
+import { useHotel, useStaff } from "../contexts";
 import { Icon } from "../components/Icon";
 
 const STATUS_TAG: Record<string, { cls: string; text: string }> = {

@@ -1,7 +1,7 @@
 import { LAST_WEEK, MONTH, WEEK, type Source } from "./ownerData";
-import { useOwner } from "./ownerStore";
+import { useOwner } from "../contexts";
 import { WEEKEND_PCT } from "../lib/rates";
-import { useHotel } from "../hotel/hotelStore";
+import { useHotel } from "../contexts";
 import { money, delta } from "../lib/format";
 import { Icon } from "../components/Icon";
 

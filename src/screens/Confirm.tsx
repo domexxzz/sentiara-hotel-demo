@@ -1,6 +1,6 @@
 import { nightlyRates } from "../lib/rates";
 import { HOTEL, money, type PayMethod } from "../data";
-import { useBooking } from "../store";
+import { useBooking } from "../contexts";
 import { Rail } from "../components/PhoneFrame";
 import { Icon } from "../components/Icon";
 import { QrCode } from "../components/QrCode";

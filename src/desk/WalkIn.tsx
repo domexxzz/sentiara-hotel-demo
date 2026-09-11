@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { WALKIN_RATES, money } from "./deskData";
-import { useDesk } from "./deskStore";
-import { useHotel } from "../hotel/hotelStore";
+import { useDesk, useHotel } from "../contexts";
 import { TODAY, addDays } from "../lib/date";
 import { stayTotal, weekendNights } from "../lib/rates";
-import { IdScan, NfcWrite, WALKIN_ID, type ScannedId } from "./steps";
+import { IdScan, NfcWrite, type ScannedId } from "./steps";
+import { WALKIN_ID } from "./scannedIds";
 import { Icon } from "../components/Icon";
 import { QrCode } from "../components/QrCode";
 

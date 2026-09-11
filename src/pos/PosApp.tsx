@@ -3,9 +3,10 @@ import "../desk/desk.css";
 import "../owner/owner.css"; // .owner-note footnote style is shared
 import "./pos.css";
 import { MENU, SHIFT } from "./posData";
-import { PosProvider, menuOf, usePos, type PosView, type Line } from "./posStore";
+import { PosProvider, type PosView, type Line } from "./posStore";
+import { menuOf } from "./posSelectors";
 import { Tables } from "./Tables";
-import { useHotel } from "../hotel/hotelStore";
+import { useHotel, usePos } from "../contexts";
 import { useEffect, useRef, useState } from "react";
 import { money } from "../lib/format";
 import { Icon, type IconName } from "../components/Icon";

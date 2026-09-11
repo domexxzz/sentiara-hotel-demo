@@ -1,6 +1,5 @@
 import { PARTS, TECH, TECH_ANGLES } from "./staffData";
-import { useStaff } from "./staffStore";
-import { useHotel } from "../hotel/hotelStore";
+import { useHotel, useStaff } from "../contexts";
 import { money } from "../lib/format";
 import { Icon } from "../components/Icon";
 

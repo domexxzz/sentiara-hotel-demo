@@ -2,8 +2,8 @@
 // the front desk, so this screen reuses desk.css rather than redefining it.
 import "../desk/desk.css";
 import "./owner.css";
-import { OwnerProvider, useOwner, type OwnerTab } from "./ownerStore";
-import { useHotel } from "../hotel/hotelStore";
+import { OwnerProvider, type OwnerTab } from "./ownerStore";
+import { useHotel, useOwner } from "../contexts";
 import { canOpenOwnerTab } from "../lib/roles";
 import { Overview } from "./Overview";
 import { Channels } from "./Channels";

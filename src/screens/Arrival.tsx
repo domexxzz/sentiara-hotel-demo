@@ -1,6 +1,6 @@
 import { GUEST, HOTEL, money } from "../data";
 import { fmtRange } from "../lib/date";
-import { useBooking } from "../store";
+import { useBooking } from "../contexts";
 import { Rail } from "../components/PhoneFrame";
 import { Icon } from "../components/Icon";
 

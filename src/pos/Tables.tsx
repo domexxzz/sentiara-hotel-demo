@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { menuOf, usePos, type Line } from "./posStore";
+import type { Line } from "./posStore";
+import { menuOf } from "./posSelectors";
+import { usePos } from "../contexts";
 import { money } from "../lib/format";
 import { Icon } from "../components/Icon";
 

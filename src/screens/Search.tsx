@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { HOTEL, money } from "../data";
 import { roomsFor } from "../lib/property";
-import { useBooking } from "../store";
-import { useHotel } from "../hotel/hotelStore";
+import { useBooking, useHotel } from "../contexts";
 import { Rail } from "../components/PhoneFrame";
 import { Icon } from "../components/Icon";
 import { RoomGallery } from "../components/RoomGallery";

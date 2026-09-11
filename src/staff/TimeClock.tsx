@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { HK, SUP, TECH } from "./staffData";
-import { useStaff } from "./staffStore";
-import { useHotel } from "../hotel/hotelStore";
+import { useHotel, useStaff } from "../contexts";
 import { Icon } from "../components/Icon";
 
 type Punch = { id: string; at: string; kind: "in" | "out"; how: "gps" | "nfc" };

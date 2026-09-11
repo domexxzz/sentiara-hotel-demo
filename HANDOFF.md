@@ -15,7 +15,8 @@
 > ตรวจ browser ครบ owner/manager/front/hk/tech/pos แล้ว จอที่อนุญาตเปิดได้และจออื่นล็อกตรงสิทธิ์;
 > แก้ไม่ให้ hk/tech/pos ดึง API booking/rooms จนเกิด 403 และ sync error โดยไม่เกี่ยวกับงานของตน
 > แก้ React hook dependencies ครบ ย้ายการ sync ราคา/ภาษีออกจาก render ไป layout effect
-> และปิดกฎ Fast Refresh ที่ไม่เหมาะกับโครงสร้างไฟล์ Provider+hook ของโปรเจกต์
+> และแยก context/hook กับ utility ออกจากไฟล์ Provider/component ให้ Fast Refresh
+> ไม่ต้อง invalidate provider tree; ยังคงเปิดกฎ lint ไว้และผ่านโดยไม่มี warning
 > การแก้ตัวตน เอกสาร และเทสต์สิทธิ์รอบ 11 ก.ย. commit แล้วใน branch `main` แต่ยังไม่ได้ push ไป `origin/main`
 > ขอบเขตที่ยังไม่ได้ยืนยัน: การยิงพร้อมกันหลายเครื่องและอุปกรณ์จริง
 > บางจอยังมีวันที่/ข้อมูลประกอบของเดโม

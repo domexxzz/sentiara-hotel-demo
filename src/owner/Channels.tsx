@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useHotel } from "../hotel/hotelStore";
+import { useHotel } from "../contexts";
 import { TODAY, addDays, fmtShort, parse } from "../lib/date";
 import { WEEKEND_PCT, isWeekendNight, rateForNight, stayTotal } from "../lib/rates";
 import { money } from "../lib/format";

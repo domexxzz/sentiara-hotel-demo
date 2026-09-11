@@ -129,8 +129,12 @@ test('API ปฏิเสธค่าอาหาร ต้องส่งข้
 test('POS สำเร็จบางรายการแล้วลองใหม่ ต้องไม่ลงรายการเดิมซ้ำ', () => {
   const menu = [{ id: 'a', price: 100 }, { id: 'b', price: 200 }];
   const { reducer } = load('src/pos/posStore.tsx', {
-    react: { createContext: () => ({}) }, 'react/jsx-runtime': {},
+    react: {}, 'react/jsx-runtime': {}, '../contexts': { PosContext: { Provider: 'provider' } },
     './posData': { MENU: menu, STOCK: [] },
+    './posSelectors': {
+      menuOf: (id) => menu.find((m) => m.id === id),
+      isSoldOut: () => false,
+    },
   }, '\nexport { reducer };');
   const state = { cart: [{ menuId: 'a', qty: 2 }, { menuId: 'b', qty: 1 }],
     targetId: 'r101', targets: [{ id: 'r101', room: '101', label: 'Room 101' }],
@@ -149,11 +153,13 @@ function checkoutFixture(dispatch, amountPaid = 2000) {
   const component = load('src/desk/CheckOut.tsx', {
     react: { useState: (initial) => [initial, () => {}], useRef: (value) => ({ current: value }) },
     'react/jsx-runtime': { jsx, jsxs: jsx, Fragment: 'fragment' },
-    './deskStore': { useDesk: () => ({ state: { closingRoom: '101' }, dispatch: (a) => deskActions.push(a) }) },
-    '../hotel/hotelStore': { useHotel: () => ({ live: true, syncing: false,
-      state: { bookings: [{ ...localStay, paid: amountPaid, balance: 2000 - amountPaid }], rooms: [] },
-      inHouse: [localStay], billOf: () => [{ id: 'line', label: 'Room', price: 2000, qty: 1 }],
-      billTotal: () => 2000, dispatch }) },
+    '../contexts': {
+      useDesk: () => ({ state: { closingRoom: '101' }, dispatch: (a) => deskActions.push(a) }),
+      useHotel: () => ({ live: true, syncing: false,
+        state: { bookings: [{ ...localStay, paid: amountPaid, balance: 2000 - amountPaid }], rooms: [] },
+        inHouse: [localStay], billOf: () => [{ id: 'line', label: 'Room', price: 2000, qty: 1 }],
+        billTotal: () => 2000, dispatch }),
+    },
     '../lib/format': { money: (v) => String(v) },
     '../components/Icon': { Icon: 'icon' }, '../components/QrCode': { QrCode: 'qr' },
   });
@@ -178,8 +184,10 @@ test('ตัวตน live ใช้ผู้ใช้เซิร์ฟเว�
   const mocks = {
     react: { useState: () => [false, () => {}] },
     'react/jsx-runtime': { jsx, jsxs: jsx },
-    '../hotel/hotelStore': { useHotel: () => ({ session: { name: 'Demo Owner' } }) },
-    '../lib/backend': { useBackend: () => backend },
+    '../contexts': {
+      useHotel: () => ({ session: { name: 'Demo Owner' } }),
+      useBackend: () => backend,
+    },
     '../lib/roles': { ROLE_LABEL: {} }, '../lib/property': { PROPERTY: {} },
     './Icon': { Icon: 'icon' },
   };

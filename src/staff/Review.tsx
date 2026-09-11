@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { ANGLES, DEFECTS, HK, SUP } from "./staffData";
-import { useStaff } from "./staffStore";
-import { useHotel } from "../hotel/hotelStore";
+import { useHotel, useStaff } from "../contexts";
 import { Icon } from "../components/Icon";
 
 export function Review() {

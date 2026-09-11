@@ -1,4 +1,5 @@
-import { createContext, useContext, useMemo, useReducer, type ReactNode } from "react";
+import { useMemo, useReducer, type ReactNode } from "react";
+import { OwnerContext } from "../contexts";
 import { APPROVALS, WEEK, type Approval } from "./ownerData";
 
 export type OwnerTab =
@@ -96,7 +97,7 @@ function reducer(state: State, action: Action): State {
   }
 }
 
-type Ctx = {
+export type Ctx = {
   state: State;
   dispatch: React.Dispatch<Action>;
   totals: {
@@ -113,8 +114,6 @@ type Ctx = {
     fnbShare: number;
   };
 };
-
-const OwnerContext = createContext<Ctx | null>(null);
 
 export function OwnerProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, initial);
@@ -148,10 +147,4 @@ export function OwnerProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo(() => ({ state, dispatch, totals }), [state, totals]);
   return <OwnerContext.Provider value={value}>{children}</OwnerContext.Provider>;
-}
-
-export function useOwner() {
-  const ctx = useContext(OwnerContext);
-  if (!ctx) throw new Error("useOwner must be used within OwnerProvider");
-  return ctx;
 }

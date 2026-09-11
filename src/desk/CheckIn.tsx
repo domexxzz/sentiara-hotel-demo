@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { useDesk } from "./deskStore";
-import { useHotel } from "../hotel/hotelStore";
+import { useDesk, useHotel } from "../contexts";
 import { IdScan, NfcWrite, type ScannedId } from "./steps";
 import { money } from "../lib/format";
 import { fmtRange, nightsBetween } from "../lib/date";

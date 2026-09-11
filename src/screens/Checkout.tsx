@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { GUEST, HOTEL, money } from "../data";
-import { useBooking } from "../store";
-import { useHotel } from "../hotel/hotelStore";
+import { useBooking, useHotel } from "../contexts";
 import { TODAY } from "../lib/date";
 import { Rail } from "../components/PhoneFrame";
 import { Icon } from "../components/Icon";

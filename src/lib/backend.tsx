@@ -1,11 +1,12 @@
 import {
-  createContext, useCallback, useContext, useEffect, useMemo, useState,
+  useCallback, useEffect, useMemo, useState,
   type ReactNode,
 } from "react";
 import {
   API_CONFIGURED, ApiError, api, getToken, setToken,
   type Health, type Session,
 } from "./api";
+import { BackendContext } from "../contexts";
 
 /**
  * สถานะการต่อหลังบ้าน — ตัวที่ตัดสินว่าแอปกำลังทำงานโหมดไหน
@@ -21,7 +22,7 @@ import {
  */
 export type Mode = "demo" | "locked" | "live";
 
-type Ctx = {
+export type Ctx = {
   mode: Mode;
   /** ต่อหลังบ้านติดไหม (ยังไม่ได้แปลว่าล็อกอินแล้ว) */
   online: boolean;
@@ -39,8 +40,6 @@ type Ctx = {
   /** มีสิทธิ์ข้อนี้ไหม · โหมดสาธิตให้ทุกสิทธิ์ เพราะไม่มีของจริงให้ปกป้อง */
   can: (perm: string) => boolean;
 };
-
-const BackendContext = createContext<Ctx | null>(null);
 
 export function BackendProvider({ children }: { children: ReactNode }) {
   const [health, setHealth] = useState<Health | null>(null);
@@ -131,10 +130,4 @@ export function BackendProvider({ children }: { children: ReactNode }) {
   }, [health, session, probing, error, busy, signIn, signOut, probe]);
 
   return <BackendContext.Provider value={value}>{children}</BackendContext.Provider>;
-}
-
-export function useBackend() {
-  const ctx = useContext(BackendContext);
-  if (!ctx) throw new Error("useBackend must be used within BackendProvider");
-  return ctx;
 }

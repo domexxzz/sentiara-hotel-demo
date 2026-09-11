@@ -1,4 +1,4 @@
-import { useHotel } from "../hotel/hotelStore";
+import { useHotel } from "../contexts";
 import { money } from "../lib/format";
 import { Icon } from "../components/Icon";
 import {

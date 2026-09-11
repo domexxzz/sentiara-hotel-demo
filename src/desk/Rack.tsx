@@ -1,6 +1,5 @@
 import { STATUS_LABEL, type RoomStatus } from "./deskData";
-import { useDesk } from "./deskStore";
-import { useHotel } from "../hotel/hotelStore";
+import { useDesk, useHotel } from "../contexts";
 import { money } from "../lib/format";
 import { fmtRangeShort, nightsBetween } from "../lib/date";
 import { stayTotal } from "../lib/rates";

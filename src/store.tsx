@@ -1,13 +1,12 @@
 import {
-  createContext,
   useCallback,
-  useContext,
   useMemo,
   useReducer,
   type ReactNode,
 } from "react";
 import { GUEST, HOTEL, type PayMethod, type Room } from "./data";
-import { useHotel, type BillLine } from "./hotel/hotelStore";
+import type { BillLine } from "./hotel/hotelStore";
+import { BookingContext, useHotel } from "./contexts";
 import { TODAY, addDays, nightsBetween } from "./lib/date";
 import { stayTotal } from "./lib/rates";
 import { allocate } from "./lib/allocate";
@@ -71,9 +70,6 @@ const initial: State = {
   notice: null,
 };
 
-let seq = 0;
-export const nextId = () => "g" + ++seq;
-
 function reducer(state: State, action: Action): State {
   switch (action.type) {
     case "SELECT_ROOM":
@@ -112,7 +108,7 @@ function reducer(state: State, action: Action): State {
   }
 }
 
-type Ctx = {
+export type Ctx = {
   state: State;
   dispatch: React.Dispatch<Action>;
   nights: number;
@@ -134,8 +130,6 @@ type Ctx = {
   addCharge: (line: Omit<BillLine, "id" | "qty"> & { qty?: number }) => void;
   settle: () => void;
 };
-
-const BookingContext = createContext<Ctx | null>(null);
 
 export function BookingProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, initial);
@@ -289,10 +283,4 @@ export function BookingProvider({ children }: { children: ReactNode }) {
   }, [state, nights, pax, hotel, confirm, arrive, changeDates, changePax, changeRooms, cancelBooking, addCharge, settle]);
 
   return <BookingContext.Provider value={value}>{children}</BookingContext.Provider>;
-}
-
-export function useBooking() {
-  const ctx = useContext(BookingContext);
-  if (!ctx) throw new Error("useBooking must be used within BookingProvider");
-  return ctx;
 }

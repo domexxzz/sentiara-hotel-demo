@@ -1,6 +1,7 @@
 import "./staff.css";
 import { HK, SUP, TECH } from "./staffData";
-import { StaffProvider, useStaff } from "./staffStore";
+import { StaffProvider } from "./staffStore";
+import { useStaff } from "../contexts";
 import { JobList } from "./JobList";
 import { JobDetail } from "./JobDetail";
 import { Review } from "./Review";

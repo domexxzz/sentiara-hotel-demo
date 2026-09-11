@@ -26,16 +26,6 @@ const PASSPORT: ScannedId = {
   address: "Shibuya-ku, Tokyo, Japan",
 };
 
-// A different person walks up to the counter — never the guest already
-// checking in, or the demo shows one name holding two rooms.
-export const WALKIN_ID: ScannedId = {
-  name: "ณัฐพงษ์ ทองดี",
-  idNo: "1-3299-•••••-••-•",
-  nationality: "ไทย",
-  birth: "27 ก.ค. 2537",
-  address: "ต.ช้างเผือก อ.เมือง จ.เชียงใหม่",
-};
-
 /**
  * ID / passport scanner step. Simulates the counter scanner filling the
  * guest record so staff never retype it.

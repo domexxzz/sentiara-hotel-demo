@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { useHotel } from "../hotel/hotelStore";
-import { useBackend } from "../lib/backend";
+import { useBackend, useHotel } from "../contexts";
 import { ROLE_LABEL } from "../lib/roles";
 import { PROPERTY, type PropertyMode } from "../lib/property";
 import { Icon } from "./Icon";

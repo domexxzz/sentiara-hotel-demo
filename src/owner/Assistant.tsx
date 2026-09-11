@@ -1,5 +1,5 @@
 import { AI_QNA, LAST_WEEK } from "./ownerData";
-import { useOwner } from "./ownerStore";
+import { useOwner } from "../contexts";
 import { money, delta } from "../lib/format";
 import { Icon } from "../components/Icon";
 

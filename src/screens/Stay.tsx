@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { GUEST, MINIBAR, QUICK_REQUESTS, money, type ShopItem } from "../data";
-import { useBooking, nextId } from "../store";
-import { useHotel } from "../hotel/hotelStore";
+import { nextGuestId as nextId } from "../lib/ids";
+import { useBooking, useHotel } from "../contexts";
 import { Icon } from "../components/Icon";
 
 let hkSeq = 2276;

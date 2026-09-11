@@ -1,6 +1,5 @@
 import { ANGLES, CHECKLIST, ISSUES } from "./staffData";
-import { useStaff } from "./staffStore";
-import { useHotel } from "../hotel/hotelStore";
+import { useHotel, useStaff } from "../contexts";
 import { Icon } from "../components/Icon";
 
 export function JobDetail() {

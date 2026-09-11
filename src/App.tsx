@@ -1,6 +1,6 @@
 import { useState } from "react";
 import "./App.css";
-import { BookingProvider, useBooking } from "./store";
+import { BookingProvider } from "./store";
 import { PhoneFrame } from "./components/PhoneFrame";
 import { Search } from "./screens/Search";
 import { Confirm } from "./screens/Confirm";
@@ -13,10 +13,11 @@ import { StaffApp } from "./staff/StaffApp";
 import { OwnerApp } from "./owner/OwnerApp";
 import { PosApp } from "./pos/PosApp";
 import { Icon, type IconName } from "./components/Icon";
-import { HotelProvider, useHotel } from "./hotel/hotelStore";
+import { HotelProvider } from "./hotel/hotelStore";
 import { Identity } from "./components/Identity";
 import { canOpen, denyReason } from "./lib/roles";
-import { BackendProvider, useBackend } from "./lib/backend";
+import { BackendProvider } from "./lib/backend";
+import { useBackend, useBooking, useHotel } from "./contexts";
 import { ConnectionBar, SignIn } from "./components/Connection";
 
 type Flow = "guest" | "desk" | "staff" | "owner" | "pos";

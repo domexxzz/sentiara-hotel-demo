@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useDesk } from "./deskStore";
-import { useHotel, type ChatChannel } from "../hotel/hotelStore";
+import type { ChatChannel } from "../hotel/hotelStore";
+import { useDesk, useHotel } from "../contexts";
 import { money } from "../lib/format";
 import { fmtRange } from "../lib/date";
 import { Icon, type IconName } from "../components/Icon";
