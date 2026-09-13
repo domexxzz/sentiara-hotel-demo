@@ -17,10 +17,12 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import select
 
+from pms import clock
 from pms import folio as fo
 from pms.app import create_app
 from pms.db import (
-    EXPENSE_CATEGORIES, Booking, Expense, LedgerOutbox, Payment, Room, RoomType,
+    EXPENSE_CATEGORIES, Booking, Charge, Expense, Folio, LedgerOutbox, Payment,
+    Room, RoomType,
 )
 from pms.events import (
     EventError, adjustment_event, expense_event, folio_close_event, money,
@@ -484,3 +486,56 @@ def test_retry_continues_when_watermark_check_times_out(c, db, monkeypatch):
     monkeypatch.setattr(client, "bridge", lambda: FakeBridge())
     r = client.send_pending(db)
     assert r["sent"] == r["queued"] and r["failed"] == 0
+
+
+# ══ สัญญากับเครื่องยนต์กฎปลายทาง ═══════════════════════════════════
+def _with_discount(c, amount=200):
+    ref = _stay(c)
+    c.post(f"{API}/folios/{ref}/charges",
+           json={"kind": "fnb", "label": "อาหาร", "amount": 300})
+    c.post(f"{API}/folios/{ref}/charges",
+           json={"kind": "discount", "label": "ส่วนลด", "amount": amount})
+    return ref
+
+
+def test_discount_line_is_sent_as_magnitude_not_negative(c, db):
+    """ส่วนลดต้องส่งเป็นยอดบวก · ทิศทางบอกด้วย category
+
+    เครื่องยนต์กฎปลายทางบังคับที่ฐานข้อมูลว่าทุกบรรทัดใบสำคัญต้องมากกว่าศูนย์
+    และภาษากฎของมันไม่มี abs กลับเครื่องหมายไม่ได้ · ยอดติดลบจึงถูกกรองทิ้ง
+    **เงียบ ๆ** แล้วใบไม่สมดุลเท่าส่วนลดพอดี
+    (ยิง payload จริงผ่านเครื่องยนต์แล้วได้ UNBALANCED 186.92 มาแล้ว)
+    """
+    _with_discount(c)
+    # รายการที่ลงผ่าน API ใช้เวลาปัจจุบัน จึงต้องปิดยอดของ "วันนี้" ไม่ใช่วันเข้าพัก
+    ev = night_audit_events(db, clock.today(), 7)[0]
+    cats = {l["category"] for l in ev.payload["lines"]}
+    assert "DISCOUNT" in cats, "ควรมีบรรทัดส่วนลด"
+    for line in ev.payload["lines"]:
+        assert not line["netAmount"].startswith("-"), f"{line['category']} ติดลบ"
+        assert not line["grossAmount"].startswith("-"), f"{line['category']} ติดลบ"
+
+
+def test_totals_still_reconcile_after_discount_flips_sign(c, db):
+    """ผู้รับต้องกลับไปหายอดเดิมได้ ไม่งั้นส่งขนาดไปก็ไร้ความหมาย
+
+    รายได้ที่ไม่ใช่ส่วนลด − ส่วนลด + ภาษี = ยอดที่แขกจ่าย
+    """
+    _with_discount(c)
+    p = night_audit_events(db, clock.today(), 7)[0].payload
+    income = sum(_cents(l["netAmount"]) for l in p["lines"] if l["category"] != "DISCOUNT")
+    discount = sum(_cents(l["netAmount"]) for l in p["lines"] if l["category"] == "DISCOUNT")
+    assert income - discount == _cents(p["vatBase"])
+    assert income - discount + _cents(p["vatAmount"]) == _cents(p["grandTotal"])
+
+
+def test_other_categories_may_not_be_negative(c, db):
+    """หมวดอื่นติดลบแปลว่าผิดที่ต้นทาง ต้องดัง ไม่ใช่ถูกกลบด้วย abs"""
+    ref = _stay(c)
+    folio = db.scalar(select(Folio).join(Booking).where(Booking.ref == ref))
+    # total_satang เป็นค่าที่คำนวณเอง ตั้งตรง ๆ ไม่ได้ — ใส่ผ่าน unit_satang
+    db.add(Charge(folio_id=folio.id, kind="fnb", label="คืนของ", qty=1,
+                  unit_satang=-5000))
+    db.commit()
+    with pytest.raises(EventError, match="ติดลบ"):
+        night_audit_events(db, clock.today(), 7)
