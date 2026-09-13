@@ -2017,3 +2017,66 @@ html {
 @media (max-width: 700px) {
   .st-roles button.on { background: var(--hue, var(--accent)); }
 }
+
+/* ══ แถบแนะนำให้เปิดบนจอใหญ่ ═════════════════════════════════════
+ * ขึ้นเฉพาะจอแคบ · ตัวคอมโพเนนต์คุมอีกชั้นว่าขึ้นเฉพาะสามจอที่เป็นของคอม
+ * (เหตุผลอยู่ใน src/components/BigScreenTip.tsx)
+ */
+.bigtip { display: none; }
+
+@media (max-width: 700px) {
+  .bigtip {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin: 10px 12px 0;
+    padding: 11px 13px;
+    background: var(--accent-100);
+    border: 1px solid var(--accent-200);
+    /* ขีดซ้ายสีแบรนด์ ไม่ใช่สีประจำมุมมอง — นี่เป็นคำแนะนำเกี่ยวกับ "อุปกรณ์"
+       ไม่ใช่เรื่องของมุมมองนั้น ถ้าใช้สีมุมมองคนจะคิดว่ามันผูกกับจอนี้เท่านั้น */
+    border-left: 3px solid var(--accent);
+  }
+  .bigtip .ic { flex: 0 0 auto; margin-top: 2px; color: var(--accent-700); }
+  .bigtip .txt { min-width: 0; }
+  .bigtip b {
+    display: block;
+    font-size: 13.5px;
+    font-weight: 800;
+    color: var(--accent-900, #4d170e);
+  }
+  .bigtip p {
+    margin: 4px 0 0;
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--accent-700);
+    overflow-wrap: anywhere;
+  }
+  .bigtip .manual code {
+    display: block;
+    margin-top: 4px;
+    padding: 6px 8px;
+    font-size: 11px;
+    background: var(--paper);
+    border: 1px solid var(--accent-200);
+    user-select: all;
+    overflow-wrap: anywhere;
+  }
+  .bigtip .acts { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
+  .bigtip .acts button {
+    font: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    min-height: 40px;
+    padding: 0 13px;
+    cursor: pointer;
+    color: var(--accent-700);
+    background: var(--paper);
+    border: 1px solid var(--accent-200);
+  }
+  .bigtip .acts button.go {
+    color: #fff;
+    background: var(--accent-700);
+    border-color: var(--accent-700);
+  }
+}

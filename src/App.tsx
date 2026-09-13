@@ -23,6 +23,7 @@ import { Directory } from "./tour/Directory";
 import { onTarget, type Flow } from "./tour/target";
 import { Welcome, resetDemo } from "./tour/Welcome";
 import { FLOW_THEME, FLOW_TITLE } from "./lib/flowTheme";
+import { BigScreenTip } from "./components/BigScreenTip";
 
 const FLOWS: { id: Flow; label: string; sub: string; icon: IconName }[] = [
   { id: "guest", label: "ฝั่งแขก", sub: "มือถือ", icon: "chat" },
@@ -158,6 +159,8 @@ function Stage() {
             {armed ? "กดอีกครั้ง" : "เริ่มใหม่"}
           </button>
         </header>
+
+        <BigScreenTip flow={flow} />
 
         <ConnectionBar />
         <Identity />
