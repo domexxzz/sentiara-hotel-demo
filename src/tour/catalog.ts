@@ -83,9 +83,9 @@ export const CATALOG: Group[] = [
   {
     n: "05", en: "Double-Entry Accounting", th: "ระบบบัญชีคู่",
     spots: [
-      { en: "Event-Driven Posting", th: "ส่งเหตุการณ์ ไม่ได้ส่งรายการบัญชี", flow: "owner", owner: "ledger", hint: "ดูเหตุการณ์ 5 ชนิดที่ระบบส่งออก" },
-      { en: "Chart of Accounts", th: "ผังบัญชีโรงแรมไทย", flow: "owner", owner: "ledger", hint: "เลขบัญชีที่ใช้จริงในโรงแรมไทย" },
-      { en: "Balanced Or Nothing", th: "เดบิตไม่เท่าเครดิต ส่งออกไม่ได้", flow: "owner", owner: "ledger", hint: "ทุกใบสำคัญต้องมีเดบิตเท่ากับเครดิต" },
+      { en: "Event-Driven Posting", th: "ส่งเหตุการณ์ ไม่ได้ส่งรายการบัญชี", flow: "owner", owner: "posting", hint: "เลือกเหตุการณ์แล้วดูว่ากฎปลายทางแปลงเป็นเดบิต/เครดิตอะไร" },
+      { en: "Chart of Accounts", th: "ผังบัญชีโรงแรมไทย", flow: "owner", owner: "posting", hint: "ผังบัญชีจริงจากโปรแกรมบัญชี ไม่ใช่รายการที่เดโมพิมพ์เอง" },
+      { en: "Balanced Or Nothing", th: "เดบิตไม่เท่าเครดิต ส่งออกไม่ได้", flow: "owner", owner: "posting", hint: "กดปุ่ม “ยอดรวมไม่ตรงกับบรรทัด” แล้วดูว่าระบบบัญชีปฏิเสธยังไง" },
       { en: "Idempotent Delivery", th: "ส่งซ้ำไม่เกิดบัญชีซ้ำ", flow: "owner", owner: "ledger", hint: "ลองกดส่งซ้ำดูว่ายอดขยับไหม" },
       { en: "Write-Once Ledger", th: "ลงแล้วแก้ไม่ได้ ลบไม่ได้", flow: "owner", owner: "ledger", hint: "แก้ไม่ได้ ต้องตั้งรายการกลับเท่านั้น" },
       { en: "Integer Money", th: "เงินเป็นสตางค์จำนวนเต็มทั้งระบบ", flow: "owner", owner: "ledger", hint: "ไม่มีเศษหายจากการปัดเลขทศนิยม" },

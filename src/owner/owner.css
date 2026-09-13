@@ -1386,3 +1386,142 @@
   .wf-split .mid { padding: 6px 0; }
   .wf-id dl > div { grid-template-columns: 1fr; gap: 1px; }
 }
+
+/* ══ เครื่องยนต์ลงบัญชี ════════════════════════════════════════════ */
+.pg-why {
+  margin: 0 0 11px; font-size: 12.5px; line-height: 1.65;
+  color: var(--muted); max-width: 78ch;
+}
+.pg-sec { margin-top: 22px; }
+.pg-sec h3 {
+  margin: 0 0 5px; font-size: 15px; font-weight: 800;
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+.pg-toggle {
+  font: inherit; font-size: 11.5px; font-weight: 600; cursor: pointer;
+  padding: 3px 9px; color: var(--muted);
+  background: transparent; border: 1px solid var(--divider);
+}
+.pg-toggle:hover { color: var(--ink, #241815); border-color: var(--line-strong); }
+
+/* เลือกเหตุการณ์ — ตกบรรทัดเสมอ ไม่ซ่อนตัวเลือกไว้ในแถบเลื่อน */
+.pg-pick {
+  display: flex; flex-wrap: wrap; gap: 1px;
+  background: var(--divider); border: 1px solid var(--line-strong);
+}
+.pg-pick button {
+  flex: 1 1 200px; min-width: 0; text-align: left; cursor: pointer;
+  font: inherit; padding: 11px 14px; background: #fff; border: 0;
+}
+.pg-pick button:hover { background: var(--surface-2, #f8f6f4); }
+.pg-pick button.on { background: var(--text); color: var(--bg); }
+.pg-pick b { display: block; font-size: 13.5px; font-weight: 800; }
+.pg-pick .dt {
+  display: inline-block; margin-top: 3px; font-size: 10px; font-weight: 700;
+  letter-spacing: 0.1em; padding: 1px 6px;
+  color: var(--accent-700); background: #fbe9e6;
+}
+.pg-pick button.on .dt { color: #fff; background: var(--accent-700); }
+.pg-pick .when {
+  display: block; margin-top: 5px; font-size: 11.5px; line-height: 1.55;
+  color: var(--muted); overflow-wrap: anywhere;
+}
+.pg-pick button.on .when { color: rgba(255, 255, 255, 0.7); }
+
+.pg-in {
+  display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px;
+  padding: 13px 15px; background: #fff; border: 1px solid var(--line-strong);
+}
+.pg-in label { display: block; }
+.pg-in label span {
+  display: block; font-size: 11px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted);
+}
+.pg-in input {
+  margin-top: 4px; font: inherit; font-size: 15px; font-weight: 700;
+  font-variant-numeric: tabular-nums; width: 150px; max-width: 100%;
+  padding: 7px 10px; border: 1px solid var(--line-strong); background: var(--paper);
+}
+.pg-in input:focus { outline: 2px solid var(--accent-700); outline-offset: -1px; }
+.pg-nofix { font-size: 12px; line-height: 1.6; color: var(--muted); max-width: 46ch; }
+.pg-traps { display: flex; flex-wrap: wrap; gap: 6px; margin-left: auto; }
+.pg-traps button {
+  font: inherit; font-size: 11.5px; font-weight: 600; cursor: pointer;
+  padding: 7px 11px; color: var(--muted);
+  background: var(--paper); border: 1px dashed var(--line-strong);
+}
+.pg-traps button:hover { color: var(--ink, #241815); border-style: solid; }
+.pg-traps button.on {
+  color: #fff; background: var(--accent-700);
+  border-color: var(--accent-700); border-style: solid;
+}
+.pg-trapwhy {
+  display: flex; gap: 8px; align-items: flex-start;
+  margin: 9px 0 0; font-size: 12.5px; line-height: 1.6; color: var(--muted);
+}
+.pg-trapwhy .ic { flex: 0 0 auto; margin-top: 2px; color: var(--accent-700); }
+
+.pg-t {
+  width: 100%; border-collapse: collapse; background: #fff;
+  border: 1px solid var(--line-strong); font-size: 13px;
+}
+.pg-t th, .pg-t td { padding: 9px 13px; text-align: left; }
+.pg-t thead th {
+  font-size: 10.5px; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--muted);
+  border-bottom: 1px solid var(--line-strong);
+}
+.pg-t .r { text-align: right; font-variant-numeric: tabular-nums; }
+.pg-t .code { font-variant-numeric: tabular-nums; font-weight: 700; }
+.pg-t tbody tr + tr td { border-top: 1px solid var(--divider); }
+.pg-t tfoot td {
+  font-weight: 800; border-top: 2px solid var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.pg-ok {
+  display: flex; gap: 8px; align-items: flex-start;
+  margin: 10px 0 0; font-size: 12.5px; line-height: 1.6; color: var(--muted);
+}
+.pg-ok .ic { flex: 0 0 auto; margin-top: 2px; color: #10614a; }
+
+.pg-err { padding: 14px 16px; background: #fbe9e6; border: 1px solid #e3b4ac; }
+.pg-err .code {
+  display: inline-block; font-family: ui-monospace, Consolas, monospace;
+  font-size: 11.5px; font-weight: 700; letter-spacing: 0.06em;
+  padding: 2px 8px; color: #fff; background: #9a2013;
+}
+.pg-err p { margin: 9px 0 0; font-size: 13.5px; font-weight: 600; overflow-wrap: anywhere; }
+.pg-err .hint {
+  display: block; margin-top: 8px; font-size: 12px;
+  line-height: 1.6; color: #7a3b31;
+}
+
+.pg-chart, .pg-rules {
+  display: grid; gap: 1px; background: var(--divider);
+  border: 1px solid var(--line-strong);
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+}
+.pg-chart > div, .pg-rules > div { background: #fff; padding: 10px 14px; min-width: 0; }
+.pg-chart b, .pg-rules b {
+  display: block; font-size: 13px; font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.pg-chart span, .pg-rules span {
+  display: block; font-size: 12px; line-height: 1.55;
+  color: var(--muted); overflow-wrap: anywhere;
+}
+.pg-chart .sd {
+  margin-top: 4px; font-size: 10.5px; font-weight: 700; letter-spacing: 0.06em;
+}
+.pg-chart .sd.d { color: #10614a; }
+.pg-chart .sd.c { color: var(--accent-700); }
+.pg-rules .v { margin-top: 3px; font-size: 11.5px; }
+.pg-rules .none { background: var(--surface-2, #f8f6f4); }
+.pg-rules .none b { color: var(--muted); }
+
+.pg-json {
+  margin: 0; padding: 14px 16px; overflow-x: auto; max-height: 44vh;
+  background: var(--text); color: #d6efe0;
+  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+  font-size: 11.5px; line-height: 1.65;
+}

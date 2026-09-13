@@ -141,7 +141,10 @@ console.log(`\n${bad === 0 ? '✓ ผ่านทุกความกว้า�
 // ทำแค่ห้าความกว้างพอ เพราะรอบแรกยืนยันแล้วว่าโครงนอกไม่ล้นที่ความกว้างไหนเลย
 console.log('\n── ลงลึกถึงแท็บย่อยทุกจอ ──')
 const DEEP = [[320, 568], [390, 844], [768, 1024], [1024, 768], [1920, 1080]]
-const TAB_SEL = 'nav button, .onav button, .tabs button, [role=tablist] button'
+// ต้องตัด .flowpick ออก ไม่งั้นปุ่มสลับมุมมองถูกนับเป็นแท็บย่อยด้วย
+// แล้วพอกดมันกลางลูป มุมมองเปลี่ยนไปเลย แท็บที่เหลือของมุมมองเดิมเลยไม่ถูกเปิด
+const TAB_SEL = ':is(nav, .onav, .tabs, [role=tablist]):not(.flowpick) > button, ' +
+  ':is(nav, .onav, .tabs, [role=tablist]):not(.flowpick) button:not(.flowpick button)'
 let deepBad = 0
 let screens = 0
 for (const [w, h] of DEEP) {

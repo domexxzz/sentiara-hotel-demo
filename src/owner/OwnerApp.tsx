@@ -9,6 +9,7 @@ import { canOpenOwnerTab } from "../lib/roles";
 import { Overview } from "./Overview";
 import { Channels } from "./Channels";
 import { Finance } from "./Finance";
+import { Posting } from "./Posting";
 import { Ledger } from "./Ledger";
 import { ChivaGo } from "./ChivaGo";
 import { Security } from "./Security";
@@ -26,6 +27,7 @@ const NAV: { tab: OwnerTab; label: string; icon: IconName }[] = [
   { tab: "overview", label: "ภาพรวม & รายได้", icon: "receipt" },
   { tab: "finance", label: "รายจ่าย & กำไรขาดทุน", icon: "tag" },
   { tab: "ledger", label: "บัญชีคู่ & ส่งเข้าโปรแกรมบัญชี", icon: "receipt" },
+  { tab: "posting", label: "เครื่องยนต์กฎลงบัญชี", icon: "shield" },
   { tab: "guests", label: "ลูกค้า & แต้ม", icon: "star" },
   { tab: "chivago", label: "ChivaGo · สิทธิพิเศษ", icon: "sparkle" },
   { tab: "channels", label: "ช่องทางขาย & OTA", icon: "tag" },
@@ -44,6 +46,8 @@ function OwnerRouter() {
   switch (state.tab) {
     case "finance":
       return <Finance />;
+    case "posting":
+      return <Posting />;
     case "ledger":
       return <Ledger />;
     case "chivago":

@@ -285,6 +285,30 @@ def test_adjustment_refuses_to_reverse_vat_without_a_credit_note():
     assert ok.event_type == "ADJ" and ok.event_id == "ADJ-cancel-BK-1"
 
 
+def test_adjustment_carries_the_net_amount_for_the_rule_engine():
+    """เครื่องยนต์กฎปลายทางต้องการ `netAmount` ตรง ๆ ไม่ลบ amount − vatAmount ให้
+
+    ยิงใบลดหนี้จริงเข้าเครื่องยนต์แล้วได้ MISSING_FIELD เพราะเราไม่ได้ส่งช่องนี้
+    และเขาถูกที่ไม่ลบเอง — ถ้าปลายทางลบเองเมื่อไหร่ เศษการปัดจะมาจากสองที่
+    แล้วใบลดหนี้กับใบกำกับเดิมจะปัดคนละทาง ยอดภาษีขายที่ยื่นก็ไม่ตรงกับสมุด
+    """
+    e = adjustment_event(reason="creditnote", source_ref="CN-2569-00001",
+                         business_date=MON, amount_satang=baht(500),
+                         vat_satang=baht(32.71), credit_note_no="CN-2569-00001")
+    assert e.payload["netAmount"] == "467.29"
+    # สามช่องต้องบวกกลับได้พอดีเสมอ ไม่งั้นใบสำคัญปลายทางไม่สมดุล
+    assert (baht(float(e.payload["netAmount"])) + baht(float(e.payload["vatAmount"]))
+            == baht(float(e.payload["amount"])))
+
+
+def test_adjustment_without_vat_puts_the_whole_amount_in_net():
+    """กลับรายการที่ไม่มี VAT — ฐานเท่ายอดเต็ม ไม่ใช่ศูนย์หรือช่องว่าง"""
+    e = adjustment_event(reason="cancel", source_ref="BK-9",
+                         business_date=MON, amount_satang=baht(990))
+    assert e.payload["netAmount"] == "990.00"
+    assert e.payload["vatAmount"] == "0.00"
+
+
 # ══ 4 · คิวส่งออก ════════════════════════════════════════════════════
 def test_outbox_seq_never_goes_backwards(c, db):
     """seq ถอยหลังเมื่อไร ปลายทางทิ้งทั้งชุดโดยไม่แจ้ง

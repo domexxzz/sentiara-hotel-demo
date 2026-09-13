@@ -412,6 +412,12 @@ def adjustment_event(
             "reason": reason,
             "sourceRef": source_ref,
             "amount": money(amount_satang),
+            # ── ส่งฐานที่ไม่รวมภาษีมาด้วย ไม่ให้ปลายทางคำนวณเอง ──────────
+            # เครื่องยนต์กฎฝั่ง Ledger Bridge ต้องการ `netAmount` ตรง ๆ
+            # ไม่ยอมลบ amount − vatAmount ให้ · ยิงของจริงแล้วได้ MISSING_FIELD
+            # และถูกแล้วที่เขาไม่ลบเอง — เศษการปัดต้องมาจากที่เดียวคือคนออกเอกสาร
+            # ไม่งั้นใบลดหนี้กับใบกำกับเดิมจะปัดเศษคนละทางแล้วยอดภาษีขายเพี้ยน
+            "netAmount": money(amount_satang - vat_satang),
             "vatAmount": money(vat_satang),
             "creditNoteNo": credit_note_no,
             "memo": memo,
