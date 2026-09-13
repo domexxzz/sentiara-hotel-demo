@@ -12,6 +12,7 @@ import { Finance } from "./Finance";
 import { Ledger } from "./Ledger";
 import { ChivaGo } from "./ChivaGo";
 import { Security } from "./Security";
+import { Wifi } from "./Wifi";
 import { Team } from "./Team";
 import { Guests } from "./Guests";
 import { Settings } from "./Settings";
@@ -32,6 +33,7 @@ const NAV: { tab: OwnerTab; label: string; icon: IconName }[] = [
   { tab: "door", label: "ประตู & บัตร", icon: "key" },
   { tab: "energy", label: "ค่าไฟ & IoT", icon: "wifi" },
   { tab: "security", label: "ความปลอดภัย & กฎหมาย", icon: "shield" },
+  { tab: "wifi", label: "Wi-Fi ที่พัก & ม.26", icon: "wifi" },
   { tab: "ai", label: "ถาม AI ผู้ช่วย", icon: "sparkle" },
   { tab: "approvals", label: "รออนุมัติ", icon: "shield" },
   { tab: "settings", label: "ตั้งค่าระบบ", icon: "key" },
@@ -48,6 +50,8 @@ function OwnerRouter() {
       return <ChivaGo />;
     case "security":
       return <Security />;
+    case "wifi":
+      return <Wifi />;
     case "team":
       return <Team />;
     case "guests":

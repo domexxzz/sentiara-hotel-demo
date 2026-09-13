@@ -75,6 +75,8 @@ const OWNER_NEEDS: Record<string, Perm> = {
   finance: "revenue",
   channels: "revenue",
   approvals: "approve",
+  // รายงาน Wi-Fi มีเลขเอกสารแสดงตนของแขก — สิทธิ์เดียวกับทะเบียนผู้พัก
+  wifi: "register",
   // ตั้งค่าระบบแก้ราคาและสิทธิ์คนอื่นได้ — ต้องเป็นระดับที่แก้เรตได้เท่านั้น
   settings: "rate",
 };

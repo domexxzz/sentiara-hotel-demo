@@ -12,6 +12,7 @@ export type OwnerTab =
   | "channels"
   | "door"
   | "security"
+  | "wifi"
   | "energy"
   | "ai"
   | "approvals"

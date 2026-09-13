@@ -1200,3 +1200,189 @@
 .sec-tr-who { font-size: 12px; color: var(--muted); text-align: right; }
 /* เหตุผลกินเต็มแถว เพราะเป็นช่องที่คนตรวจอ่านจริง ไม่ใช่ของประดับ */
 .sec-tr-why { grid-column: 1 / -1; font-size: 12.5px; line-height: 1.6; color: var(--text); border-left: 2px solid var(--divider); padding-left: 10px; margin-top: 2px; }
+
+/* ══ Wi-Fi ที่พัก ═════════════════════════════════════════════════════
+   จอนี้ตอบคำถามเดียวที่อุปกรณ์เครือข่ายตอบไม่ได้ — "IP นี้คือใคร"
+   จึงจัดให้ตัวตนของคนเด่นกว่าตัวเลขปริมาณข้อมูล                       */
+.wf-split {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 1px;
+  margin: 14px 0 6px;
+  background: var(--divider);
+  border: 1px solid var(--line-strong);
+}
+.wf-split > div { background: #fff; padding: 13px 16px; }
+.wf-split .mid {
+  display: grid;
+  place-items: center;
+  padding: 0 14px;
+  background: var(--surface-2, #f8f6f4);
+  font-weight: 800;
+  font-size: 18px;
+  color: var(--muted);
+}
+.wf-split .k {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--muted);
+  display: block;
+}
+.wf-split b { display: block; font-size: 16px; font-weight: 800; margin-top: 2px; }
+.wf-split .sub { display: block; font-size: 12px; line-height: 1.55; color: var(--muted); margin-top: 3px; }
+
+.wf-sec { margin-top: 22px; }
+.wf-sec h3 { margin: 0 0 4px; font-size: 15px; font-weight: 800; }
+.wf-why { margin: 0 0 11px; font-size: 12.5px; line-height: 1.6; color: var(--muted); max-width: 76ch; }
+.wf-note {
+  margin: 11px 0 0;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: var(--muted);
+  max-width: 78ch;
+}
+.wf-note strong { color: var(--ink, #241815); }
+
+/* รหัสรายห้อง */
+.wf-creds { display: grid; gap: 1px; background: var(--divider); border: 1px solid var(--line-strong); }
+.wf-creds > div { background: #fff; padding: 12px 15px; }
+.wf-creds > div.off { background: var(--surface-2, #f8f6f4); }
+.wf-creds .row1 { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 10px; }
+.wf-creds .row1 b { font-size: 14.5px; font-weight: 800; }
+.wf-creds .who { font-size: 12.5px; color: var(--muted); flex: 1 1 auto; }
+.wf-creds .st {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 9px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.wf-creds .st.on { color: #10614a; background: #e6f4ee; }
+.wf-creds .st.no { color: #9a2013; background: #fbe9e6; }
+.wf-creds .st.old { color: #8a5c07; background: #fdf3e0; }
+.wf-creds .until { display: block; font-size: 11.5px; color: var(--muted); margin-top: 3px; }
+.wf-secret {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 9px;
+  margin: 9px 0 0;
+  padding: 9px 12px;
+  background: #fff7e9;
+  border: 1px solid #e8d5ae;
+  border-left: 3px solid #c98a12;
+}
+.wf-secret span { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #8a5c07; }
+.wf-secret code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+.wf-secret em { flex: 1 1 100%; font-style: normal; font-size: 11px; color: var(--muted); }
+.wf-act { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 9px; }
+
+/* ลองเป็นอุปกรณ์ */
+.wf-probe { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 9px; }
+.wf-probe label { display: flex; flex-direction: column; gap: 3px; font-size: 11.5px; color: var(--muted); }
+.wf-probe input {
+  font: inherit;
+  font-size: 13px;
+  padding: 7px 10px;
+  width: 168px;
+  border: 1px solid var(--line-strong);
+  background: #fff;
+}
+.wf-quick { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; margin-top: 11px; }
+.wf-quick span { font-size: 11.5px; color: var(--muted); }
+.wf-quick button {
+  font: inherit;
+  font-size: 11.5px;
+  padding: 5px 11px;
+  background: var(--surface-2, #f8f6f4);
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  cursor: pointer;
+}
+.wf-quick button:hover { background: #fff; border-color: var(--accent-700); }
+
+.wf-verdict {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 13px;
+  padding: 11px 14px;
+  border: 1px solid var(--line-strong);
+  border-left-width: 3px;
+}
+.wf-verdict.yes { background: #e9f4ef; border-left-color: #10614a; }
+.wf-verdict.no { background: #fbeae7; border-left-color: #9a2013; }
+.wf-verdict .ic { flex: 0 0 auto; margin-top: 1px; }
+.wf-verdict.yes .ic { color: #10614a; }
+.wf-verdict.no .ic { color: #9a2013; }
+.wf-verdict b { display: block; font-size: 13.5px; font-weight: 800; }
+.wf-verdict span { display: block; font-size: 12.5px; line-height: 1.6; margin-top: 2px; }
+
+/* ตาราง session */
+.wf-table { overflow-x: auto; margin-top: 4px; border: 1px solid var(--line-strong); }
+.wf-table table { width: 100%; border-collapse: collapse; font-size: 12.5px; min-width: 660px; }
+.wf-table th,
+.wf-table td { padding: 8px 11px; text-align: left; border-bottom: 1px solid var(--divider); }
+.wf-table thead th {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: var(--surface-2, #f8f6f4);
+  white-space: nowrap;
+}
+.wf-table td.num,
+.wf-table th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.wf-table code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11.5px; }
+.wf-table tr.on { background: #fff7e9; }
+.wf-table .livedot { color: #10614a; font-weight: 600; font-size: 11px; }
+
+/* คำตอบที่ส่งให้เจ้าหน้าที่ */
+.wf-id {
+  margin-top: 13px;
+  padding: 14px 16px;
+  background: #fff;
+  border: 1px solid var(--line-strong);
+  border-left: 3px solid var(--accent-700);
+}
+.wf-id .k {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-700);
+}
+.wf-id dl { margin: 9px 0 0; display: grid; gap: 7px; }
+.wf-id dl > div { display: grid; grid-template-columns: 132px 1fr; gap: 10px; align-items: baseline; }
+.wf-id dt { font-size: 11.5px; color: var(--muted); }
+.wf-id dd { margin: 0; font-size: 13px; }
+.wf-id .occ { display: block; }
+.wf-id .occ + .occ { margin-top: 3px; }
+.wf-keep { margin: 11px 0 0; font-size: 12px; color: #10614a; font-weight: 600; }
+.wf-keep.gone { color: #9a2013; }
+
+.wf-keeprow { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 9px; }
+.wf-keeprow label { display: flex; flex-direction: column; gap: 3px; font-size: 11.5px; color: var(--muted); }
+.wf-keeprow input {
+  font: inherit;
+  font-size: 13px;
+  padding: 7px 10px;
+  width: 110px;
+  border: 1px solid var(--line-strong);
+  background: #fff;
+}
+.wf-keeprow .hint { font-size: 11.5px; color: var(--muted); padding-bottom: 8px; }
+
+@media (max-width: 760px) {
+  .wf-split { grid-template-columns: 1fr; }
+  .wf-split .mid { padding: 6px 0; }
+  .wf-id dl > div { grid-template-columns: 1fr; gap: 1px; }
+}
