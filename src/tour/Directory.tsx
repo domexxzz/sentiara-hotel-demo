@@ -143,7 +143,14 @@ export function Directory({ open, onClose }: { open: boolean; onClose: () => voi
                 >
                   ไปที่จอนี้
                 </button>
-                <button disabled={step === 0} onClick={() => setStep((s) => s - 1)}>
+                {/* ปุ่มเดินหน้าถอยหลังอยู่ติดกันเป็นคู่ และดันไปชิดขวา
+                    เดิมปุ่ม "ก่อนหน้า" แทรกอยู่ระหว่างปุ่มหลักกับปุ่ม "ถัดไป"
+                    ทำให้อ่านเป็นสามปุ่มเรียงกันโดยไม่รู้ว่าอันไหนคู่กับอันไหน */}
+                <button
+                  className="prev"
+                  disabled={step === 0}
+                  onClick={() => setStep((s) => s - 1)}
+                >
                   ก่อนหน้า
                 </button>
                 <button
