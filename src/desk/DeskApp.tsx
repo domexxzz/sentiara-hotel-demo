@@ -1,3 +1,4 @@
+import { useJump } from "../tour/useJump";
 import { useEffect } from "react";
 import "./desk.css";
 import { SHIFT } from "./deskData";
@@ -75,6 +76,9 @@ function DeskRouter() {
 
 function DeskShell() {
   const { state, dispatch } = useDesk();
+
+  // สารบัญฟังก์ชันสั่งเปิดจอได้โดยตรง
+  useJump((t) => { if (t.flow === "desk" && t.desk) dispatch({ type: "VIEW", view: t.desk }); });
   const { arrivals, unreadChats, session } = useHotel();
   // ยังไม่แตะบัตร = เห็นครบ · แตะแล้วเห็นเฉพาะที่มีสิทธิ์
   const nav = NAV.filter((n) => !session || canOpenDesk(session.role, n.view));

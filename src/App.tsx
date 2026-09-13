@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
 import { BookingProvider } from "./store";
 import { PhoneFrame } from "./components/PhoneFrame";
@@ -19,8 +19,8 @@ import { canOpen, denyReason } from "./lib/roles";
 import { BackendProvider } from "./lib/backend";
 import { useBackend, useBooking, useHotel } from "./contexts";
 import { ConnectionBar, SignIn } from "./components/Connection";
-
-type Flow = "guest" | "desk" | "staff" | "owner" | "pos";
+import { Directory } from "./tour/Directory";
+import { onTarget, type Flow } from "./tour/target";
 
 const FLOWS: { id: Flow; label: string; sub: string; icon: IconName }[] = [
   { id: "guest", label: "ฝั่งแขก", sub: "มือถือ", icon: "chat" },
@@ -74,6 +74,29 @@ function GuestRouter() {
 
 function Stage() {
   const [flow, setFlow] = useState<Flow>("guest");
+  const [dir, setDir] = useState(false);
+  // ข้อความ "ไปถึงแล้วกดอะไรต่อ" ที่สารบัญส่งมาพร้อมกับการกระโดด
+  const [hint, setHint] = useState<string | null>(null);
+
+  // สารบัญสั่งเปลี่ยนมุมมองได้ ส่วนแท็บย่อยแต่ละแอปรับไปจัดการเอง
+  useEffect(() => onTarget((t) => {
+    setFlow(t.flow);
+    setHint(t.hint ?? null);
+  }), []);
+
+  // เครื่องหมายทับเปิดสารบัญ — คีย์เดียวที่ไม่ชนกับการพิมพ์ภาษาไทย
+  useEffect(() => {
+    const key = (e: KeyboardEvent) => {
+      const el = e.target as HTMLElement | null;
+      const typing = el && /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName);
+      if (e.key === "/" && !typing && !e.metaKey && !e.ctrlKey) {
+        e.preventDefault();
+        setDir(true);
+      }
+    };
+    addEventListener("keydown", key);
+    return () => removeEventListener("keydown", key);
+  }, []);
   const backend = useBackend();
   const head = HEADINGS[flow];
   const { session } = useHotel();
@@ -87,11 +110,24 @@ function Stage() {
         <header className="stage-head">
           <span className="k">Sentiara · Interactive Prototype</span>
           <h1>{head.title}</h1>
+          <button className="dir-open" onClick={() => setDir(true)}>
+            <Icon name="sparkle" size={14} />
+            สารบัญฟังก์ชันทั้งหมด
+            <kbd>/</kbd>
+          </button>
           <p>{backend.mode === "demo" ? head.note : "เชื่อมต่อระบบโรงแรม · รายการที่ยังไม่รองรับจะแจ้งให้ทราบเมื่อทำรายการ"}</p>
         </header>
 
         <ConnectionBar />
         <Identity />
+
+        {hint && (
+          <div className="jump-hint" role="status">
+            <Icon name="sparkle" size={15} className="ic" />
+            <span>{hint}</span>
+            <button onClick={() => setHint(null)} aria-label="ปิดคำแนะนำ">ปิด</button>
+          </div>
+        )}
 
         {backend.mode === "locked" ? (
           <SignIn />
@@ -146,6 +182,7 @@ function Stage() {
         </>
         )}
       </div>
+      <Directory open={dir} onClose={() => setDir(false)} />
     </div>
   );
 }

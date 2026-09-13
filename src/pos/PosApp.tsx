@@ -1,4 +1,5 @@
 // Reuses the desktop window shell from the front desk (.deskwin / .desknav).
+import { useJump } from "../tour/useJump";
 import "../desk/desk.css";
 import "../owner/owner.css"; // .owner-note footnote style is shared
 import "./pos.css";
@@ -20,6 +21,7 @@ const NAV: { view: PosView; label: string; icon: IconName }[] = [
 
 function Order() {
   const { state, dispatch, total, soldOut } = usePos();
+  useJump((t) => { if (t.flow === "pos" && t.pos) dispatch({ type: "VIEW", view: t.pos }); });
   const hotel = useHotel();
   const target = state.targets.find((t) => t.id === state.targetId);
   const [sending, setSending] = useState(false);

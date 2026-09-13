@@ -1,5 +1,6 @@
 // The desktop window shell (.deskwin / .desknav / .deskmain) is shared with
 // the front desk, so this screen reuses desk.css rather than redefining it.
+import { useJump } from "../tour/useJump";
 import "../desk/desk.css";
 import "./owner.css";
 import { OwnerProvider, type OwnerTab } from "./ownerStore";
@@ -70,6 +71,8 @@ function OwnerRouter() {
 
 function OwnerShell() {
   const { state, dispatch } = useOwner();
+  // สารบัญฟังก์ชันสั่งเปิดแท็บได้โดยตรง
+  useJump((t) => { if (t.flow === "owner" && t.owner) dispatch({ type: "TAB", tab: t.owner }); });
   const { session } = useHotel();
   // ผู้จัดการเห็นครบ · บทบาทอื่นที่หลุดเข้ามาได้เห็นเฉพาะที่มีสิทธิ์
   const nav = NAV.filter((n) => !session || canOpenOwnerTab(session.role, n.tab));

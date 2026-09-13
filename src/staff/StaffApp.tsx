@@ -1,3 +1,4 @@
+import { useJump } from "../tour/useJump";
 import "./staff.css";
 import { HK, SUP, TECH } from "./staffData";
 import { StaffProvider } from "./staffStore";
@@ -13,6 +14,11 @@ import { Icon } from "../components/Icon";
 
 function StaffShell() {
   const { state, dispatch, active, counts } = useStaff();
+  useJump((t) => {
+    if (t.flow !== "staff") return;
+    if (t.role) dispatch({ type: "ROLE", role: t.role });
+    if (t.staff) dispatch({ type: "VIEW", view: t.staff });
+  });
   const [clock, setClock] = useState(false);
   const isHk = state.role === "hk";
   const isTech = state.role === "tech";
