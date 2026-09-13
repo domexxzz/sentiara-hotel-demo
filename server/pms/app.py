@@ -9,11 +9,13 @@ import os
 
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 
 from pms.api import router
 from pms import property_settings as ps
 from pms.session import get_db, setup
+from pms.web import ui_dir
 
 API_PREFIX = "/api/v1"
 
@@ -49,6 +51,13 @@ def create_app(db_url: str | None = None) -> FastAPI:
             "weekend_pct": cfg.weekend_pct,
             "ledger_dry_run": os.environ.get("LEDGER_DRY_RUN", "1") not in ("0", "false"),
         }
+
+    # หน้าจอที่แพ็กมาด้วยกัน (ถ้ามี) — ต้อง mount **ท้ายสุด** เพราะ "/" กินทุก
+    # เส้นทางที่ยังไม่มีใครรับ · ใส่ก่อน router แล้ว /api กับ /docs จะโดนกลืน
+    # html=True ให้ตกลงมาที่ index.html เสมอ หน้าจอเป็น SPA เส้นทางอยู่ฝั่งเบราว์เซอร์
+    web = ui_dir()
+    if web is not None:
+        app.mount("/", StaticFiles(directory=str(web), html=True), name="ui")
 
     return app
 
