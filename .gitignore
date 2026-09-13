@@ -48,3 +48,6 @@ server/doc_ledger/
 
 # ภาพที่สคริปต์ตรวจใน tools/ ถ่ายไว้ดู
 tools/_*.jpg
+
+# เดโมไฟล์เดียวที่ประกอบใหม่ได้เสมอด้วย node tools/bundle-demo.mjs
+docs/demo-standalone.html
