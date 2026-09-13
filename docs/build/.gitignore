@@ -2,8 +2,9 @@
 deck.stage1.html
 sentiara-functions.html
 
-# ภาพที่ check-deck.mjs ถ่ายไว้ดูตอนตรวจ
+# ภาพที่ถ่ายไว้ดูตอนตรวจ
 _shot-*.jpg
+_s-*.jpg
 
 # puppeteer-core ลงเฉพาะเวลาจะตรวจ
 node_modules/

@@ -114,13 +114,16 @@ const y0 = await p.evaluate(() => scrollY)
 await p.keyboard.press('ArrowDown')
 await new Promise(r => setTimeout(r, 900))
 const y1 = await p.evaluate(() => scrollY)
+// ไม่ผูกกับว่าค่าตั้งต้นคือธีมไหน — ถามแค่ว่ากดแล้วเปลี่ยน และกดซ้ำแล้วกลับที่เดิม
+const t0 = await p.evaluate(() => document.documentElement.getAttribute('data-look'))
 await p.keyboard.press('d')
 await new Promise(r => setTimeout(r, 400))
-const look = await p.evaluate(() => document.documentElement.getAttribute('data-look'))
+const t1 = await p.evaluate(() => document.documentElement.getAttribute('data-look'))
 await p.keyboard.press('d')
 await new Promise(r => setTimeout(r, 300))
-const back = await p.evaluate(() => document.documentElement.getAttribute('data-look'))
-console.log(`ปุ่มลัด: ↓ เลื่อน ${y1 > y0 ? 'ได้' : 'ไม่ได้ ✗'} · D สลับธีม ${look === 'day' && back === null ? 'ได้ทั้งสองทาง' : 'เพี้ยน ✗'}`)
+const t2 = await p.evaluate(() => document.documentElement.getAttribute('data-look'))
+const swaps = t0 !== t1 && t0 === t2
+console.log(`ปุ่มลัด: ↓ เลื่อน ${y1 > y0 ? 'ได้' : 'ไม่ได้ ✗'} · D สลับธีม ${swaps ? `ได้ทั้งสองทาง (${t0 || 'night'} ↔ ${t1 || 'night'})` : 'เพี้ยน ✗'}`)
 
 // เนื้อหาต้องไม่ถูกซ่อนค้าง ถ้า IntersectionObserver ไม่ยิง
 await p.evaluate(() => scrollTo(0, document.body.scrollHeight))

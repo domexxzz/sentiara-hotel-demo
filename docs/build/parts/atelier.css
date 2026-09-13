@@ -1,0 +1,410 @@
+/* ══════════════════════════════════════════════════════════════════
+   ATELIER — modern Thai hospitality
+
+   ชั้นนี้ทำให้เนื้อหาเดิมอ่านเหมือนเรื่องเล่าของโรงแรม ไม่ใช่รายการ
+   คุณสมบัติของซอฟต์แวร์ เดโมกดเล่นและชื่อคลาสเดิมจึงยังอยู่ครบ
+   ══════════════════════════════════════════════════════════════════ */
+
+:root[data-look="day"] {
+  --paper: #fffdf8;
+  --cream: #f3eee5;
+  --cream-deep: #e9e1d4;
+  --ink: #173b35;
+  --ink-soft: #425b55;
+  --brown: #173b35;
+  --close-fg: #fffaf0;
+  --close-sub: #d9e2da;
+  --muted: #756f66;
+  --line: #ddd5c8;
+  --hair: #c8bdad;
+  --red: #bf5a3c;
+  --red-bright: #d46d4b;
+  --green: #1f6b59;
+  --amber: #a9782b;
+  --field: #f3eee5;
+  --glow: rgba(191, 90, 60, .16);
+  --glow-soft: rgba(191, 90, 60, .07);
+  --sheen: rgba(23, 59, 53, .035);
+  --lift: 0 28px 70px rgba(35, 43, 37, .13);
+}
+
+:root:not([data-look="day"]) {
+  --paper: #17241f;
+  --cream: #0d1714;
+  --cream-deep: #21342d;
+  --ink: #f4efe5;
+  --ink-soft: #c4cec7;
+  --brown: #e8ddcc;
+  --close-fg: #173b35;
+  --close-sub: #496059;
+  --muted: #9b9f98;
+  --line: #2d4038;
+  --hair: #3b5148;
+  --red: #df7958;
+  --red-bright: #ef8d69;
+  --green: #6ac3a6;
+  --amber: #dfbc72;
+  --field: #0d1714;
+  --glow: rgba(223, 121, 88, .20);
+  --glow-soft: rgba(223, 121, 88, .07);
+  --sheen: rgba(244, 239, 229, .04);
+  --lift: 0 30px 80px rgba(0, 0, 0, .42);
+}
+
+:root {
+  --max: 1240px;
+  --display: "IBM Plex Sans Thai", Archivo, Tahoma, sans-serif;
+  --body: "IBM Plex Sans Thai", Tahoma, sans-serif;
+  --hero-image: url("{{HERO_IMAGE}}");
+  --close-image: url("{{CLOSE_IMAGE}}");
+}
+
+body {
+  font-size: 17px;
+  line-height: 1.72;
+  letter-spacing: -.006em;
+}
+
+body::before {
+  position: fixed;
+  background:
+    radial-gradient(70vw 44vh at 12% 4%, color-mix(in srgb, var(--green) 8%, transparent), transparent 70%),
+    linear-gradient(180deg, color-mix(in srgb, var(--paper) 18%, transparent), transparent 38%);
+}
+
+body::after { display: none; }
+
+.wrap { padding-inline: clamp(22px, 4.8vw, 74px); }
+
+/* แถบนำทางเบาและสงบ พอให้ผู้นำเสนอรู้ตำแหน่งโดยไม่แย่งสายตา */
+.rail {
+  background: color-mix(in srgb, var(--cream) 88%, transparent);
+  box-shadow: none;
+}
+.rail-in { min-height: 50px; }
+.rail .mark { letter-spacing: .06em; }
+.rail .mark::before { animation: none; box-shadow: none; width: 6px; height: 6px; }
+.rail nav a { font-size: .66rem; border: 0; opacity: .72; }
+.rail nav a[aria-current="true"] { border: 0; opacity: 1; text-shadow: none; }
+.rail .meter { height: 1px; box-shadow: none; }
+.rail .look { border-radius: 999px; padding: 5px 12px; }
+
+/* ภาพปกตั้งใจให้ล้นพ้นขอบขวาของจอ (ดู .hero::before) การล้นนั้นคือดีไซน์
+   แต่ของที่ล้นจะ "ดัน" ความกว้างเอกสารด้วย — บนจอ 390px หน้ากว้างกลายเป็น
+   513px แล้วปัดไปข้างได้ทั้งหน้า
+
+   ใช้ clip ไม่ใช่ hidden เพราะ hidden ทำให้ body กลายเป็น scroll container
+   แล้ว position: sticky ของแถบบนจะพัง (เคยเจอมาแล้ว ครั้งนั้นย้ายไปไว้ที่ html)
+   ส่วน clip ตัดอย่างเดียว ไม่สร้าง scroll container และปล่อยแกนตั้งเป็น
+   visible ไว้ตามเดิม — แถบบนจึงยังลอยอยู่ได้                                */
+body { overflow-x: clip; }
+
+/* ปกแบบ editorial ใช้ภาพห้องจริงเป็นบรรยากาศ ไม่วางภาพเป็นการ์ด */
+.hero {
+  min-height: 860px;
+  padding-top: clamp(76px, 11vw, 138px);
+  padding-bottom: clamp(72px, 9vw, 112px);
+  isolation: isolate;
+}
+.hero::before {
+  content: "";
+  position: absolute;
+  z-index: -2;
+  top: 34px;
+  right: min(-7vw, -44px);
+  width: min(72vw, 900px);
+  height: 610px;
+  background: var(--hero-image) center / cover no-repeat;
+  border-radius: 2px;
+  box-shadow: var(--lift);
+  mask-image: linear-gradient(90deg, transparent 0%, rgba(0,0,0,.18) 18%, #000 54%);
+}
+.hero::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: 34px;
+  right: min(-7vw, -44px);
+  width: min(72vw, 900px);
+  height: 610px;
+  background: linear-gradient(90deg, var(--cream) 0%, transparent 56%);
+  pointer-events: none;
+}
+.hero > :not(.journey) { position: relative; z-index: 1; max-width: 650px; }
+.hero > .u {
+  color: var(--green);
+  font-family: var(--body);
+  font-size: .78rem;
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: none;
+}
+.hero > .u::after { width: 54px; background: var(--green); opacity: .45; }
+.hero h1 {
+  max-width: 9.2ch;
+  margin-top: 24px;
+  font-size: clamp(3.3rem, 7.2vw, 6.65rem);
+  line-height: .94;
+  letter-spacing: -.055em;
+  text-wrap: pretty;
+}
+.hero h1 em {
+  color: var(--red);
+  background: none;
+  -webkit-text-fill-color: currentColor;
+}
+.hero h1 em::after { display: none; }
+.hero .sub {
+  max-width: 47ch;
+  margin-top: 28px;
+  font-size: clamp(1.08rem, 1.7vw, 1.28rem);
+  line-height: 1.65;
+}
+
+.figures {
+  max-width: 650px;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0;
+  margin-top: 40px;
+  border: 0;
+  border-top: 1px solid var(--hair);
+  border-bottom: 1px solid var(--hair);
+  background: transparent;
+}
+.figures::before { display: none; }
+.figures div {
+  min-width: 0;
+  padding: 18px 14px 16px 0;
+  background: transparent;
+}
+.figures div:hover { background: transparent; }
+.figures b { font-size: clamp(1.55rem, 2.5vw, 2.15rem); color: var(--ink); text-shadow: none; }
+.figures span {
+  font-family: var(--body);
+  font-size: .68rem;
+  line-height: 1.35;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.cta { gap: 12px; margin-top: 30px; }
+.btn {
+  padding: 12px 22px;
+  border-radius: 999px;
+  font-family: var(--body);
+  font-weight: 600;
+}
+.btn::after { display: none; }
+.btn.solid { box-shadow: none; }
+
+/* เส้นทางแขกคือบทนำของเรื่อง วางเหมือนหน้าบรรณาธิการ */
+.journey {
+  z-index: 2;
+  margin-top: 104px;
+  padding: clamp(28px, 4vw, 48px);
+  border: 0;
+  border-left: 4px solid var(--red);
+  background: color-mix(in srgb, var(--paper) 94%, transparent);
+  box-shadow: 0 20px 60px rgba(29, 46, 39, .08);
+  backdrop-filter: blur(12px);
+}
+.journey::before { display: none; }
+.journey > h2 { font-size: clamp(1.45rem, 2.4vw, 2.15rem); max-width: 24ch; }
+.journey > p { max-width: 70ch; margin-top: 8px; }
+.steps { margin-top: 30px; gap: 16px; }
+.steps > div { padding-right: 4px; }
+.steps > div::before { width: 34px; height: 3px; margin-bottom: 14px; box-shadow: none !important; }
+.steps .who { font-family: var(--body); font-size: .67rem; letter-spacing: 0; text-transform: none; }
+.steps .what { font-size: .95rem; }
+.steps .note { font-size: .78rem; }
+.jkey { font-family: var(--body); letter-spacing: 0; }
+
+/* แต่ละบทมีพื้นที่หายใจและหัวเรื่องที่อ่านจากไกลได้ */
+section.grp {
+  padding-block: clamp(78px, 10vw, 132px);
+  border-top: 1px solid var(--line);
+  overflow: visible;
+}
+section.grp::before {
+  top: 68px;
+  right: 0;
+  font-size: clamp(5rem, 11vw, 9rem);
+  color: color-mix(in srgb, var(--ink) 4%, transparent);
+  -webkit-text-stroke: 0;
+  opacity: 1;
+}
+section.grp::after { display: none; }
+section.grp > .head {
+  grid-template-columns: 64px minmax(0, 1fr) auto;
+  gap: 6px 24px;
+  margin-bottom: clamp(34px, 5vw, 62px);
+  max-width: 1040px;
+}
+.head .n {
+  font-size: 1.05rem;
+  padding-top: .55em;
+  color: var(--red);
+  text-shadow: none;
+}
+.head .n::after { content: ""; display: block; width: 34px; height: 1px; margin-top: 12px; background: var(--red); }
+.head .u { display: none; }
+.head h2 {
+  grid-column: 2;
+  max-width: 24ch;
+  font-size: clamp(2rem, 4.6vw, 4rem);
+  line-height: 1.05;
+  letter-spacing: -.045em;
+}
+.head .lead {
+  grid-column: 2;
+  max-width: 58ch;
+  margin-top: 12px;
+  font-size: 1.05rem;
+  line-height: 1.7;
+}
+.head .tally {
+  border: 0;
+  border-bottom: 1px solid var(--hair);
+  padding: 4px 0 7px;
+  font-family: var(--body);
+  letter-spacing: 0;
+}
+
+/* ภาพระบบเป็นหลักฐาน จึงให้ใหญ่และไม่ใส่กรอบจำลองเครื่อง */
+figure.shot { margin-bottom: clamp(32px, 5vw, 60px); }
+figure.shot img,
+.withphone figure.shot img {
+  border: 0;
+  border-radius: 16px;
+  box-shadow: var(--lift);
+}
+figure.shot::before { display: none; }
+figure.shot figcaption { margin-top: 16px; max-width: 82ch; align-items: flex-start; }
+figure.shot figcaption b {
+  color: var(--red);
+  font-family: var(--body);
+  font-size: .72rem;
+  letter-spacing: .02em;
+}
+.shots2 { gap: clamp(20px, 3vw, 38px); margin-bottom: clamp(32px, 5vw, 60px); }
+.withphone {
+  grid-template-columns: minmax(250px, 360px) minmax(0, 1fr);
+  gap: clamp(38px, 7vw, 96px);
+  align-items: center;
+  margin-bottom: clamp(44px, 7vw, 84px);
+}
+.withphone figure.shot img { max-width: 330px; margin-inline: auto; }
+.withphone .say h3 { font-size: clamp(1.5rem, 2.8vw, 2.35rem); line-height: 1.18; max-width: 20ch; }
+.withphone .say p { font-size: 1.04rem; line-height: 1.8; }
+
+/* รายการฟังก์ชันทำหน้าที่เป็นรายละเอียดอ้างอิง ไม่ใช่กำแพงการ์ด */
+ul.fn {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: clamp(34px, 7vw, 92px);
+  row-gap: 0;
+  margin-top: 28px;
+  border-top: 1px solid var(--line);
+}
+ul.fn > li {
+  min-height: 0;
+  padding: 22px 0 24px;
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+  box-shadow: none;
+}
+ul.fn > li::before { display: none; }
+ul.fn > li:hover { transform: none; background: transparent; box-shadow: none; }
+ul.fn .en { display: none; }
+ul.fn h3 { font-size: 1.08rem; color: var(--ink); }
+ul.fn p { margin-top: 6px; font-size: .93rem; line-height: 1.66; }
+ul.fn .law { border-top: 0; padding-top: 0; }
+
+/* ตัวอย่างกดเล่นต้องยังรู้สึกว่าโต้ตอบได้ แต่ลดความเป็นหน้าควบคุม */
+.play {
+  margin-block: 34px 56px;
+  padding: clamp(24px, 3.6vw, 44px);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: 0 24px 64px rgba(29, 46, 39, .10);
+}
+.play::before { display: none; }
+.play > header .tag { border-radius: 999px; box-shadow: none; }
+.play button { border-radius: 10px; }
+.play button.go { box-shadow: none; }
+.pnl > div, .wallet > div, .chan > div, .gates > div, .play .vs .side, .splitbox > div {
+  box-shadow: 0 0 0 1px var(--line);
+}
+
+/* ปิดเรื่องด้วยภาพบรรยากาศและคำชวนที่ชัดเจน */
+.close {
+  position: relative;
+  isolation: isolate;
+  min-height: 470px;
+  margin-top: 36px;
+  margin-bottom: 64px;
+  padding: clamp(54px, 8vw, 92px);
+  border-radius: 18px;
+  overflow: hidden;
+  background: var(--brown);
+}
+.close::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background: var(--close-image) center / cover no-repeat;
+}
+.close::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(90deg, rgba(13, 38, 32, .96) 0%, rgba(13, 38, 32, .76) 52%, rgba(13, 38, 32, .14) 100%);
+}
+.close h2 { max-width: 13ch; font-size: clamp(2.4rem, 5.3vw, 4.8rem); letter-spacing: -.045em; }
+.close p { max-width: 46ch; font-size: 1.08rem; }
+.close .btn { border-color: rgba(255,255,255,.8); color: #fff; }
+.close .btn.solid { border-color: var(--red); }
+.end { padding-bottom: 48px; text-align: center; color: var(--muted); }
+
+.rv { transform: translateY(12px); }
+.rv.in { transition-duration: .7s; }
+
+@media (max-width: 900px) {
+  .hero { min-height: 0; padding-top: 62px; }
+  .hero::before, .hero::after { height: 510px; width: 78vw; opacity: .52; }
+  .hero h1 { font-size: clamp(3.1rem, 10vw, 5.5rem); }
+  .figures { grid-template-columns: repeat(3, 1fr); }
+  .journey { margin-top: 80px; }
+  .steps { grid-template-columns: repeat(4, 1fr); }
+  section.grp::before { opacity: .7; }
+}
+
+@media (max-width: 640px) {
+  .hero { padding-top: 46px; }
+  .hero::before, .hero::after {
+    top: 18px;
+    right: -42%;
+    width: 118%;
+    height: 460px;
+    opacity: .34;
+  }
+  .hero h1 { max-width: 8.7ch; }
+  .hero .sub { max-width: 31ch; }
+  .figures { grid-template-columns: repeat(2, 1fr); }
+  .journey { margin-top: 58px; border-left-width: 3px; }
+  .steps { grid-template-columns: repeat(2, 1fr); gap: 24px 12px; }
+  section.grp { padding-block: 72px; }
+  section.grp > .head { grid-template-columns: 42px minmax(0, 1fr); gap: 4px 12px; }
+  .head .tally { grid-column: 2; }
+  .head h2 { font-size: clamp(2rem, 10vw, 3.1rem); }
+  .withphone { grid-template-columns: 1fr; gap: 32px; }
+  ul.fn { grid-template-columns: 1fr; }
+  .close { min-height: 520px; padding: 44px 28px; }
+  .close::after { background: linear-gradient(180deg, rgba(13,38,32,.96), rgba(13,38,32,.72)); }
+}
+
+@media print {
+  .hero::before, .close::before { filter: grayscale(1); }
+  .hero::after { background: linear-gradient(90deg, #fff 0%, transparent 60%); }
+}

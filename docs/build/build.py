@@ -36,7 +36,7 @@ sys.stdout.reconfigure(encoding="utf-8")
 HERE = Path(__file__).resolve().parent
 OUT = HERE.parent / "presentation.html"
 BUILT = HERE / "sentiara-functions.html"
-PASSES = ("assemble.py", "assemble2.py", "assemble3.py", "assemble4.py")
+PASSES = ("assemble.py", "assemble2.py", "assemble3.py", "assemble4.py", "assemble5.py")
 
 
 def main() -> int:

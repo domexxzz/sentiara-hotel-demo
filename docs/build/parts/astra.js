@@ -120,8 +120,10 @@
     try { localStorage.setItem('astra-look', mode); } catch { /* โหมดส่วนตัวก็ใช้ได้ */ }
   }
   try {
-    if (localStorage.getItem('astra-look') === 'day') look('day');
-  } catch { /* อ่านไม่ได้ก็ใช้ค่าตั้งต้น */ }
+    // เวลานำเสนอต่อหน้าลูกค้าให้เริ่มด้วยธีมสว่างที่ดูเป็นงานบริการ
+    // แต่ยังจำธีมกลางคืนไว้ ถ้าคนนำเสนอเลือกเองในเครื่องนี้
+    look(localStorage.getItem('astra-look') === 'night' ? 'night' : 'day');
+  } catch { look('day'); }
   if (btn) btn.addEventListener('click', function () {
     look(root.getAttribute('data-look') === 'day' ? 'night' : 'day');
   });

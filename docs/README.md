@@ -26,6 +26,7 @@ build/
 │  ├─ wifi.css  wifi.js         ตัวอย่างหัวข้อ 14 (คำถามจากเจ้าหน้าที่ตาม ม.26)
 │  ├─ astra.css                 **ชั้นดีไซน์ทั้งหน้า** — token สองธีม โครงหน้า แผงทุกชนิด
 │  ├─ astra.js                  แถบวัด · ตัวนับหัวข้อ · ปุ่มลัด · เผยตัวเมื่อเลื่อนถึง · สลับธีม
+│  ├─ atelier.css               ชั้น modern Thai hospitality — ภาพปก โทนอุ่น และจังหวะ editorial
 │  ├─ sec-11-12.html            หัวข้อ 11–12
 │  ├─ sec-finance.html          หัวข้อบัญชี (แทรกเป็น 05)
 │  ├─ sec-wifi.html             หัวข้อ 14
@@ -35,6 +36,7 @@ build/
 ├─ assemble2.py        รอบ 2 — ยกบัญชีขึ้นเป็นหัวข้อ 05 แล้วเลื่อนที่เหลือ
 ├─ assemble3.py        รอบ 3 — เพิ่มหัวข้อ 14 Wi-Fi + ซ่อมแถบนำทาง
 ├─ assemble4.py        รอบ 4 — ทับชั้นดีไซน์ ASTRA
+├─ assemble5.py        รอบ 5 — ปรับภาษาและภาพให้เป็นงานขายแบบ hospitality
 ├─ build.py            ตัวสั่งรันทั้งสี่รอบแล้วก๊อปผลไปเป็น ../presentation.html
 ├─ md2html.py          แปลง ../../HANDOFF.md → ../handoff.html
 └─ check-deck.mjs      ตรวจหน้าที่ประกอบเสร็จด้วย Chrome จริง
