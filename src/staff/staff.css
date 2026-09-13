@@ -439,3 +439,7 @@
   border-color: var(--accent);
   color: #fff;
 }
+
+/* ปุ่มสลับบทบาทที่เลือกอยู่ · สีประจำมุมมองแทนสีแบรนด์
+   เขียนในไฟล์นี้เพราะมันโหลดหลัง App.css แล้วทับกฎที่นั่น */
+.st-roles button.on { background: var(--hue, var(--accent)); }

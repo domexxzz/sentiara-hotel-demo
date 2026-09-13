@@ -16,15 +16,17 @@ const path = require('node:path')
 const ROOT = path.join(__dirname, '..')
 const src = fs.readFileSync(path.join(ROOT, 'src', 'lib', 'flowTheme.ts'), 'utf8')
 const appcss = fs.readFileSync(path.join(ROOT, 'src', 'App.css'), 'utf8')
+const deskcss = fs.readFileSync(path.join(ROOT, 'src', 'desk', 'desk.css'), 'utf8')
+const staffcss = fs.readFileSync(path.join(ROOT, 'src', 'staff', 'staff.css'), 'utf8')
 
 /** ดึงตารางสีออกจากไฟล์ TypeScript โดยไม่ต้องคอมไพล์ */
 function themes() {
   const body = src.slice(src.indexOf('FLOW_THEME'), src.indexOf('FLOW_TITLE'))
   const out = {}
   for (const m of body.matchAll(
-    /(\w+):\s*\{\s*color:\s*"(#[0-9a-fA-F]{6})",\s*kicker:\s*"([^"]+)",\s*short:\s*"([^"]+)"/g,
+    /(\w+):\s*\{\s*color:\s*"(#[0-9a-fA-F]{6})",\s*onDark:\s*"(#[0-9a-fA-F]{6})",\s*kicker:\s*"([^"]+)",\s*short:\s*"([^"]+)"/g,
   )) {
-    out[m[1]] = { color: m[2], kicker: m[3], short: m[4] }
+    out[m[1]] = { color: m[2], onDark: m[3], kicker: m[4], short: m[5] }
   }
   return out
 }
@@ -58,6 +60,33 @@ test('ทุกสีอ่านออกเมื่อวางตัวอ�
   }
 })
 
+test('คู่สว่างอ่านออกบนพื้นแถบเมนูที่เกือบดำ (WCAG AA 4.5:1)', () => {
+  // พื้นแถบเมนูคือ var(--text) = #201e1d · สีเข้มอย่าง #1c5a83 วางบนนั้น
+  // ได้ราว 1.6:1 ซึ่งอ่านไม่ออกเลย จึงต้องมีคู่สว่างแยกไว้
+  for (const [key, v] of Object.entries(T)) {
+    const r = ratio(v.onDark, '#201e1d')
+    assert.ok(r >= 4.5,
+      `${key} onDark (${v.onDark}) ได้แค่ ${r.toFixed(2)}:1 บนพื้นแถบเมนู — อ่านไม่ออก`)
+  }
+})
+
+test('คู่สว่างยังเป็นสีเดียวกับสีหลัก ไม่ใช่คนละสี', () => {
+  // ถ้าคู่สว่างเพี้ยนเป็นคนละเฉด คนจะจำไม่ได้ว่าน้ำเงินในแถบเมนูคือมุมมองเดียวกับ
+  // น้ำเงินบนปุ่มเลือก · เทียบด้วยมุมสีในวง HSL ต้องห่างกันไม่เกิน 25 องศา
+  const hue = (hex) => {
+    const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255)
+    const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn
+    if (d === 0) return 0
+    const h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4
+    return (h * 60 + 360) % 360
+  }
+  for (const [key, v] of Object.entries(T)) {
+    const diff = Math.abs(hue(v.color) - hue(v.onDark))
+    const gap = Math.min(diff, 360 - diff)
+    assert.ok(gap <= 25, `${key}: สีหลักกับคู่สว่างห่างกัน ${gap.toFixed(0)} องศา — คนละสีแล้ว`)
+  }
+})
+
 test('สีแต่ละมุมมองต่างกันพอให้แยกออก', () => {
   const list = Object.entries(T)
   for (let i = 0; i < list.length; i++) {
@@ -82,12 +111,15 @@ test('ชื่อสั้นสำหรับแถบล่างไม่�
 test('สีประจำมุมมองไม่ถูกเอาไปใช้กับเงินหรือสถานะ', () => {
   // ตัวแปร --hue ใช้ได้เฉพาะกับชิ้นที่บอกตำแหน่ง — หัวจอ แถบล่าง แท็บย่อย
   const allowed = [
-    '.mhead', '.mhead-txt .kk', '.flowpick button.on', '.flowpick button.on::before',
-    '.navitem.on', '.st-roles button.on',
+    '.mhead', '.mhead-txt .kk', '.stage-head .k',
+    '.flowpick button.on', '.flowpick button.on::before', '.flowpick button.on .sub',
+    '.navitem.on', '.st-roles button.on', '.deskchrome', '.desknav .logo .k',
   ]
   // จับทีละกฎที่ "ไม่มีวงเล็บปีกกาซ้อนข้างใน" — ไม่งั้นบรรทัด @media จะถูกนับ
   // เป็นตัวเลือกไปด้วย เพราะบล็อกของมันกินกฎข้างในทั้งหมด
-  const uses = [...appcss.matchAll(/([^{}\n]+)\{([^{}]*)\}/g)]
+  // ตรวจ desk.css ด้วย — สองจุดของหน้าต่างจำลองอยู่ในไฟล์นั้น
+  // ถ้าตรวจแค่ App.css กฎห้ามใช้สีกับตัวเลขจะบังคับไม่ถึงครึ่งโปรเจกต์
+  const uses = [...(appcss + '\n' + deskcss + '\n' + staffcss).matchAll(/([^{}\n]+)\{([^{}]*)\}/g)]
     .filter((m) => m[2].includes('var(--hue'))
     .map((m) => m[1].trim())
     .filter((sel) => !sel.startsWith('@'))
@@ -107,4 +139,28 @@ test('ทุกอย่างของเปลือกมือถืออ�
     'หัวจอมือถือต้องซ่อนเป็นค่าเริ่มต้น ไม่งั้นจอคอมจะมีหัวสองชั้น')
   assert.ok(/@media \(max-width: 700px\)[\s\S]*?\.mhead \{\s*\n\s*display: flex;/.test(appcss),
     'หัวจอมือถือต้องเปิดที่ 700px')
+})
+
+test('สีประจำมุมมองใช้เหมือนกันทุกขนาดจอ ไม่ได้ซ่อนไว้ในกฎมือถือ', () => {
+  // แยกกฎมือถือกับจอคอมแล้ววันหนึ่งสองชุดจะเพี้ยนกันเอง
+  // คนที่ย่อหน้าต่างเบราว์เซอร์จะเห็นสีกระโดดตอนข้ามเบรกพอยต์
+  const mustBeGlobal = [
+    ['.stage-head .k', appcss], ['.flowpick button.on', appcss],
+    ['.navitem.on', deskcss], ['.st-roles button.on', staffcss],
+    ['.deskchrome', deskcss],
+  ]
+  for (const [sel, css] of mustBeGlobal) {
+    // ต้องมีกฎที่ **ใช้สีประจำมุมมองจริง** และอยู่นอก @media
+    // เช็กแค่ว่า "เจอชื่อตัวเลือก" ไม่พอ เพราะกฎเดิมที่ใช้สีแบรนด์ก็ชื่อเดียวกัน
+    // (เคยผ่านเทสทั้งที่แถบเมนูยังแดงอยู่ เพราะไปเจอกฎเก่าก่อน)
+    let found = false
+    for (const m of css.matchAll(/([^{}\n]+)\{([^{}]*)\}/g)) {
+      if (m[1].trim() !== sel || !m[2].includes('var(--hue')) continue
+      const before = css.slice(0, m.index)
+      const depth = (before.match(/\{/g) || []).length - (before.match(/\}/g) || []).length
+      assert.equal(depth, 0, `${sel} ใช้สีมุมมองแต่อยู่ใน @media — ต้องใช้ได้ทุกขนาดจอ`)
+      found = true
+    }
+    assert.ok(found, `ไม่เจอกฎ ${sel} ที่ใช้ var(--hue) — สียังไม่ได้ต่อเข้าจุดนี้`)
+  }
 })

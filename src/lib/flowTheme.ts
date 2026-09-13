@@ -20,12 +20,19 @@ import type { Flow } from "../tour/target";
  * เพราะถ้าปล่อยให้ราคาเปลี่ยนสีตามมุมมองด้วย คนอ่านจะเริ่มเดาว่าสีมีความหมาย
  * ทางตัวเลข (ม่วง = ดี? แดง = ขาดทุน?) ซึ่งไม่จริง แล้วจะตีความผิดตอนดูงบ
  *
- * ทุกสีผ่านอัตราความต่างกับตัวอักษรขาวที่ 4.5:1 ขึ้นไป (WCAG AA)
+ * ทุกสีผ่านอัตราความต่างกับตัวอักษรขาวที่ 4.5:1 ขึ้นไป และคู่สว่าง (`onDark`)
+ * ผ่าน 4.5:1 กับพื้นเกือบดำของแถบเมนู (WCAG AA)
  * เปลี่ยนสีเมื่อไหร่ต้องเช็กใหม่ — `tests/flow-theme.test.cjs` คุมไว้แล้ว
  */
 export interface FlowTheme {
   /** สีประจำมุมมอง · ใช้กับขีดบนหัวจอ ปุ่มที่เลือก และแท็บย่อยที่เปิดอยู่ */
   color: string;
+  /** รุ่นสว่างของสีเดียวกัน สำหรับตัวอักษรบนพื้นเข้ม
+   *
+   * จำเป็นเพราะแถบเมนูในหน้าต่างจำลองเป็นสีเกือบดำ · สีเข้มอย่าง #1c5a83
+   * วางบนพื้นนั้นแล้วอ่านไม่ออกเลย · ต้องมีคู่สว่างไว้ ไม่ใช่ลดความทึบของสีเข้ม
+   * เพราะการลดความทึบทำให้สีกลายเป็นเทาอมสี ไม่ใช่สีที่จำได้ว่าเป็นมุมมองไหน */
+  onDark: string;
   /** ชื่ออังกฤษตัวเล็กเหนือหัวข้อ — ช่วยให้หัวจอมีจังหวะ ไม่ใช่เพื่อแปล */
   kicker: string;
   /** ชื่อสั้นสำหรับแถบล่างบนมือถือ · ยาวกว่านี้แล้วตัดคำ */
@@ -33,11 +40,11 @@ export interface FlowTheme {
 }
 
 export const FLOW_THEME: Record<Flow, FlowTheme> = {
-  guest: { color: "#b9451f", kicker: "Guest", short: "แขก" },
-  desk: { color: "#1c5a83", kicker: "Front desk", short: "เคาน์เตอร์" },
-  staff: { color: "#2c7149", kicker: "Housekeeping", short: "แม่บ้าน" },
-  owner: { color: "#6f3a95", kicker: "Owner", short: "เจ้าของ" },
-  pos: { color: "#9c5a19", kicker: "Restaurant", short: "ร้านอาหาร" },
+  guest: { color: "#b9451f", onDark: "#f0906e", kicker: "Guest", short: "แขก" },
+  desk: { color: "#1c5a83", onDark: "#7bb8de", kicker: "Front desk", short: "เคาน์เตอร์" },
+  staff: { color: "#2c7149", onDark: "#79cfa0", kicker: "Housekeeping", short: "แม่บ้าน" },
+  owner: { color: "#6f3a95", onDark: "#c49ae0", kicker: "Owner", short: "เจ้าของ" },
+  pos: { color: "#9c5a19", onDark: "#e5aa62", kicker: "Restaurant", short: "ร้านอาหาร" },
 };
 
 /** ชื่อไทยเต็มของมุมมอง — ใช้ในหัวจอมือถือ */

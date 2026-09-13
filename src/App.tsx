@@ -114,7 +114,10 @@ function Stage() {
       className={`stage ${flow !== "guest" && flow !== "staff" ? "wide" : ""}`}
       /* สีประจำมุมมองส่งลงไปเป็นตัวแปร CSS ตัวเดียว แล้วให้ทุกชิ้นหยิบไปใช้เอง
          ดีกว่าแปะคลาสรายมุมมอง เพราะเพิ่มมุมมองใหม่แล้วไม่ต้องไล่แก้ CSS */
-      style={{ "--hue": FLOW_THEME[flow].color } as React.CSSProperties}
+      style={{
+        "--hue": FLOW_THEME[flow].color,
+        "--hue-on-dark": FLOW_THEME[flow].onDark,
+      } as React.CSSProperties}
     >
       <div className="stage-inner">
         <header className="stage-head">
