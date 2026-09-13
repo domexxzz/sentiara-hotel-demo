@@ -2,6 +2,8 @@
 .deskwin {
   width: min(1180px, 100%);
   height: min(760px, calc(100vh - 150px));
+  /* dvh หดตามแถบเบราว์เซอร์มือถือจริง vh ไม่หด (ดูบล็อกท้าย App.css ข้อ 1) */
+  height: min(760px, calc(100dvh - 150px));
   background: #0e0d0c;
   border-radius: 8px;
   padding: 0 0 6px;
@@ -650,7 +652,10 @@
   }
   .desknav {
     flex-direction: row;
-    overflow-x: auto;
+    /* ตกบรรทัดแทนการซ่อนในแถบเลื่อน — เหตุผลเดียวกับ .flowpick
+       แท็บที่หลุดขอบขวาคือแท็บที่ไม่มีใครกด เพราะไม่มีใครรู้ว่ามันมี
+       ตอนนำเสนอ ลูกค้าต้องเห็นว่าจอเจ้าของมีกี่เรื่องตั้งแต่แวบแรก */
+    flex-wrap: wrap;
     padding: 8px;
     gap: 4px;
     align-items: center;
@@ -666,6 +671,7 @@
   }
   .deskwin {
     height: calc(100vh - 120px);
+    height: calc(100dvh - 120px);
   }
   .stats {
     grid-template-columns: repeat(2, 1fr);

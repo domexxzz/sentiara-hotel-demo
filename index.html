@@ -2,14 +2,53 @@
 <html lang="th">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- viewport-fit=cover ให้เนื้อหากินถึงขอบจอมือถือที่มีติ่ง
+         ตัวจอเองกัน safe-area ไว้ด้วย env(safe-area-inset-*) ใน App.css -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#efe9e3" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
+    <title>Sentiara · ระบบจัดการโรงแรม (เดโมกดเล่นได้)</title>
+    <meta
+      name="description"
+      content="เดโมระบบจัดการโรงแรมและคอนโดรายวัน กดเล่นได้ทุกปุ่ม ไม่ต้องสมัคร — แขก เคาน์เตอร์ แม่บ้าน เจ้าของ ร้านอาหาร ใช้ข้อมูลชุดเดียวกัน"
+    />
+
+    <!-- ── การ์ดตัวอย่างตอนส่งลิงก์ใน LINE / Facebook / X ──────────────
+         ที่อยู่รูปต้องเป็น URL เต็ม · ตัวอ่านลิงก์ของ LINE ไม่รันจาวาสคริปต์
+         และไม่ยอมเติมโดเมนให้กับ path ที่ขึ้นต้นด้วย "/" อย่างที่เบราว์เซอร์ทำ
+         ถ้าเปลี่ยนโดเมนที่ใช้เผยแพร่ ต้องแก้สี่บรรทัดข้างล่างนี้ด้วย -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Sentiara" />
+    <meta property="og:locale" content="th_TH" />
+    <meta property="og:title" content="Sentiara · โรงแรมทั้งหลังทำงานจากข้อมูลชุดเดียว" />
+    <meta
+      property="og:description"
+      content="เดโมกดเล่นได้ทุกปุ่ม ไม่ต้องสมัคร — 83 ฟังก์ชัน ครบห้ามุมมองในลิงก์เดียว"
+    />
+    <meta property="og:url" content="https://sentiara-guest-demo.vercel.app/" />
+    <meta property="og:image" content="https://sentiara-guest-demo.vercel.app/og-cover.jpg" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Sentiara — ระบบจัดการโรงแรม 14 กลุ่มงาน 83 ฟังก์ชัน" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Sentiara · โรงแรมทั้งหลังทำงานจากข้อมูลชุดเดียว" />
+    <meta
+      name="twitter:description"
+      content="เดโมกดเล่นได้ทุกปุ่ม ไม่ต้องสมัคร — 83 ฟังก์ชัน ครบห้ามุมมองในลิงก์เดียว"
+    />
+    <meta name="twitter:image" content="https://sentiara-guest-demo.vercel.app/og-cover.jpg" />
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;800&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <title>Sentiara · Guest Prototype</title>
   </head>
   <body>
     <div id="root"></div>

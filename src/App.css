@@ -1673,3 +1673,140 @@
   .dir { height: 92vh; width: calc(100vw - 16px); }
   .dir-body ul { grid-template-columns: 1fr; }
 }
+
+/* ══ หน้าต้อนรับ + ปุ่มเริ่มใหม่ ══════════════════════════════════ */
+.stage-acts {
+  display: flex; flex-wrap: wrap; align-items: center;
+  justify-content: center; gap: 8px; margin: 6px 0 2px;
+}
+.stage-acts .dir-open { margin: 0; }
+.resetbtn {
+  font: inherit; font-size: 12px; font-weight: 600;
+  padding: 6px 12px; border-radius: 999px; cursor: pointer;
+  color: var(--muted); background: transparent;
+  border: 1px solid var(--divider);
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.resetbtn:hover { color: var(--ink); border-color: var(--line-strong); }
+.resetbtn.armed {
+  color: #fff; background: var(--accent-700); border-color: var(--accent-700);
+}
+
+.wel-wrap { position: fixed; inset: 0; z-index: 70; display: grid; place-items: center; padding: 16px; }
+.wel-scrim {
+  position: absolute; inset: 0; border: 0; padding: 0; cursor: pointer;
+  background: rgba(24, 18, 16, 0.5); backdrop-filter: blur(3px);
+}
+.wel {
+  position: relative; width: min(560px, 100%);
+  max-height: calc(100vh - 32px); overflow-y: auto;
+  padding: clamp(22px, 5vw, 34px);
+  background: #fff; border: 1px solid var(--line-strong);
+  box-shadow: 0 30px 70px rgba(24, 18, 16, 0.3);
+}
+.wel .k {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.13em;
+  text-transform: uppercase; color: var(--accent-700);
+}
+.wel h2 {
+  margin: 7px 0 6px; font-size: clamp(20px, 4.4vw, 26px);
+  font-weight: 800; line-height: 1.25; letter-spacing: -0.01em;
+}
+.wel .lead { margin: 0; font-size: 13.5px; line-height: 1.7; color: var(--muted); }
+.wel-list { list-style: none; margin: 18px 0 0; padding: 0; display: grid; gap: 13px; }
+.wel-list li { display: grid; grid-template-columns: 24px 1fr; gap: 11px; align-items: start; }
+.wel-list .ic { color: var(--accent-700); margin-top: 2px; }
+.wel-list b { display: block; font-size: 14px; font-weight: 700; }
+.wel-list span { display: block; font-size: 12.5px; line-height: 1.65; color: var(--muted); margin-top: 2px; }
+.wel-list kbd {
+  font: inherit; font-size: 11px; padding: 1px 5px;
+  border: 1px solid var(--line-strong); border-radius: 4px; color: var(--ink);
+}
+.wel-go { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 22px; }
+.wel-go button {
+  flex: 1 1 190px; font: inherit; font-size: 13.5px; font-weight: 600;
+  padding: 12px 18px; cursor: pointer;
+  background: #fff; border: 1px solid var(--line-strong);
+}
+.wel-go button.go { color: #fff; background: var(--accent-700); border-color: var(--accent-700); }
+.wel-go button:hover { border-color: var(--accent-700); }
+
+/* ══ ทุกขนาดจอ · ของจริงบนมือถือ ═══════════════════════════════════
+ *
+ * ทุกกฎในบล็อกนี้แก้อาการที่เห็นเฉพาะบนเครื่องจริงหรือจอที่ไม่ใช่ 1440px
+ * ไม่ใช่การตกแต่ง · เขียนไว้ท้ายไฟล์เพราะต้องทับค่าเดิมที่อยู่ข้างบน
+ */
+
+/* 1 · ความสูงจอมือถือ — 100vh คือจอ "ตอนแถบที่อยู่ยังไม่หด" เสมอ
+ *     บน iOS Safari กับ Chrome Android แถบล่างจึงทับเนื้อหาส่วนท้ายไว้
+ *     100dvh หดตามจริง · เขียนคู่กันไว้ ตัวที่เบราว์เซอร์เก่าอ่านไม่ออกจะถูกข้าม */
+.stage { min-height: 100dvh; }
+.phone { max-height: calc(100dvh - 130px); }
+.wel { max-height: calc(100dvh - 32px); }
+@media (max-width: 440px) {
+  .screen { height: 100dvh; }
+}
+@media (max-width: 620px) {
+  .dir { height: 92dvh; }
+}
+
+/* 2 · ขอบปลอดภัยของเครื่องที่มีติ่งกับแถบลากขึ้น
+ *     ใส่ viewport-fit=cover ไว้ใน index.html เพื่อให้พื้นหลังกินเต็มจอ
+ *     ถ้าไม่กันตรงนี้ ปุ่มแถวล่างสุดจะไปอยู่ใต้แถบลากขึ้นแล้วกดไม่โดน */
+@media (max-width: 440px) {
+  .screen {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}
+.dir, .wel {
+  margin-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* 3 · ปุ่มเลือกมุมมองต้องยืดเต็มแถวทุกความกว้าง ไม่ใช่เฉพาะจอเล็ก
+ *     ที่ 768px ห้าปุ่มตกเป็นสองแถว แล้วแถวหลังเหลือช่องสีเส้นคั่นโล่งครึ่งแถว
+ *     flex-grow ไม่มีผลตอนกล่องกว้างเท่าเนื้อหาอยู่แล้ว จอใหญ่จึงไม่เปลี่ยน */
+.flowpick button { flex: 1 1 auto; }
+
+/* 4 · นิ้วคนกว้างประมาณ 9 มม. — ปุ่มที่เล็กกว่า 44px กดพลาดเป็นประจำ
+ *     จำกัดไว้ที่อุปกรณ์สัมผัสเท่านั้น เมาส์ชี้ได้แม่นกว่าและจอจะแน่นเกินถ้าขยายด้วย */
+@media (pointer: coarse) {
+  .flowpick button,
+  .resetbtn,
+  .dir-open,
+  .dir-x,
+  .wel-go button {
+    min-height: 44px;
+  }
+}
+
+/* 5 · iOS ขยายตัวอักษรเองตอนหมุนจอเป็นแนวนอน ทำให้เลย์เอาต์เพี้ยนทั้งหน้า */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* 6 · เลื่อนในกล่องซ้อนแล้วไม่ให้ลากหน้าข้างหลังไปด้วย
+ *     บนมือถือ พอเลื่อนสารบัญจนสุด นิ้วจะไปลากหน้าหลักต่อ แล้วกล่องดูเหมือนค้าง */
+.dir-body,
+.wel {
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* 7 · จุดที่เครื่องจริงกดพลาดหรืออ่านไม่ออก — เจอจาก tools/mobile-test.mjs
+ *     ไม่ใช่การเดา ทุกบรรทัดมีขนาดจริงที่วัดได้กำกับไว้ */
+@media (pointer: coarse) {
+  /* 34×34 ในแถบหัวจอมือถือ · ปุ่มโทรกับปุ่มเมนูอยู่ชิดกันด้วย */
+  .appbar .iconbtn { min-width: 44px; min-height: 44px; }
+  /* 26×20 ตอนคำแนะนำเด้งขึ้น — เล็กจนต้องเล็งสองครั้ง */
+  .jump-hint button { min-width: 44px; min-height: 40px; }
+}
+
+/* ตัวอักษรกำกับ 9–9.5px อ่านออกบนจอคอม แต่บนเครื่องถือมันเล็กจริง
+   ผูกกับ "เป็นเครื่องสัมผัส" ไม่ใช่ความกว้าง — iPad กว้าง 768 แต่ถืออ่านระยะเดียว
+   กับมือถือ ถ้าใช้ max-width จะหลุด iPad ไปทั้งเครื่อง (เคยหลุดมาแล้ว) */
+@media (pointer: coarse) {
+  .flowpick button .sub,
+  .tripbar .sub { font-size: 11px; }
+  .gal .tag { font-size: 10.5px; }
+}

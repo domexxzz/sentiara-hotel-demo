@@ -21,6 +21,7 @@ import { useBackend, useBooking, useHotel } from "./contexts";
 import { ConnectionBar, SignIn } from "./components/Connection";
 import { Directory } from "./tour/Directory";
 import { onTarget, type Flow } from "./tour/target";
+import { Welcome, resetDemo } from "./tour/Welcome";
 
 const FLOWS: { id: Flow; label: string; sub: string; icon: IconName }[] = [
   { id: "guest", label: "ฝั่งแขก", sub: "มือถือ", icon: "chat" },
@@ -75,6 +76,8 @@ function GuestRouter() {
 function Stage() {
   const [flow, setFlow] = useState<Flow>("guest");
   const [dir, setDir] = useState(false);
+  // ปุ่มล้างข้อมูลต้องกดสองครั้ง — ครั้งแรกแค่ "ง้าง" ไว้
+  const [armed, setArmed] = useState(false);
   // ข้อความ "ไปถึงแล้วกดอะไรต่อ" ที่สารบัญส่งมาพร้อมกับการกระโดด
   const [hint, setHint] = useState<string | null>(null);
 
@@ -110,11 +113,21 @@ function Stage() {
         <header className="stage-head">
           <span className="k">Sentiara · Interactive Prototype</span>
           <h1>{head.title}</h1>
-          <button className="dir-open" onClick={() => setDir(true)}>
-            <Icon name="sparkle" size={14} />
-            สารบัญฟังก์ชันทั้งหมด
-            <kbd>/</kbd>
-          </button>
+          <div className="stage-acts">
+            <button className="dir-open" onClick={() => setDir(true)}>
+              <Icon name="sparkle" size={14} />
+              สารบัญฟังก์ชันทั้งหมด
+              <kbd>/</kbd>
+            </button>
+            {/* ถามซ้ำก่อนล้าง — กดพลาดกลางพรีเซนต์แล้วข้อมูลหายคือฝันร้าย */}
+            <button
+              className={`resetbtn ${armed ? "armed" : ""}`}
+              onClick={() => (armed ? resetDemo() : setArmed(true))}
+              onBlur={() => setArmed(false)}
+            >
+              {armed ? "กดอีกครั้งเพื่อล้าง" : "เริ่มใหม่"}
+            </button>
+          </div>
           <p>{backend.mode === "demo" ? head.note : "เชื่อมต่อระบบโรงแรม · รายการที่ยังไม่รองรับจะแจ้งให้ทราบเมื่อทำรายการ"}</p>
         </header>
 
@@ -183,6 +196,7 @@ function Stage() {
         )}
       </div>
       <Directory open={dir} onClose={() => setDir(false)} />
+      <Welcome />
     </div>
   );
 }
