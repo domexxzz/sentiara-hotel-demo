@@ -22,6 +22,7 @@ import { ConnectionBar, SignIn } from "./components/Connection";
 import { Directory } from "./tour/Directory";
 import { onTarget, type Flow } from "./tour/target";
 import { Welcome, resetDemo } from "./tour/Welcome";
+import { FLOW_THEME, FLOW_TITLE } from "./lib/flowTheme";
 
 const FLOWS: { id: Flow; label: string; sub: string; icon: IconName }[] = [
   { id: "guest", label: "ฝั่งแขก", sub: "มือถือ", icon: "chat" },
@@ -108,7 +109,12 @@ function Stage() {
   const blocked = !allowed(flow);
 
   return (
-    <div className={`stage ${flow !== "guest" && flow !== "staff" ? "wide" : ""}`}>
+    <div
+      className={`stage ${flow !== "guest" && flow !== "staff" ? "wide" : ""}`}
+      /* สีประจำมุมมองส่งลงไปเป็นตัวแปร CSS ตัวเดียว แล้วให้ทุกชิ้นหยิบไปใช้เอง
+         ดีกว่าแปะคลาสรายมุมมอง เพราะเพิ่มมุมมองใหม่แล้วไม่ต้องไล่แก้ CSS */
+      style={{ "--hue": FLOW_THEME[flow].color } as React.CSSProperties}
+    >
       <div className="stage-inner">
         <header className="stage-head">
           <span className="k">Sentiara · Interactive Prototype</span>
@@ -129,6 +135,28 @@ function Stage() {
             </button>
           </div>
           <p>{backend.mode === "demo" ? head.note : "เชื่อมต่อระบบโรงแรม · รายการที่ยังไม่รองรับจะแจ้งให้ทราบเมื่อทำรายการ"}</p>
+        </header>
+
+        {/* หัวจอของมือถือ · จอคอมซ่อนไว้เพราะที่นั่นมี stage-head อยู่แล้ว
+            ขีดสีหนาบนขอบบนคือตัวบอกว่าอยู่มุมมองไหน — เห็นก่อนทันอ่าน */}
+        <header className="mhead">
+          <div className="mhead-txt">
+            <span className="kk">
+              {FLOW_THEME[flow].kicker}
+              {backend.mode === "demo" && " · โหมดสาธิต"}
+            </span>
+            <b>{FLOW_TITLE[flow]}</b>
+          </div>
+          <button className="mhead-dir" onClick={() => setDir(true)} aria-label="สารบัญฟังก์ชันทั้งหมด">
+            <Icon name="sparkle" size={15} />
+          </button>
+          <button
+            className={`mhead-reset ${armed ? "armed" : ""}`}
+            onClick={() => (armed ? resetDemo() : setArmed(true))}
+            onBlur={() => setArmed(false)}
+          >
+            {armed ? "กดอีกครั้ง" : "เริ่มใหม่"}
+          </button>
         </header>
 
         <ConnectionBar />
@@ -159,7 +187,9 @@ function Stage() {
                 title={ok ? undefined : session ? denyReason(session.role, f.id) : undefined}
               >
                 <Icon name={ok ? f.icon : "shield"} size={15} />
-                {f.label}
+                <span className="full">{f.label}</span>
+                {/* มือถือใช้ชื่อสั้น · ชื่อเต็มยาวเกินช่องละหนึ่งในห้าของจอ */}
+                <span className="tiny">{ok ? FLOW_THEME[f.id].short : "ล็อก"}</span>
                 <span className="sub">{ok ? f.sub : "ไม่มีสิทธิ์"}</span>
               </button>
             );

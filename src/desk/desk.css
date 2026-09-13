@@ -1316,3 +1316,38 @@
   padding-top: 10px; border-top: 1px solid var(--divider);
 }
 .rr-tags { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; flex: none; }
+
+/* ══ มือถือ · เอาหน้าต่างเดสก์ท็อปปลอมออก ══════════════════════════
+ *
+ * กรอบหน้าต่างกับแถบ "app.sentiara.co" มีไว้บอกบนจอคอมว่า *จอนี้คือจอที่
+ * พนักงานเปิดบนเครื่องคอม* ซึ่งเป็นข้อมูลที่มีประโยชน์ตอนนำเสนอบนโปรเจกเตอร์
+ *
+ * แต่บนมือถือมันคือหน้าต่างปลอมในจอจริง กินความสูงไป 34px พร้อมข้อความที่
+ * อ่านไม่ออกเพราะย่อลงมา · ที่สำคัญกว่าคือมันผลักเนื้อหาจริงลงไปอีกหนึ่งช่วง
+ * ในจอที่พื้นที่แนวตั้งแพงที่สุดอยู่แล้ว
+ */
+@media (max-width: 700px) {
+  .deskchrome { display: none; }
+  .deskwin {
+    height: auto;
+    min-height: calc(100dvh - 190px);
+    border-radius: 0;
+    padding: 0;
+    box-shadow: none;
+  }
+  .deskbody { margin: 0; }
+
+  /* แถบเมนู 14 หัวข้อ ถ้าตกบรรทัดบนจอ 390 จะสูงเจ็ดแถวก่อนถึงเนื้อหา
+     ตรงนี้จึงยอมให้เลื่อนข้างแทน — **แลกมาด้วยของจริง**: หัวข้อที่หลุดขอบขวา
+     คนจะไม่รู้ว่ามี · ชดเชยด้วยปุ่มสารบัญในหัวจอที่ค้นได้ทั้ง 83 ฟังก์ชัน
+     (บนแท็บเล็ต 700–900px ยังตกบรรทัดเหมือนเดิม เพราะสี่แถวยังรับได้) */
+  .desknav {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    /* จางที่ขอบขวาเพื่อบอกว่ายังมีต่อ — ไม่มีอะไรบอกเลยคือแย่กว่า */
+    mask-image: linear-gradient(90deg, #000 calc(100% - 26px), transparent);
+  }
+  .desknav::-webkit-scrollbar { display: none; }
+  .navitem { flex: 0 0 auto; }
+}

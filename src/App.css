@@ -1810,3 +1810,210 @@ html {
   .tripbar .sub { font-size: 11px; }
   .gal .tag { font-size: 10.5px; }
 }
+
+/* ══ มือถือ · เปลือกจอใหม่ ═══════════════════════════════════════════
+ *
+ * ปัญหาที่แก้ (วัดจากเครื่องจริง iPhone 390×844)
+ * ---------------------------------------------
+ * ของเดิม 620px แรกของจอไม่ใช่เนื้อหาเลย — ป้ายโหมดสาธิต แถบสลับโรงแรม/คอนโด
+ * และปุ่มเลือกมุมมองที่สูงถึงสามแถว ต้องเลื่อนผ่านทั้งหมดก่อนเห็นแอป
+ * ซ้ำยังมี "มือถือซ้อนในมือถือ" คือกรอบเครื่องปลอมพร้อมนาฬิกา 9:41
+ *
+ * ของใหม่
+ *   · หัวจอแถวเดียวสูง ~56px มีขีดสีประจำมุมมองหนา 5px ทับขอบบน
+ *   · ปุ่มเลือกมุมมองย้ายลงไปเป็นแถบล่างติดขอบจอ นิ้วโป้งถึง
+ *   · กรอบเครื่องปลอมกับแถบชื่อหน้าต่างปลอมหายไปทั้งหมด
+ *
+ * สีประจำมุมมองมาจาก `--hue` ที่ App.tsx ใส่ไว้บน .stage
+ * ขอบเขตการใช้สีอ่านที่ `src/lib/flowTheme.ts`
+ */
+
+/* จอคอมไม่ใช้สองชิ้นนี้ — ที่นั่นมี stage-head กับ flowpick แบบเดิมอยู่แล้ว */
+.mhead { display: none; }
+.flowpick button .tiny { display: none; }
+
+@media (max-width: 700px) {
+  /* ── หัวจอ ─────────────────────────────────────────────────── */
+  .mhead {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 14px 12px;
+    background: var(--paper);
+    border-bottom: 1px solid var(--line-strong);
+    /* ขีดสีวาดด้วย inset shadow ไม่ใช่ border-top เพราะ border กินความสูง
+       แล้วหัวจอจะเตี้ยลงทุกครั้งที่ปรับความหนา */
+    box-shadow: inset 0 5px 0 var(--hue, var(--accent-700));
+    position: sticky;
+    top: 0;
+    z-index: 30;
+  }
+  .mhead-txt { flex: 1; min-width: 0; }
+  .mhead-txt .kk {
+    display: block;
+    font-family: var(--font);
+    /* ไม่ต่ำกว่า 10px — ต่ำกว่านี้บนจอความละเอียดสูงคือเส้นเบลอ ไม่ใช่ตัวอักษร
+       (เจอจาก tools/mobile-test.mjs ที่วัดขนาดจริงบนเครื่องจำลอง 6 รุ่น) */
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.17em;
+    text-transform: uppercase;
+    color: var(--hue, var(--accent-700));
+  }
+  .mhead-txt b {
+    display: block;
+    font-family: var(--font);
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-top: 1px;
+    overflow-wrap: anywhere;
+  }
+  .mhead-dir,
+  .mhead-reset {
+    font: inherit;
+    cursor: pointer;
+    flex: 0 0 auto;
+    min-height: 40px;
+    background: var(--paper);
+    border: 1px solid var(--divider);
+    color: var(--muted);
+  }
+  .mhead-dir { min-width: 40px; display: grid; place-items: center; }
+  .mhead-reset { font-size: 11.5px; font-weight: 600; padding: 0 11px; }
+  .mhead-reset.armed {
+    color: #fff;
+    background: var(--accent-700);
+    border-color: var(--accent-700);
+  }
+
+  /* ── แถบเลือกมุมมองย้ายลงล่าง ─────────────────────────────── */
+  .flowpick {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 40;
+    flex-wrap: nowrap;
+    gap: 0;
+    border: 0;
+    border-top: 1px solid var(--line-strong);
+    background: var(--paper);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .flowpick button {
+    flex: 1 1 0;
+    min-width: 0;
+    flex-direction: column;
+    gap: 3px;
+    padding: 9px 2px 10px;
+    font-size: 10px;
+    min-height: 56px;
+    position: relative;
+  }
+  .flowpick button .full,
+  .flowpick button .sub { display: none; }
+  .flowpick button .tiny {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+  }
+  /* ปุ่มที่เลือกอยู่ไม่กลับสีพื้นเป็นดำแล้ว — บนแถบล่างมันกลายเป็นก้อนดำ
+     ก้อนเดียวกลางจอ ใช้สีประจำมุมมองกับขีดบนหัวปุ่มแทน อ่านง่ายกว่า */
+  .flowpick button.on {
+    background: var(--paper);
+    color: var(--hue, var(--accent-700));
+  }
+  .flowpick button.on::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--hue, var(--accent-700));
+  }
+  .flowpick button.on svg { stroke-width: 2.1; }
+
+  /* กันเนื้อหาท้ายจอโดนแถบล่างทับ · 56 คือความสูงปุ่ม บวกขอบปลอดภัยของเครื่อง */
+  .stage {
+    padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* ── กรอบเครื่องปลอมกับหน้าต่างปลอม ────────────────────────
+     บนจอคอมมันช่วยให้เห็นว่า "จอนี้คือมือถือ จอนั้นคือเดสก์ท็อป"
+     แต่บนมือถือจริงมันคือมือถือซ้อนในมือถือ และนาฬิกาปลอม 9:41
+     ขัดกับนาฬิกาจริงที่อยู่เหนือขึ้นไปสองเซนติเมตร */
+  .notch,
+  .statusbar { display: none; }
+  .phone { box-shadow: none; background: transparent; }
+}
+
+@media (max-width: 440px) {
+  /* จอเล็กมากแล้ว ชื่อห้ามุมมองยาวเกินช่อง · ลดช่องไฟแทนการลดขนาดตัวอักษร
+     เพราะต่ำกว่า 10px อ่านไม่ออกอยู่ดี ย่อแล้วก็ไม่ได้อะไร */
+  .flowpick button .tiny { letter-spacing: -0.02em; }
+  .mhead-txt b { font-size: 16.5px; }
+}
+
+/* ── มือถือ · เก็บกวาดกล่องที่ซ้อนกันอยู่ข้างบน ──────────────────── */
+@media (max-width: 700px) {
+  /* เนื้อหาชิดขอบจอ · ขอบข้างบนมือถือกินพื้นที่แนวนอนที่แพงที่สุด
+     และทำให้เดโมดูเหมือนหน้าเว็บที่ย่อมา ไม่ใช่แอป */
+  .stage { padding: 0 0 calc(56px + env(safe-area-inset-bottom, 0px)); }
+  .stage-inner { gap: 0; }
+
+  /* หัวจอกินเต็มความกว้างจริง ๆ ไม่ใช่แค่กว้างเท่าเนื้อหา */
+  .mhead { width: 100%; }
+
+  /* ป้าย "โหมดสาธิต" ย้ายไปอยู่บรรทัดเล็กในหัวจอแล้ว · ปล่อยไว้ทั้งกล่อง
+     เท่ากับบอกเรื่องเดิมสามที่ (หน้าต้อนรับ หัวจอ และตรงนี้) กินไป 110px
+     แถบโหมดอื่นยังอยู่ครบ — locked กับ live คือเรื่องที่ต้องเห็นจริง ๆ */
+  .conn.demo { display: none; }
+  .conn { margin: 10px 12px; }
+
+  .idbar {
+    margin: 10px 12px;
+    width: auto;
+    padding: 6px 8px 6px 10px;
+    font-size: 12.5px;
+  }
+
+  /* เนื้อหาหลักของทุกมุมมองชิดขอบ */
+  .phone { padding: 0; border-radius: 0; }
+  .screen { border-radius: 0; }
+}
+
+/* ── มือถือ · เก็บรายละเอียดที่เหลือ ─────────────────────────────── */
+@media (max-width: 700px) {
+  /* ปุ่มในหัวจอสูงเท่ากันและไม่ยืดตามความสูงของบรรทัดชื่อ */
+  .mhead-dir,
+  .mhead-reset { height: 40px; align-self: center; }
+
+  /* แถบระบุตัวตนบรรทัดเดียว · ข้อความรองตัดทิ้งดีกว่าดันให้สูงสามบรรทัด */
+  .idbar { padding: 5px 7px 5px 9px; }
+  .idwho { min-width: 0; }
+  .idwho span { min-width: 0; }
+  .idwho i {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* แท็บย่อยที่เปิดอยู่ใช้สีประจำมุมมองแทนสีแบรนด์
+     บนจอคอมยังเป็นสีแบรนด์เหมือนเดิม เพราะที่นั่นเห็นแถบเลือกมุมมองค้างอยู่แล้ว
+     ไม่ต้องให้สีมาช่วยบอกว่าอยู่ไหน */
+  .navitem.on {
+    background: var(--hue, var(--accent));
+  }
+}
+
+/* แท็บย่อยของทุกมุมมองใช้สีประจำมุมมองบนมือถือ
+   ตัวเลือกที่เปิดอยู่คือจุดเดียวที่มีสีเต็มบล็อกในจอ ถ้าปล่อยเป็นสีแบรนด์
+   ทุกมุมมองจะมีก้อนแดงเหมือนกันหมด แล้วสีที่หัวจอกับแถบล่างก็ขัดกับมันเอง */
+@media (max-width: 700px) {
+  .st-roles button.on { background: var(--hue, var(--accent)); }
+}
