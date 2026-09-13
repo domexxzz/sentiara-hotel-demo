@@ -125,4 +125,8 @@ cd docs/build && python md2html.py        # → docs/handoff.html
 ไม่งั้นลิงก์ที่ส่งลูกค้าไปแล้วจะค้างอยู่ที่ฉบับเก่า
 
 เดโมที่กดใช้ได้จริง (คนละอันกับหน้านำเสนอ):
-`sentiara-guest-demo.vercel.app` · `sentiara-3d-site.vercel.app`
+`sentiara-demo.vercel.app` (ตัวที่ใช้ส่งลูกค้า · บัญชี electiction / bestimoves-projects) · `sentiara-3d-site.vercel.app`
+
+`sentiara-guest-demo.vercel.app` เป็นของเก่าที่อยู่ในบัญชี `domexxzz` — ยังเปิดได้แต่อัปเดตไม่ได้
+เพราะ `electiction` เข้าถึง scope ของ `domexxzz` ไม่ได้ (สิทธิ์ที่ให้กันไว้เป็นฝั่ง GitHub อย่างเดียว)
+อย่าเอาลิงก์นั้นไปส่งลูกค้าอีก
