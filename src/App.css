@@ -10,6 +10,11 @@
 }
 
 .stage-inner {
+  /* ลูกของ grid มี min-width: auto เป็นค่าเริ่มต้น แปลว่าหดต่ำกว่าความกว้าง
+     ที่เนื้อหาต้องการไม่ได้ · พอแถบเลือกมุมมองยาว 648px ทั้งหน้าจึงกว้าง 648
+     บนจอ 390 แล้วปัดไปข้างได้ทุกจอ (เจอตอนกวาดก่อนขึ้น host) */
+  min-width: 0;
+  max-width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -24,6 +29,10 @@
 /* flow switcher — guest phone vs front-desk workstation */
 .flowpick {
   display: flex;
+  /* ห้าแท็บเรียงแถวเดียวกว้างเกินจอมือถือ · ให้ตกบรรทัดแทนการซ่อนในแถบเลื่อน
+     เพราะทั้งห้ามุมมองคือสิ่งที่ต้องให้คนดูเห็นว่ามีครบ */
+  flex-wrap: wrap;
+  max-width: 100%;
   gap: 1px;
   background: var(--divider);
   border: 1px solid var(--line-strong);
@@ -1066,6 +1075,11 @@
   }
 }
 
+/* ตอนตกบรรทัด ปุ่มยืดเต็มแถว ไม่งั้นแถวสุดท้ายเหลือช่องว่างสีเส้นคั่นโล่ง ๆ */
+@media (max-width: 700px) {
+  .flowpick button { flex: 1 1 44%; }
+}
+
 @media (max-width: 440px) {
   .phone {
     height: auto;
@@ -1346,8 +1360,17 @@
   padding: 9px 14px; margin: 0 0 12px;
   border: 1px solid var(--divider); background: var(--paper);
   font-size: 13px; line-height: 1.45;
+  /* ปุ่มหล่นลงบรรทัดใหม่ได้บนจอแคบ แทนที่จะดันแถบให้กว้างเกินจอ */
+  flex-wrap: wrap; max-width: 100%;
 }
-.conn .txt { display: flex; flex-direction: column; flex: 1 1 auto; min-width: 0; }
+/* ภาษาไทยไม่มีช่องว่างระหว่างคำ เบราว์เซอร์จึงมองประโยคยาวเป็นคำเดียว
+   แล้วไม่ยอมหดให้เล็กกว่าความกว้างของทั้งประโยค · ผลคือทั้งหน้าถูกดันกว้าง
+   648px บนจอ 390px แล้วปัดไปข้างได้ทุกจอ (เจอตอนกวาดก่อนขึ้น host)
+   min-width: 0 อย่างเดียวไม่พอ ต้องบอกด้วยว่าตัดกลางคำได้ */
+.conn .txt {
+  display: flex; flex-direction: column; flex: 1 1 auto; min-width: 0;
+  overflow-wrap: anywhere;
+}
 .conn .txt b { font-weight: 700; }
 .conn .txt span { color: var(--muted); font-size: 12px; }
 .conn .ic { flex: 0 0 auto; }
