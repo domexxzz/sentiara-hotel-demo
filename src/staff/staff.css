@@ -443,3 +443,195 @@
 /* ปุ่มสลับบทบาทที่เลือกอยู่ · สีประจำมุมมองแทนสีแบรนด์
    เขียนในไฟล์นี้เพราะมันโหลดหลัง App.css แล้วทับกฎที่นั่น */
 .st-roles button.on { background: var(--hue, var(--accent)); }
+
+/* ══ กระดานงาน ═══════════════════════════════════════════════════════
+ * สี่คอลัมน์บนจอ 390px ได้ช่องละ 90px ซึ่งใส่เลขห้องยังไม่พอ
+ * จึงเลื่อนข้างแทน และใช้ scroll-snap ให้หยุดตรงหัวคอลัมน์พอดี
+ * แถบสรุปด้านบนอยู่นอกแถบเลื่อน คนจึงเห็นตัวเลขครบทั้งสี่คอลัมน์เสมอ
+ */
+.st-layout {
+  flex: none;
+  display: flex;
+  gap: 1px;
+  margin: 0 12px;
+  background: var(--divider);
+  border: 1px solid var(--line-strong);
+}
+.st-layout button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 9px 6px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  background: var(--paper);
+  border: 0;
+  cursor: pointer;
+  min-height: 40px;
+}
+.st-layout button.on { color: #fff; background: var(--hue, var(--text)); }
+
+.bd-body { display: flex; flex-direction: column; gap: 11px; min-height: 0; }
+
+.bd-sum {
+  flex: none;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--divider);
+  border: 1px solid var(--line-strong);
+}
+.bd-sum > div { background: var(--paper); padding: 8px 9px; min-width: 0; }
+.bd-sum .k {
+  display: block;
+  font-size: 10px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bd-sum b {
+  display: block;
+  font-family: var(--font);
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin-top: 1px;
+}
+/* คอขวด — งานกองรอตรวจตั้งแต่สองใบขึ้นไปคือสัญญาณว่าห้องกำลังค้างไม่กลับไปขาย */
+.bd-sum > div.hot { background: var(--accent-100); }
+.bd-sum > div.hot b { color: var(--accent-700); }
+
+.bd-scroll {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+.bd-scroll::-webkit-scrollbar { display: none; }
+
+.bd-col {
+  flex: 0 0 84%;
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+}
+.bd-colh {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 2px 7px;
+}
+.bd-colh b {
+  font-family: var(--font);
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bd-colh .n {
+  flex: 0 0 auto;
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 800;
+  padding: 1px 7px;
+  background: var(--divider);
+}
+.bd-col.hot .bd-colh b { color: var(--accent-700); }
+.bd-col.hot .bd-colh .n { color: #fff; background: var(--accent-700); }
+
+.bd-colb {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 9px;
+  background: rgba(32, 30, 29, 0.045);
+}
+.bd-empty { margin: 0; font-size: 11.5px; line-height: 1.6; color: var(--muted); }
+
+.bd-card {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  background: var(--paper);
+  border: 1px solid var(--line-strong);
+  padding: 10px 12px;
+}
+.bd-card:disabled { cursor: default; opacity: 0.72; }
+.bd-card .r1 { display: flex; align-items: center; gap: 9px; }
+.bd-card .no {
+  font-family: var(--font);
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  flex: 0 0 auto;
+}
+.bd-card .r1 .go { flex: 0 0 auto; margin-left: auto; color: var(--muted); }
+.bd-card .ttl { display: block; font-size: 13px; font-weight: 700; margin-top: 2px; }
+.bd-card .meta {
+  display: block;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--muted);
+  margin-top: 3px;
+  overflow-wrap: anywhere;
+}
+.bd-card .meta.bad { color: var(--accent-700); font-weight: 600; }
+/* ป้ายสถานะเป็นเส้นขอบ ไม่ใช่พื้นทึบ — บนการ์ดขาวใบเล็กพื้นทึบกลายเป็น
+   ก้อนสีที่แย่งสายตากับเลขห้อง ซึ่งเป็นสิ่งที่คนหาก่อนเสมอ */
+.bd-pill {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border: 1px solid currentColor;
+  background: var(--paper);
+}
+.bd-pill.wait { color: #8a6a1e; }
+/* "กำลังทำ" เป็น **สถานะของงาน** ไม่ใช่ตำแหน่งที่คนอยู่ จึงห้ามใช้สีประจำ
+   มุมมอง (ดูขอบเขตใน src/lib/flowTheme.ts) · ใช้สีตัวอักษรเข้มแทน —
+   เน้นได้โดยไม่ไปแย่งความหมายกับ "รอตรวจ" ที่เป็นสีแบรนด์ = ต้องมีคนมาทำอะไร */
+.bd-pill.now { color: var(--text); }
+.bd-pill.check { color: var(--accent-700); }
+.bd-pill.bad { color: var(--accent-700); }
+.bd-pill.done { color: #1f7a4d; }
+.bd-foot {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 8px;
+  padding-top: 7px;
+  border-top: 1px solid var(--divider);
+  font-size: 10.5px;
+  color: var(--muted);
+}
+
+/* **ห้ามใส่ @media ปรับความกว้างคอลัมน์ที่นี่**
+   จอแม่บ้านอยู่ในกรอบมือถือกว้าง 390px เสมอ แต่ media query อ่านความกว้าง
+   ของ *หน้าต่างเบราว์เซอร์* ไม่ใช่ของกรอบ · ใส่ min-width: 620px แล้วบนจอคอม
+   1440px มันติดทันที คอลัมน์หดเหลือ 46% ของ 370px = 170px ซึ่งแคบจนอ่านไม่ได้
+   (เจอตอนถ่ายจอจริง ไม่ใช่ตอนอ่านโค้ด) · ถ้าวันหนึ่งอยากปรับตามกรอบจริง
+   ต้องใช้ container query ไม่ใช่ media query */

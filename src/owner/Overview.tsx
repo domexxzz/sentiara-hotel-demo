@@ -4,6 +4,7 @@ import { WEEKEND_PCT } from "../lib/rates";
 import { useHotel } from "../contexts";
 import { money, delta } from "../lib/format";
 import { Icon } from "../components/Icon";
+import { Donut, Sparkline } from "../components/Viz";
 
 export function Overview() {
   const { state, dispatch, totals } = useOwner();
@@ -29,6 +30,37 @@ export function Overview() {
   const peak = Math.max(...days.map((d) => d.rooms + d.fnb));
   const last = WEEK[WEEK.length - 1];
 
+  // ── สัดส่วนรายได้ 7 คืน ────────────────────────────────────────────
+  // ใช้ตัวเลขชุดเดียวกับกราฟและการ์ด ไม่ได้คิดใหม่ — ถ้าคิดใหม่วันหนึ่ง
+  // วงแหวนกับการ์ดจะไม่ตรงกัน แล้วไม่มีใครรู้ว่าอันไหนถูก
+  const svc = Math.round(totals.fnb * 0.18);   // ค่าบริการแยกจากค่าอาหาร
+  const mix = [
+    { label: "ค่าห้อง", value: totals.rooms, color: "var(--hue, #6f3a95)" },
+    { label: "อาหาร & เครื่องดื่ม", value: totals.fnb - svc, color: "#b79ad2" },
+    { label: "ค่าบริการ", value: svc, color: "#ddd0e8" },
+  ];
+
+  // ── เกิดอะไรขึ้นล่าสุด ─────────────────────────────────────────────
+  // มาจากบิลที่ปิดจริงในเซสชันนี้เท่านั้น · ไม่เติมรายการปลอมให้ดูคึกคัก
+  // เดโมที่โชว์กิจกรรมที่ไม่ได้เกิดขึ้นจริงคือเดโมที่สอนผิด
+  const feed = [
+    ...closed.map((c) => ({
+      tag: c.room,
+      title: `${c.guest} · ปิดบิล`,
+      note: `${c.lines.length} รายการในบิล`,
+      amount: "+" + money(c.total),
+      dir: "in" as const,
+    })),
+    ...hotel.state.workOrders.slice(0, 2).map((w) => ({
+      tag: "ช่าง",
+      title: w.label,
+      note: `${w.id} · ห้อง ${w.room}`,
+      amount: w.status === "done" ? "ปิดงานแล้ว" : "รอช่าง",
+      dir: "flat" as const,
+    })),
+  ].slice(0, 6);
+
+
   // Every KPI carries the bills it was computed from.
   // อัตราเข้าพักคืนนี้ — เทียบกับสัปดาห์ก่อนได้บนฐานเดียวกัน (คืนเต็ม vs คืนเต็ม)
   const tonightPct = Math.round((hotel.stats.soldTonight / hotel.stats.sellable) * 100);
@@ -40,6 +72,9 @@ export function Overview() {
     sub: string;
     dl?: string;
     up?: boolean;
+    /** ชุดตัวเลข 7 คืนสำหรับเส้นกราฟจิ๋ว — ไม่ใส่ก็ได้ การ์ดที่ไม่มีประวัติ
+        (เช่นยอดสด "ปิดบิลแล้ววันนี้") ตั้งใจไม่มีเส้น เพราะจุดเดียวลากไม่ได้ */
+    spark?: number[];
     title: string;
     lead: string;
     rows: Source[];
@@ -83,6 +118,7 @@ export function Overview() {
       sub: `${last.label} · ขายได้ ${last.sold} ห้อง`,
       dl: delta(totals.lastNight, totals.prevNight),
       up: totals.lastNight >= totals.prevNight,
+      spark: WEEK.map((d) => d.rooms + d.fnb),
       title: `ที่มาของ ${money(totals.lastNight)} — คืน ${last.label}`,
       lead: "นับจากบิลที่ปิดแล้วเท่านั้น · ปิดยอดอัตโนมัติตี 2 ทุกคืน",
       rows: [
@@ -102,6 +138,7 @@ export function Overview() {
       sub: "7 คืนล่าสุด · อา 7 – ส 13 ส.ค.",
       dl: delta(totals.revenue, LAST_WEEK.revenue),
       up: totals.revenue >= LAST_WEEK.revenue,
+      spark: WEEK.map((d) => d.rooms + d.fnb),
       title: `ที่มาของ ${money(totals.revenue)} — 7 คืน`,
       lead: "ยอดร้านอาหารแยกบัญชีจากค่าห้อง — รู้ว่าร้านเลี้ยงตัวเองได้จริงไหม",
       rows: [
@@ -123,6 +160,7 @@ export function Overview() {
       k: "เข้าพักคืนนี้",
       n: tonightPct + "%",
       sub: `แขกอยู่ในห้องแล้ว ${hotel.stats.inHouseRooms} ห้อง · เฉลี่ยสัปดาห์ ${totals.occAvg}%`,
+      spark: WEEK.map((d) => d.occ),
       // percentages compare in points, not as a relative change
       dl: `${tonightPct >= LAST_WEEK.occ ? "+" : "−"}${Math.abs(tonightPct - LAST_WEEK.occ)} จุด`,
       up: tonightPct >= LAST_WEEK.occ,
@@ -149,6 +187,8 @@ export function Overview() {
       k: "ADR · ราคาห้องเฉลี่ย",
       n: money(totals.adr),
       sub: `7 คืน · ${totals.soldNights} ห้องที่ขายได้`,
+      // ADR รายคืน = ค่าห้องคืนนั้น ÷ ห้องที่ขายได้คืนนั้น · ไม่ใช่ยอดรวม
+      spark: WEEK.map((d) => Math.round(d.rooms / d.sold)),
       title: `ที่มาของ ${money(totals.adr)} — ADR 7 คืน`,
       lead: "ค่าห้องรวม หารด้วยจำนวนห้องที่ขายได้จริง — ไม่รวมรายได้ร้านอาหาร",
       rows: [
@@ -167,6 +207,8 @@ export function Overview() {
       k: "RevPAR · รายได้ต่อห้องที่เปิดขาย",
       n: money(totals.revpar),
       sub: `ค่าห้อง 7 คืน ÷ ${totals.availNights} ห้อง-คืนที่เปิดขาย`,
+      // RevPAR รายคืน = ADR × อัตราเข้าพัก — เคลื่อนตามทั้งราคาและการขาย
+      spark: WEEK.map((d) => Math.round((d.rooms / d.sold) * (d.occ / 100))),
       title: `ที่มาของ ${money(totals.revpar)} — RevPAR 7 คืน`,
       lead: "ค่าห้องรวม หารด้วยห้องที่เปิดขายทั้งหมด — ห้องที่ขายไม่ออกถูกนับด้วย จึงบอกได้ว่าเสียโอกาสไปเท่าไร",
       rows: [
@@ -237,6 +279,9 @@ export function Overview() {
             <div className="n">{kp.n}</div>
             <span className="sub">{kp.sub}</span>
             {kp.dl && <span className={`dl ${kp.up ? "up" : "down"}`}>{kp.dl}</span>}
+            {/* เส้นกราฟจิ๋วอยู่ท้ายการ์ดและกินเต็มความกว้าง — วางไว้หลังสุด
+                เพื่อให้มันไหลชนขอบล่างได้โดยไม่ดันตัวเลขขึ้น */}
+            {kp.spark && <Sparkline values={kp.spark} up={kp.up ?? true} />}
           </button>
         ))}
       </div>
@@ -276,13 +321,24 @@ export function Overview() {
               <i style={{ background: "var(--n700)" }} />
               อาหาร &amp; เครื่องดื่ม
             </span>
+            <span>
+              <i className="ghost" />
+              ห้องที่เปิดขายแต่ขายไม่ออก
+            </span>
           </span>
         </div>
 
         <div className="bars">
           {days.map((d, i) => {
             const total = d.rooms + d.fnb;
-            const h = (total / peak) * 100;
+            // เพดาน = ถ้าคืนนั้นขายได้ 100% ที่ราคาเฉลี่ยเดิม จะได้ค่าห้องเท่าไร
+            // ส่วนต่างคือ "ห้องที่เปิดขายแต่ขายไม่ออก" ซึ่งเป็นตัวเลขที่เจ้าของ
+            // อยากเห็นที่สุดแต่กราฟแท่งเดี่ยวบอกไม่ได้ — มันบอกได้แค่เยอะ/น้อย
+            const ceiling = d.occ > 0 ? d.rooms / (d.occ / 100) + d.fnb : total;
+            const top = Math.max(peak, ...days.map((x) =>
+              x.occ > 0 ? x.rooms / (x.occ / 100) + x.fnb : x.rooms + x.fnb));
+            const h = (total / top) * 100;
+            const gap = (Math.max(ceiling - total, 0) / top) * 100;
             const roomsPart = (d.rooms / total) * h;
             const fnbPart = (d.fnb / total) * h;
             return (
@@ -293,6 +349,7 @@ export function Overview() {
                 aria-label={`${d.label} · ${money(total)}`}
               >
                 <span className="stack">
+                  <span className="seg-gap" style={{ height: `${gap}%` }} />
                   <span className="seg-fnb" style={{ height: `${fnbPart}%` }} />
                   <span className="seg-rooms" style={{ height: `${roomsPart}%` }} />
                 </span>
@@ -325,6 +382,54 @@ export function Overview() {
             <span className="k">ออร์เดอร์</span>
             <div className="n">{day.orders}</div>
           </div>
+        </div>
+      </div>
+
+      {/* ── สัดส่วนรายได้ + เกิดอะไรขึ้นล่าสุด ─────────────────────
+          สองอันนี้ตอบคำถามคนละข้อกับกราฟข้างบน · กราฟบอก "เท่าไร"
+          วงแหวนบอก "มาจากไหน" และรางขวาบอก "ตอนนี้กำลังเกิดอะไร"
+          เจ้าของถามครบสามข้อนี้ทุกเช้า แต่เดิมมีคำตอบแค่ข้อแรก */}
+      <div className="ovr-split">
+        <div className="ovr-card">
+          <div className="ovr-h">
+            <h4>รายได้มาจากไหน</h4>
+            <span>7 คืนล่าสุด</span>
+          </div>
+          <Donut
+            slices={mix}
+            centerLabel="รวม 7 คืน"
+            centerValue={money(totals.revenue)}
+          />
+          <p className="ovr-foot">
+            ร้านอาหารคิดเป็น {totals.fnbShare}% ของรายได้รวม — แยกบัญชีจากค่าห้อง
+            จึงรู้ได้ว่าร้านเลี้ยงตัวเองได้จริงไหม
+          </p>
+        </div>
+
+        <div className="ovr-card">
+          <div className="ovr-h">
+            <h4>เกิดอะไรขึ้นล่าสุด</h4>
+            <span>{feed.length ? "สด ณ ตอนนี้" : "ยังไม่มีรายการวันนี้"}</span>
+          </div>
+          {feed.length === 0 ? (
+            <p className="ovr-empty">
+              ลองไปปิดบิลที่หน้าเคาน์เตอร์ หรือสั่งอาหารที่ POS
+              แล้วรายการจะไหลมาที่นี่ทันที
+            </p>
+          ) : (
+            <ul className="ovr-feed">
+              {feed.map((f, i) => (
+                <li key={i}>
+                  <span className="tag">{f.tag}</span>
+                  <span className="txt">
+                    <b>{f.title}</b>
+                    <span>{f.note}</span>
+                  </span>
+                  <span className={`amt ${f.dir}`}>{f.amount}</span>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </div>
 

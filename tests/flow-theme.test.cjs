@@ -114,6 +114,9 @@ test('สีประจำมุมมองไม่ถูกเอาไป�
     '.mhead', '.mhead-txt .kk', '.stage-head .k',
     '.flowpick button.on', '.flowpick button.on::before', '.flowpick button.on .sub',
     '.navitem.on', '.st-roles button.on', '.deskchrome', '.desknav .logo .k',
+    // ปุ่มสลับกระดาน/รายการ — บอกว่า "ตอนนี้กำลังดูแบบไหน" ซึ่งเป็นตำแหน่ง
+    // ไม่ใช่สถานะของข้อมูล จึงอยู่ในขอบเขตที่อนุญาต
+    '.st-layout button.on',
   ]
   // จับทีละกฎที่ "ไม่มีวงเล็บปีกกาซ้อนข้างใน" — ไม่งั้นบรรทัด @media จะถูกนับ
   // เป็นตัวเลือกไปด้วย เพราะบล็อกของมันกินกฎข้างในทั้งหมด

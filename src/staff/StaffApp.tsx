@@ -4,6 +4,7 @@ import { HK, SUP, TECH } from "./staffData";
 import { StaffProvider } from "./staffStore";
 import { useStaff } from "../contexts";
 import { JobList } from "./JobList";
+import { JobBoard } from "./JobBoard";
 import { JobDetail } from "./JobDetail";
 import { Review } from "./Review";
 import { TechJobs } from "./TechJobs";
@@ -20,6 +21,9 @@ function StaffShell() {
     if (t.staff) dispatch({ type: "VIEW", view: t.staff });
   });
   const [clock, setClock] = useState(false);
+  // กระดาน/รายการ เก็บไว้ในคอมโพเนนต์ ไม่ใช่ใน store — มันเป็นความชอบของคนดู
+  // ไม่ใช่สถานะของงาน · ใส่ใน store แล้วต้องพาไปทุกที่ที่อ่าน state โดยไม่ได้ใช้
+  const [board, setBoard] = useState(true);
   const isHk = state.role === "hk";
   const isTech = state.role === "tech";
   const inJob = state.view === "job";
@@ -114,6 +118,21 @@ function StaffShell() {
         </div>
       )}
 
+      {/* สลับกระดาน/รายการ — ขึ้นเฉพาะจอคิวงานของแม่บ้าน
+          จอหัวหน้ากับจอช่างมีโครงคนละแบบ ใส่ปุ่มนี้ไปก็ไม่มีอะไรให้สลับ */}
+      {!clock && !inJob && isHk && (
+        <div className="st-layout">
+          <button className={board ? "on" : ""} onClick={() => setBoard(true)}>
+            <Icon name="qr" size={14} />
+            กระดาน
+          </button>
+          <button className={board ? "" : "on"} onClick={() => setBoard(false)}>
+            <Icon name="receipt" size={14} />
+            รายการ
+          </button>
+        </div>
+      )}
+
       {clock ? (
         <TimeClock onClose={() => setClock(false)} />
       ) : inJob ? (
@@ -121,7 +140,7 @@ function StaffShell() {
       ) : isTech ? (
         <TechJobs />
       ) : isHk ? (
-        <JobList />
+        board ? <JobBoard /> : <JobList />
       ) : (
         <Review />
       )}

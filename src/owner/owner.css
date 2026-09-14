@@ -1525,3 +1525,112 @@
   font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
   font-size: 11.5px; line-height: 1.65;
 }
+
+/* ══ กราฟจิ๋วในการ์ดตัวเลข ═══════════════════════════════════════════
+ * เส้นไหลชนขอบล่างของการ์ดและกินเต็มความกว้าง · ใช้ margin ติดลบเท่ากับ
+ * padding ของการ์ด แทนการเอา padding ออกแล้วใส่คืนให้ลูกทุกตัว
+ */
+.kpi .spark {
+  display: block;
+  width: calc(100% + 32px);
+  height: 34px;
+  margin: 9px -16px -13px;
+  overflow: visible;
+}
+.kpi .spark polyline {
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  /* vector-effect ทำให้เส้นหนาเท่าเดิมแม้ viewBox จะถูกยืดด้วย
+     preserveAspectRatio="none" — ไม่งั้นเส้นจะบางลงตามการยืดแนวนอน */
+  vector-effect: non-scaling-stroke;
+}
+.kpi .spark.up polyline { stroke: var(--ok, #1f7a4d); }
+.kpi .spark.down polyline { stroke: var(--accent-700); }
+
+/* ══ เพดานที่ขายไม่ออก บนกราฟแท่ง ═══════════════════════════════════
+ * ส่วนจาง ๆ บนสุดของแท่ง = ห้องที่เปิดขายแต่ขายไม่ออกคืนนั้น
+ * ทึบกว่านี้แล้วมันแย่งสายตากับยอดจริง เบากว่านี้แล้วมองไม่เห็น
+ */
+.bars .seg-gap {
+  display: block;
+  background: repeating-linear-gradient(
+    135deg,
+    rgba(32, 30, 29, 0.09) 0 4px,
+    rgba(32, 30, 29, 0.03) 4px 8px
+  );
+}
+.chart-legend i.ghost {
+  background: repeating-linear-gradient(
+    135deg,
+    rgba(32, 30, 29, 0.28) 0 3px,
+    rgba(32, 30, 29, 0.08) 3px 6px
+  );
+}
+
+/* ══ สัดส่วนรายได้ + เกิดอะไรขึ้นล่าสุด ═════════════════════════════ */
+.ovr-split {
+  display: grid;
+  grid-template-columns: minmax(0, 420px) minmax(0, 1fr);
+  gap: 14px;
+  margin-top: 16px;
+}
+.ovr-card {
+  background: var(--paper);
+  border: 1px solid var(--line-strong);
+  padding: 15px 17px;
+  min-width: 0;
+}
+.ovr-h { display: flex; align-items: baseline; gap: 10px; }
+.ovr-h h4 { margin: 0; font-size: 14.5px; font-weight: 800; }
+.ovr-h span { font-size: 11.5px; color: var(--muted); margin-left: auto; }
+.ovr-foot { margin: 12px 0 0; font-size: 11.5px; line-height: 1.6; color: var(--muted); }
+.ovr-empty { margin: 14px 0 0; font-size: 12.5px; line-height: 1.65; color: var(--muted); }
+
+.donutwrap { display: flex; align-items: center; gap: 16px; margin-top: 12px; }
+.donut { width: 128px; height: 128px; flex: 0 0 auto; }
+.donut .d-lbl {
+  font-size: 9px; fill: var(--muted); text-anchor: middle;
+  font-family: "IBM Plex Sans Thai", sans-serif;
+}
+.donut .d-val {
+  font-size: 16px; font-weight: 800; fill: var(--ink, #201e1d);
+  text-anchor: middle; font-family: var(--font);
+}
+.donut-legend { list-style: none; margin: 0; padding: 0; flex: 1; min-width: 0; display: grid; gap: 10px; }
+.donut-legend li { display: flex; align-items: center; gap: 9px; font-size: 12px; min-width: 0; }
+.donut-legend i { width: 9px; height: 9px; flex: 0 0 auto; }
+.donut-legend span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.donut-legend b {
+  margin-left: auto; font-family: var(--font); font-weight: 800; font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.ovr-feed { list-style: none; margin: 11px 0 0; padding: 0; display: grid; gap: 1px; background: var(--divider); }
+.ovr-feed li { display: flex; align-items: center; gap: 11px; padding: 10px 2px; background: var(--paper); }
+.ovr-feed .tag {
+  flex: 0 0 auto; min-width: 44px; text-align: center; padding: 4px 6px;
+  font-family: var(--font); font-size: 11px; font-weight: 800;
+  border: 1px solid var(--line-strong); font-variant-numeric: tabular-nums;
+}
+.ovr-feed .txt { flex: 1; min-width: 0; }
+.ovr-feed .txt b {
+  display: block; font-size: 12.5px; font-weight: 700;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.ovr-feed .txt span { display: block; font-size: 10.5px; color: var(--muted); margin-top: 1px; }
+.ovr-feed .amt {
+  flex: 0 0 auto; font-family: var(--font); font-size: 13px; font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.ovr-feed .amt.in { color: var(--ok, #1f7a4d); }
+.ovr-feed .amt.flat { color: var(--muted); font-size: 11.5px; font-weight: 600; }
+
+@media (max-width: 900px) {
+  .ovr-split { grid-template-columns: 1fr; }
+}
+@media (max-width: 520px) {
+  .donutwrap { flex-direction: column; align-items: stretch; }
+  .donut { align-self: center; }
+}

@@ -58,7 +58,7 @@ export function Review() {
               room: open.room,
               patch: { status: "ready", guest: undefined, note: undefined },
             });
-            dispatch({ type: "APPROVE", room: open.room });
+            dispatch({ type: "APPROVE", room: open.room, roomType: open.type });
             close();
           }}
         >

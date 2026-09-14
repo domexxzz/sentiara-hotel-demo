@@ -38,6 +38,10 @@ type State = {
   progress: Record<string, Progress>;
   /** จำนวนห้องที่หัวหน้ากดผ่านแล้วในกะนี้ */
   approved: number;
+  /** รายการห้องที่ตรวจผ่าน — ต้องเก็บเป็นรายการ ไม่ใช่แค่ตัวนับ
+      เพราะพอตรวจผ่าน ห้องกลับไปสถานะ "พร้อมขาย" แล้วหลุดจากคิวงานทันที
+      ถ้าเก็บแค่จำนวน กระดานจะมีคอลัมน์ "ผ่านแล้ว" ที่ว่างเปล่าตลอด */
+  approvedLog: { room: string; type: string; at: string }[];
   online: boolean;
   pending: string[];
   activeWo: string | null;
@@ -51,7 +55,7 @@ type Action =
   | { type: "TOGGLE_CHECK"; room: string; check: string }
   | { type: "PHOTO"; room: string; angle: string }
   | { type: "SUBMIT"; room: string }
-  | { type: "APPROVE"; room: string }
+  | { type: "APPROVE"; room: string; roomType?: string }
   | { type: "REJECT"; room: string; defect: string }
   | { type: "RAISE_ISSUE"; room: string; label: string }
   | { type: "SET_ONLINE"; online: boolean }
@@ -65,11 +69,19 @@ const initial: State = {
   activeRoom: null,
   progress: {},
   approved: 0,
+  approvedLog: [],
   online: true,
   pending: [],
   activeWo: null,
   banner: null,
 };
+
+/** เวลาไทยแบบ ชช:นน — ผ่านตัวช่วยตัวเดียว ไม่เรียก Date กระจายทั่วไฟล์
+    (กฎข้อ 2 ของโปรเจกต์: เวลาต้องมาจากที่เดียว) */
+const stamp = () =>
+  new Date().toLocaleTimeString("th-TH", {
+    hour: "2-digit", minute: "2-digit", timeZone: "Asia/Bangkok",
+  });
 
 const blank = (): Progress => ({ status: "todo", checks: [], photos: [] });
 const setP = (state: State, room: string, patch: Partial<Progress>): State => ({
@@ -145,6 +157,10 @@ function reducer(state: State, action: Action): State {
         ...state,
         progress: rest,
         approved: state.approved + 1,
+        approvedLog: [
+          { room: action.room, type: action.roomType ?? "", at: stamp() },
+          ...state.approvedLog,
+        ],
         pending: queue(state, `อนุมัติห้อง ${action.room}`),
         banner: `ห้อง ${action.room} พร้อมขาย — เคาน์เตอร์เห็นใน 5 วินาที`,
       };
@@ -212,6 +228,17 @@ function toJob(room: DeskRoom, p?: Progress): LiveJob {
   };
 }
 
+/** คอลัมน์บนกระดานงาน · ลำดับนี้คือลำดับที่งานเดินจริงในโรงแรม */
+export type BoardCol = {
+  key: "todo" | "doing" | "review" | "done";
+  title: string;
+  /** ชื่อสั้นสำหรับแถบสรุปสี่ช่อง — ช่องละ ~80px ชื่อเต็มตัดคำทุกอัน */
+  short: string;
+  /** บอกว่าคอลัมน์นี้คือคอขวดไหม — ใช้เน้นสายตาตอนงานกองรอตรวจ */
+  bottleneck?: boolean;
+  jobs: LiveJob[];
+};
+
 export type Ctx = {
   state: State;
   dispatch: React.Dispatch<Action>;
@@ -222,6 +249,9 @@ export type Ctx = {
   active: LiveJob | null;
   activeWo: WorkOrder | null;
   counts: { todo: number; review: number; done: number; wo: number };
+  /** สี่คอลัมน์ของกระดานงาน — คำนวณจากคิวชุดเดียวกับ jobs/reviewQueue
+      ไม่ได้แยกแหล่งข้อมูล ถ้าแยกแล้ววันหนึ่งกระดานกับรายการจะไม่ตรงกัน */
+  board: BoardCol[];
 };
 
 export function StaffProvider({ children }: { children: ReactNode }) {
@@ -237,11 +267,30 @@ export function StaffProvider({ children }: { children: ReactNode }) {
       ? (all.find((j) => j.room === state.activeRoom) ?? null)
       : null;
 
+    // ตีกลับอยู่คอลัมน์ "ยังไม่เริ่ม" เพราะงานกลับไปอยู่ในมือแม่บ้านจริง ๆ
+    // แต่การ์ดมีป้ายแดงบอกว่าเป็นงานที่ถูกตีกลับ ไม่ใช่งานใหม่
+    const board: BoardCol[] = [
+      { key: "todo", title: "ยังไม่เริ่ม", short: "ยังไม่เริ่ม",
+        jobs: all.filter((j) => j.status === "todo" || j.status === "rejected") },
+      { key: "doing", title: "กำลังทำ", short: "กำลังทำ",
+        jobs: all.filter((j) => j.status === "doing") },
+      { key: "review", title: "รอหัวหน้าตรวจ", short: "รอตรวจ",
+        bottleneck: reviewQueue.length >= 2,
+        jobs: reviewQueue },
+      { key: "done", title: "ผ่านแล้ว · กลับไปขายได้", short: "ผ่านแล้ว",
+        jobs: state.approvedLog.map((a) => ({
+          id: "HK-" + a.room, room: a.room, type: a.type,
+          kind: "ทำความสะอาดออก", minutes: 0, status: "done" as const,
+          checks: [], photos: [], doneAt: a.at,
+        })) },
+    ];
+
     return {
       state,
       dispatch,
       jobs,
       reviewQueue,
+      board,
       active,
       activeWo: hotel.state.workOrders.find((w) => w.id === state.activeWo) ?? null,
       counts: {
