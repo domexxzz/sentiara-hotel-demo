@@ -2118,34 +2118,56 @@ html {
  * ถ้าวันหนึ่งไม่อยากให้ราคาเปิดสาธารณะ ลบสองที่นี้กับ public/packages.html
  * แล้วเดโมยังทำงานครบเหมือนเดิม — ตั้งใจให้ถอดออกได้ในนาทีเดียว
  */
+/* ทึบสีแบรนด์ ไม่ใช่ปุ่มโปร่ง
+ *
+ * เดิมเป็นปุ่มโปร่งเส้นบางเหมือน "เริ่มใหม่" ทุกประการ · เจ้าของโปรเจกต์
+ * เปิดหน้าเว็บตัวเองแล้วยังมองไม่เห็นว่ามีปุ่มนี้ ทั้งที่รู้ว่าเพิ่งใส่ไป
+ * ถ้าคนทำยังไม่เห็น ลูกค้าไม่มีทางเห็น
+ *
+ * ทึบสีแล้วมันจะเป็นชิ้นเดียวในแถวที่มีพื้นสี — ตาไปหยุดตรงนั้นเอง
+ * โดยไม่ต้องทำให้ใหญ่กว่าปุ่มสารบัญ ซึ่งยังเป็นทางเข้าหลักของเดโม
+ */
 .pricelink {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
   font: inherit;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 12.5px;
+  font-weight: 700;
   text-decoration: none;
-  padding: 6px 12px;
+  padding: 8px 15px;
   border-radius: 999px;
-  color: var(--muted);
-  border: 1px solid var(--divider);
-  transition: color 0.15s, border-color 0.15s;
+  color: #fff;
+  background: var(--accent-700);
+  border: 1px solid var(--accent-700);
+  min-height: 38px;
+  transition: background 0.15s, border-color 0.15s;
 }
-.pricelink:hover { color: var(--ink); border-color: var(--line-strong); }
+.pricelink:hover { background: var(--accent); border-color: var(--accent); }
+/* ลูกศรขยับตอนชี้ — บอกว่าลิงก์นี้พาออกไปที่อื่น ไม่ใช่เปิดกล่องซ้อนในหน้าเดิม */
+.pricelink .arw {
+  font-family: var(--font);
+  font-size: 13px;
+  transition: transform 0.15s;
+}
+.pricelink:hover .arw { transform: translateX(3px); }
 
 .mhead-price { display: none; }
 
 @media (max-width: 700px) {
   .mhead-price {
-    display: grid;
-    place-items: center;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     flex: 0 0 auto;
     height: 40px;
-    padding: 0 11px;
+    padding: 0 12px;
     align-self: center;
-    font-size: 11.5px;
-    font-weight: 600;
+    font-size: 12px;
+    font-weight: 700;
     text-decoration: none;
-    color: var(--muted);
-    background: var(--paper);
-    border: 1px solid var(--divider);
+    color: #fff;
+    background: var(--accent-700);
+    border: 1px solid var(--accent-700);
   }
 }
