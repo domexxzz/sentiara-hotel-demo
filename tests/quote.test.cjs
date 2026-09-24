@@ -137,3 +137,49 @@ test('ไฟล์ที่ commit ไว้เป็นของที่สร
   assert.ok(html.includes(baht(q.bundle)),
     `docs/quote.html ไม่มียอด ${baht(q.bundle)} — รัน node tools/make-quote.mjs ใหม่`)
 })
+
+/* ── 3 · หน้าราคาสาธารณะบนเว็บ ──────────────────────────────── */
+
+test('หน้าราคาสาธารณะฝังค่าคงที่ตรงกับโมดูล ไม่ได้พิมพ์ซ้ำ', async () => {
+  // หน้านี้คำนวณในเบราว์เซอร์ จึงต้องมีสำเนาของค่าคงที่ · ถ้าสำเนาเพี้ยน
+  // ลูกค้าจะเห็นราคาบนเว็บคนละตัวกับในใบเสนอราคาที่เราส่งไป
+  const M = await import(PRICE)
+  const html = fs.readFileSync(path.join(ROOT, 'public', 'packages.html'), 'utf8')
+  const pick = (name) => {
+    const m = html.match(new RegExp('var ' + name + ' = ([^;]+);'))
+    assert.ok(m, `ไม่เจอค่า ${name} ในหน้า`)
+    return m[1].trim()
+  }
+  assert.equal(pick('LOCK_PER_ROOM'), String(M.LOCK_PER_ROOM))
+  assert.equal(pick('LOCK_CARE_PER_ROOM'), String(M.LOCK_CARE_PER_ROOM))
+  assert.equal(pick('CARE_RATE'), String(M.CARE_RATE))
+  assert.equal(pick('BUNDLE_DISCOUNT_RATE'), String(M.BUNDLE_DISCOUNT_RATE))
+  assert.equal(pick('TIERS'), JSON.stringify(M.SOFTWARE_TIERS))
+  assert.equal(pick('ROI'), JSON.stringify(M.ROI))
+})
+
+test('หน้าราคาสาธารณะไม่มีข้อมูลรายดีลหลุดไป', () => {
+  // ชื่อลูกค้า เลขที่ใบเสนอราคา และช่องเซ็น เป็นของรายเดียว ห้ามอยู่บนเว็บ
+  const html = fs.readFileSync(path.join(ROOT, 'public', 'packages.html'), 'utf8')
+  for (const bad of ['เลขที่', 'QT-', 'ผู้อนุมัติ', 'เสนอต่อ', 'ยืนราคาถึง']) {
+    assert.ok(!html.includes(bad), `หน้าสาธารณะมี "${bad}" ซึ่งเป็นข้อมูลรายดีล`)
+  }
+})
+
+test('หน้าราคาสาธารณะหนีบจำนวนห้องที่เป็นไปไม่ได้', () => {
+  const html = fs.readFileSync(path.join(ROOT, 'public', 'packages.html'), 'utf8')
+  // ช่องกรอกตัวเลขพิมพ์อะไรก็ได้ รวมทั้งค่าว่างและติดลบ
+  assert.match(html, /if \(!isFinite\(n\) \|\| n < 1\) n = 1;/,
+    'ไม่ได้หนีบค่าที่พิมพ์เอง')
+  assert.match(html, /return null;/, 'ไม่มีทางออกตอนเกินขั้นสุดท้าย')
+  assert.match(html, /classList\.add\('over-max'\)/,
+    'เกินขั้นแล้วต้องซ่อนราคา ไม่ใช่โชว์ราคามั่ว')
+})
+
+test('เดโมมีลิงก์ไปหน้าราคาทั้งจอคอมและมือถือ', () => {
+  const app = fs.readFileSync(path.join(ROOT, 'src', 'App.tsx'), 'utf8')
+  assert.ok(app.includes('className="pricelink" href="/packages.html"'),
+    'จอคอมไม่มีลิงก์ราคา')
+  assert.ok(app.includes('className="mhead-price" href="/packages.html"'),
+    'มือถือไม่มีลิงก์ราคา')
+})

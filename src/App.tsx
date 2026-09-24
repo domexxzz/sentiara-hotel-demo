@@ -137,6 +137,10 @@ function Stage() {
             >
               {armed ? "กดอีกครั้งเพื่อล้าง" : "เริ่มใหม่"}
             </button>
+            {/* หน้าราคาเป็นไฟล์แยกนอกแอป ไม่ใช่เส้นทางใน React
+                จึงต้องเป็น <a> ไม่ใช่ปุ่ม — ใช้ปุ่มแล้วต้องเขียนโค้ดพาไปเอง
+                และคนคลิกขวาเปิดแท็บใหม่ไม่ได้ ซึ่งเป็นสิ่งที่คนทำจริงกับลิงก์ราคา */}
+            <a className="pricelink" href="/packages.html">ดูราคา</a>
           </div>
           <p>{backend.mode === "demo" ? head.note : "เชื่อมต่อระบบโรงแรม · รายการที่ยังไม่รองรับจะแจ้งให้ทราบเมื่อทำรายการ"}</p>
         </header>
@@ -151,6 +155,7 @@ function Stage() {
             </span>
             <b>{FLOW_TITLE[flow]}</b>
           </div>
+          <a className="mhead-price" href="/packages.html">ราคา</a>
           <button className="mhead-dir" onClick={() => setDir(true)} aria-label="สารบัญฟังก์ชันทั้งหมด">
             <Icon name="sparkle" size={15} />
           </button>

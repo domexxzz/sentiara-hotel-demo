@@ -2110,3 +2110,42 @@ html {
  * เพราะสองไฟล์นั้นถูกโหลดหลัง App.css กฎที่เขียนไว้ตรงนี้จึงถูกทับเงียบ ๆ
  * (เขียนไว้ที่นี่ก่อนแล้วเจอว่าแถบเมนูยังแดงอยู่ ทั้งที่ตัวแปรสีมาถูกแล้ว)
  */
+
+/* ══ ลิงก์ไปหน้าราคา ═════════════════════════════════════════════════
+ * เป็น <a> ไม่ใช่ปุ่ม เพราะมันพาออกจากแอปไปไฟล์อื่นจริง ๆ
+ * คนที่สนใจราคามักคลิกขวาเปิดแท็บใหม่เพื่อเก็บไว้ดูทีหลัง ซึ่งปุ่มทำไม่ได้
+ *
+ * ถ้าวันหนึ่งไม่อยากให้ราคาเปิดสาธารณะ ลบสองที่นี้กับ public/packages.html
+ * แล้วเดโมยังทำงานครบเหมือนเดิม — ตั้งใจให้ถอดออกได้ในนาทีเดียว
+ */
+.pricelink {
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 6px 12px;
+  border-radius: 999px;
+  color: var(--muted);
+  border: 1px solid var(--divider);
+  transition: color 0.15s, border-color 0.15s;
+}
+.pricelink:hover { color: var(--ink); border-color: var(--line-strong); }
+
+.mhead-price { display: none; }
+
+@media (max-width: 700px) {
+  .mhead-price {
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    height: 40px;
+    padding: 0 11px;
+    align-self: center;
+    font-size: 11.5px;
+    font-weight: 600;
+    text-decoration: none;
+    color: var(--muted);
+    background: var(--paper);
+    border: 1px solid var(--divider);
+  }
+}
