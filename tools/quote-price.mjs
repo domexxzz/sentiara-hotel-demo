@@ -29,8 +29,7 @@ export const CARE_RATE = 0.18;
  * ตอนอยู่ในห้องประชุม
  */
 export const SOFTWARE_TIERS = [
-  { upTo: 25, price: 150000, label: "ถึง 25 ห้อง" },
-  { upTo: 60, price: 190000, label: "26–60 ห้อง" },
+  { upTo: 60, price: 150000, label: "1–60 ห้อง" },
 ];
 
 /** ส่วนลดเมื่อซื้อครบชุด — 9% ของยอดรวม ปัดลงหลักพัน

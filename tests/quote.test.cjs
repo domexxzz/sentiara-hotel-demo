@@ -24,9 +24,9 @@ test('ดีล 43 ห้องให้ตัวเลขตรงกับท�
   const q = quote(43)
   // สี่ตัวนี้คือตัวเลขที่เจ้าของโปรเจกต์ตกลงแล้ว · เปลี่ยนเมื่อไหร่ต้องตั้งใจเปลี่ยน
   assert.equal(q.lock, 172000, 'ค่าล็อก 43 ห้อง')
-  assert.equal(q.software, 190000, 'ค่าโปรแกรมขั้น 26–60 ห้อง')
-  assert.equal(q.discount, 32000, 'ส่วนลดซื้อครบชุด')
-  assert.equal(q.bundle, 330000, 'ราคาครบชุดสุทธิ')
+  assert.equal(q.software, 150000, 'ค่าโปรแกรม 1–60 ห้อง')
+  assert.equal(q.discount, 28000, 'ส่วนลดซื้อครบชุด')
+  assert.equal(q.bundle, 294000, 'ราคาครบชุดสุทธิ')
 })
 
 test('ยอดรวมกับส่วนลดบวกลบกันได้ลงตัวเสมอ', async () => {
@@ -51,9 +51,9 @@ test('ส่วนลดปัดลงหลักพันเสมอ ไม�
 
 test('ขั้นราคาโปรแกรมเปลี่ยนตรงที่ควรเปลี่ยน', async () => {
   const { quote } = await import(PRICE)
-  assert.equal(quote(25).software, 150000, '25 ห้องยังอยู่ขั้นแรก')
-  assert.equal(quote(26).software, 190000, '26 ห้องขึ้นขั้นสอง')
-  assert.equal(quote(60).software, 190000, '60 ห้องยังอยู่ขั้นสอง')
+  assert.equal(quote(25).software, 150000, '25 ห้อง')
+  assert.equal(quote(26).software, 150000, '26 ห้อง')
+  assert.equal(quote(60).software, 150000, '60 ห้อง')
 })
 
 test('เกินขั้นสุดท้ายต้องโยน error ไม่ใช่เดาราคาให้', async () => {
