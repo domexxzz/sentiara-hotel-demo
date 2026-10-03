@@ -5,10 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#201e1d">
 <title>ราคาและแพ็กเกจ · Sentiara</title>
-<meta name="description" content="ราคาระบบจัดการโรงแรม Sentiara และสมาร์ทล็อค — ใส่จำนวนห้องของคุณแล้วดูราคาได้ทันที">
+<meta name="description" content="ราคาระบบจัดการโรงแรม Sentiara สามระดับ และสมาร์ทล็อค — เลื่อนจำนวนห้องของคุณแล้วดูราคาได้ทันที">
 <meta property="og:type" content="website">
 <meta property="og:title" content="ราคาและแพ็กเกจ · Sentiara">
-<meta property="og:description" content="ใส่จำนวนห้องของคุณแล้วดูราคาได้ทันที">
+<meta property="og:description" content="เลื่อนจำนวนห้องของคุณแล้วดูราคาทั้งสามระดับได้ทันที">
 <meta property="og:url" content="https://sentiara-demo.vercel.app/packages.html">
 <meta property="og:image" content="https://sentiara-demo.vercel.app/og-cover.jpg">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -22,7 +22,7 @@
  --faint:rgba(32,30,29,.34);
  --ln:rgba(32,30,29,.14); --lns:rgba(32,30,29,.38);
  --acc:#ec3013; --acc7:#ae1800; --acc1:#fff2ef;
- --ok:#1f7a4d;
+ --ok:#1f7a4d; --warn:#9a6b12; --warnbg:#fdf3de;
  --font:"Archivo",system-ui,sans-serif;
 }
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
@@ -30,7 +30,7 @@ body{background:var(--bg);color:var(--ink);min-height:100dvh;
  font-family:"IBM Plex Sans Thai","Archivo",sans-serif}
 .ic{stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
 .baht{font-family:var(--font);font-variant-numeric:tabular-nums}
-.wrap{width:min(1100px,100%);margin:0 auto;padding:0 16px}
+.wrap{width:min(1120px,100%);margin:0 auto;padding:0 16px}
 
 .top{background:var(--paper);border-bottom:1px solid var(--lns)}
 .top .wrap{display:flex;align-items:center;gap:12px;padding-top:13px;padding-bottom:13px}
@@ -38,6 +38,8 @@ body{background:var(--bg);color:var(--ink);min-height:100dvh;
  color:var(--mut);text-decoration:none;padding:9px 13px;border:1px solid var(--ln);
  min-height:42px}
 .top .bk:hover{color:var(--ink);border-color:var(--lns)}
+.top .bk.sheet{color:var(--acc7);border-color:#e8bfb5}
+.top .bk.sheet:hover{border-color:var(--acc7)}
 .top .nm{margin-left:auto;font-family:var(--font);font-size:12px;font-weight:800;
  letter-spacing:.19em;text-transform:uppercase;color:var(--acc7)}
 
@@ -47,26 +49,41 @@ body{background:var(--bg);color:var(--ink);min-height:100dvh;
  text-transform:uppercase;color:#ff9783}
 .hd h1{font-family:var(--font);font-size:clamp(24px,5vw,33px);font-weight:800;
  margin-top:7px;letter-spacing:-.028em;line-height:1.2}
-.hd p{font-size:13.5px;line-height:1.7;color:rgba(243,242,242,.72);margin-top:9px;max-width:62ch}
+.hd p{font-size:13.5px;line-height:1.7;color:rgba(243,242,242,.72);margin-top:9px;max-width:64ch}
 
-/* ── ตัวเลือกจำนวนห้อง ─────────────────────────────────────── */
+/* ── แถบเลื่อนจำนวนห้อง ─────────────────────────────────────── */
 .pick{background:var(--paper);border-bottom:1px solid var(--lns)}
-.pick .wrap{display:flex;flex-wrap:wrap;align-items:center;gap:14px 20px;
- padding-top:18px;padding-bottom:18px}
-.pick label{font-size:13px;font-weight:700}
-.pick .row{display:flex;align-items:center;gap:10px}
+.pick .wrap{padding-top:20px;padding-bottom:22px}
+.pick .top2{display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px}
+.pick label{font-size:13.5px;font-weight:700}
+.pick .row{display:flex;align-items:center;gap:9px;margin-left:auto}
 .pick button{font:inherit;font-size:19px;font-weight:700;width:44px;height:44px;
  cursor:pointer;background:var(--paper);border:1px solid var(--lns);color:var(--ink)}
 .pick button:hover{background:var(--bg)}
 .pick button:disabled{opacity:.35;cursor:default}
-.pick input{font:inherit;font-family:var(--font);font-size:22px;font-weight:800;
- width:96px;height:44px;text-align:center;border:1px solid var(--lns);background:var(--bg);
+.pick input[type=number]{font:inherit;font-family:var(--font);font-size:22px;font-weight:800;
+ width:92px;height:44px;text-align:center;border:1px solid var(--lns);background:var(--bg);
  font-variant-numeric:tabular-nums;color:var(--ink)}
-.pick input:focus{outline:2px solid var(--acc);outline-offset:-1px}
+.pick input[type=number]:focus{outline:2px solid var(--acc);outline-offset:-1px}
 .pick .unit{font-size:13px;color:var(--mut)}
-.pick .hint{font-size:12px;color:var(--mut);flex:1 1 260px}
 
-/* ── การ์ดสามใบ ─────────────────────────────────────────────── */
+/* แถบลาก — ใช้ input[type=range] ของจริง จะได้ลากด้วยนิ้ว เลื่อนด้วยคีย์บอร์ด
+   และโปรแกรมอ่านหน้าจออ่านได้ครบ โดยไม่ต้องเขียนพฤติกรรมพวกนี้เองทีละอย่าง */
+.slide{-webkit-appearance:none;appearance:none;width:100%;height:32px;margin-top:16px;
+ background:transparent;cursor:pointer;display:block}
+.slide:focus{outline:none}
+.slide:focus-visible{outline:2px solid var(--acc);outline-offset:4px}
+.slide::-webkit-slider-runnable-track{height:6px;background:var(--ln)}
+.slide::-moz-range-track{height:6px;background:var(--ln)}
+.slide::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:26px;height:26px;
+ border-radius:50%;background:var(--paper);border:3px solid var(--ink);margin-top:-10px;
+ box-shadow:0 3px 10px rgba(0,0,0,.18)}
+.slide::-moz-range-thumb{width:26px;height:26px;border-radius:50%;background:var(--paper);
+ border:3px solid var(--ink);box-shadow:0 3px 10px rgba(0,0,0,.18)}
+.ax{display:flex;justify-content:space-between;font-size:11.5px;color:var(--mut);margin-top:2px}
+.pick .hint{font-size:12px;line-height:1.7;color:var(--mut);margin-top:9px}
+
+/* ── การ์ดสามระดับ ──────────────────────────────────────────── */
 .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--ln);
  border-bottom:1px solid var(--lns)}
 .c{background:var(--paper);padding:24px 22px 26px;display:flex;flex-direction:column;
@@ -74,40 +91,85 @@ body{background:var(--bg);color:var(--ink);min-height:100dvh;
 .c.best{background:#fffdfc;box-shadow:inset 0 4px 0 var(--acc)}
 .flag{position:absolute;top:0;right:0;font-family:var(--font);font-size:10px;font-weight:800;
  letter-spacing:.14em;padding:5px 11px;background:var(--acc);color:#fff}
-.c .hi{display:flex;align-items:center;gap:9px;color:var(--acc7)}
-.c h3{font-size:18px;font-weight:800;margin-top:9px}
+.c h3{font-family:var(--font);font-size:20px;font-weight:800;letter-spacing:-.015em}
 .c .sub{font-size:12.5px;color:var(--mut);margin-top:3px;min-height:34px}
-.pr{margin-top:16px;padding-top:15px;border-top:1px solid var(--ln)}
-.pr .was{display:block;font-size:13px;color:var(--faint);text-decoration:line-through;min-height:19px}
-.pr b{display:block;font-family:var(--font);font-size:clamp(26px,4vw,33px);font-weight:800;
+.pr{margin-top:14px;padding-top:14px;border-top:1px solid var(--ln)}
+.pr b{display:block;font-family:var(--font);font-size:clamp(27px,4.2vw,34px);font-weight:800;
  letter-spacing:-.035em}
 .pr span{display:block;font-size:11.5px;color:var(--mut);margin-top:3px}
-.c.best .pr span{color:var(--ok);font-weight:700}
-.c ul{list-style:none;margin:17px 0 0;display:grid;gap:9px}
-.c li{display:flex;gap:9px;font-size:12.5px;line-height:1.55}
-.c li .ic{margin-top:2px;color:var(--ok)}
-.c li.no,.c li.no .ic{color:var(--faint)}
+.br{display:grid;grid-template-columns:1fr auto;gap:5px 12px;margin-top:12px;font-size:11.5px;
+ color:var(--mut)}
+.br i{font-style:normal;font-family:var(--font);font-weight:700;color:var(--ink);
+ white-space:nowrap;font-variant-numeric:tabular-nums}
+.bun{margin-top:14px;padding:11px 13px;background:var(--bg);border:1px solid var(--ln)}
+.c.best .bun{background:var(--acc1);border-color:#f3cfc6}
+.bun .lb{display:block;font-size:11px;color:var(--mut)}
+.bun .v{display:block;font-family:var(--font);font-size:20px;font-weight:800;margin-top:2px;
+ letter-spacing:-.02em}
+.bun .sv{display:block;font-size:11px;color:var(--ok);font-weight:700;margin-top:2px}
+.who{font-size:12px;line-height:1.65;color:#4e433d;margin-top:14px;flex:1}
+.care{font-size:11.5px;line-height:1.6;color:var(--mut);margin-top:12px;padding-top:11px;
+ border-top:1px solid var(--ln)}
+
+/* ── ตารางเทียบ ─────────────────────────────────────────────── */
+.cmp{background:var(--paper);border-bottom:1px solid var(--lns)}
+.cmp .wrap{padding-top:28px;padding-bottom:30px}
+.cmp h2{font-family:var(--font);font-size:20px;font-weight:800;letter-spacing:-.02em}
+.cmp .lead{font-size:12.5px;line-height:1.75;color:var(--mut);margin-top:6px;max-width:82ch}
+.scroll{overflow-x:auto;margin-top:16px;-webkit-overflow-scrolling:touch}
+table{width:100%;min-width:560px;border-collapse:collapse}
+td,th{padding:9px 14px;font-size:12.5px;text-align:left;border-bottom:1px solid var(--ln)}
+thead th{font-family:var(--font);font-size:12.5px;font-weight:800;text-align:center;
+ border-bottom:1px solid var(--lns);background:var(--paper)}
+thead th:first-child{text-align:left}
+tr.grp th{background:var(--bg);font-family:var(--font);font-size:10px;font-weight:800;
+ letter-spacing:.14em;text-transform:uppercase;color:#6b5e57}
+tr.grp.later th{background:var(--warnbg);color:var(--warn)}
+td.v{text-align:center;width:120px}
+td .ic{color:var(--ok)}
+.dash{color:rgba(32,30,29,.26)}
+.soon{display:inline-block;font-family:var(--font);font-size:9.5px;font-weight:800;
+ letter-spacing:.1em;text-transform:uppercase;color:var(--warn);background:var(--warnbg);
+ padding:2px 7px}
+
+/* ── ล็อก · คืนทุน ──────────────────────────────────────────── */
+.add{background:var(--paper);border-bottom:1px solid var(--lns)}
+.add .wrap{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:22px;
+ padding-top:24px;padding-bottom:26px}
+.add h3{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:800;
+ color:var(--acc7)}
+.add p{font-size:12.5px;line-height:1.75;color:var(--mut);margin-top:7px}
+.add b{color:var(--ink)}
 
 /* เกินขั้นสุดท้าย — ไม่โชว์ราคามั่ว */
 .over{display:none;background:var(--acc1);border-bottom:1px solid var(--lns)}
 .over .wrap{padding-top:26px;padding-bottom:26px}
 .over b{display:block;font-size:17px;font-weight:800;color:var(--acc7)}
 .over p{font-size:13px;line-height:1.7;color:var(--acc7);margin-top:7px;max-width:70ch}
-body.over-max .grid,body.over-max .ft{display:none}
+body.over-max .grid,body.over-max .add{display:none}
 body.over-max .over{display:block}
 
-.ft{background:var(--paper)}
-.ft .wrap{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:22px;
- padding-top:22px;padding-bottom:26px}
-.ft div{font-size:12.5px;line-height:1.7;color:var(--mut)}
-.ft b{color:var(--ink)}
-.note{border-top:1px solid var(--ln)}
-.note .wrap{padding-top:18px;padding-bottom:40px;font-size:11.5px;line-height:1.75;color:var(--faint)}
+.cta{background:var(--ink);color:var(--bg)}
+.cta .wrap{display:flex;flex-wrap:wrap;align-items:center;gap:14px 20px;
+ padding-top:20px;padding-bottom:22px}
+.cta b{display:block;font-family:var(--font);font-size:16px;font-weight:800;
+ letter-spacing:-.02em}
+.cta span{display:block;font-size:12.5px;color:rgba(243,242,242,.7);margin-top:4px}
+.cta a{display:inline-flex;align-items:center;gap:8px;margin-left:auto;flex:0 0 auto;
+ font-size:13px;font-weight:700;text-decoration:none;color:var(--ink);background:var(--bg);
+ padding:12px 18px;min-height:46px}
+.cta a:hover{background:#fff}
+.cta a em{font-style:normal;font-family:var(--font);font-size:14px}
+@media (max-width:640px){ .cta a{margin-left:0} }
 
-@media (max-width:800px){
+.note{border-top:1px solid var(--ln);background:var(--paper)}
+.note .wrap{padding-top:18px;padding-bottom:44px;font-size:11.5px;line-height:1.75;
+ color:var(--faint)}
+
+@media (max-width:840px){
   .grid{grid-template-columns:1fr}
   .c .sub{min-height:0}
-  .pr .was{min-height:0}
+  .pick .row{margin-left:0}
 }
 </style>
 </head>
@@ -115,25 +177,36 @@ body.over-max .over{display:block}
 
 <div class="top"><div class="wrap">
   <a class="bk" href="/"><svg class="ic" style="width:15px;height:15px" viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg> กลับไปลองใช้ระบบ</a>
+  <!-- เอกสารเทียบสามระดับแบบพิมพ์ได้ · คนละเรื่องกับหน้านี้ที่คำนวณตามห้อง
+       คนที่ต้องเอาเข้าห้องประชุมต้องการแผ่นกระดาษ ไม่ใช่แถบเลื่อน -->
+  <a class="bk sheet" href="/plans.html"><svg class="ic" style="width:15px;height:15px" viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h7"/></svg> เอกสารเทียบสามระดับ · พิมพ์ได้</a>
   <span class="nm">Sentiara</span>
 </div></div>
 
 <header class="hd"><div class="wrap">
   <span class="k">ราคาและแพ็กเกจ</span>
-  <h1>ใส่จำนวนห้องของคุณ แล้วดูราคาได้ทันที</h1>
-  <p>ทุกราคารวมติดตั้ง อบรม และซัพพอร์ตปีแรกแล้ว · ไม่มีค่าแรกเข้าอื่นซ่อนอยู่</p>
+  <h1>เลื่อนจำนวนห้องของคุณ แล้วดูราคาทั้งสามระดับ</h1>
+  <p>ทุกราคารวมติดตั้ง อบรม และซัพพอร์ตปีแรกแล้ว · ไม่มีค่าแรกเข้าอื่นซ่อนอยู่ ·
+     ความสามารถที่กฎหมายบังคับอยู่ในระดับ Standard ครบทุกข้อ
+     ไม่มีข้อไหนถูกยกไปขายเป็นของเสริม</p>
 </div></header>
 
 <div class="pick"><div class="wrap">
-  <label for="rooms">ที่พักของคุณมีกี่ห้อง</label>
-  <div class="row">
-    <button type="button" id="minus" aria-label="ลดจำนวนห้อง">−</button>
-    <input id="rooms" type="number" inputmode="numeric" min="1" max="999"
-      value="43" aria-label="จำนวนห้อง">
-    <button type="button" id="plus" aria-label="เพิ่มจำนวนห้อง">+</button>
-    <span class="unit">ห้อง</span>
+  <div class="top2">
+    <label for="slide">ที่พักของคุณมีกี่ห้อง</label>
+    <div class="row">
+      <button type="button" id="minus" aria-label="ลดจำนวนห้อง">−</button>
+      <input id="rooms" type="number" inputmode="numeric" min="1" max="999"
+        value="43" aria-label="จำนวนห้อง">
+      <button type="button" id="plus" aria-label="เพิ่มจำนวนห้อง">+</button>
+      <span class="unit">ห้อง</span>
+    </div>
   </div>
-  <span class="hint">ราคาข้างล่างเปลี่ยนตามทันที ไม่ต้องกดอะไรเพิ่ม</span>
+  <input class="slide" id="slide" type="range" min="5" max="60" step="1"
+    value="43" aria-label="เลื่อนเพื่อเลือกจำนวนห้อง">
+  <div class="ax"><span>5</span><span>25</span><span>60 ห้อง</span></div>
+  <p class="hint">ราคาทั้งสามระดับเปลี่ยนตามทันที · เกิน 60 ห้องพิมพ์ในช่องได้เลย
+    แล้วเราจะบอกว่าต้องคุยกันเป็นรายโครงการ</p>
 </div></div>
 
 <section class="over"><div class="wrap">
@@ -146,71 +219,129 @@ body.over-max .over{display:block}
 <main class="grid">
   <div class="c">
     
-    <span class="hi"><svg class="ic" style="width:20px;height:20px" viewBox="0 0 24 24"><circle cx="8" cy="12" r="4"/><path d="M12 12h9M18 12v4"/></svg></span>
-    <h3>ล็อกอย่างเดียว</h3>
-    <span class="sub">เปลี่ยนกุญแจเป็นสมาร์ทล็อคทั้งตึก</span>
+    <h3>Standard</h3>
+    <span class="sub">เปิดโรงแรมได้ ถูกกฎหมายครบ</span>
     <div class="pr">
-      <span class="was"></span>
-      <b class="baht" id="p-lock">฿172,000</b>
-      <span id="s-lock">฿4,000 × 43 ห้อง</span>
+      <b class="baht" id="sw-std">฿150,000</b>
+      <span>ค่าโปรแกรม จ่ายครั้งเดียว</span>
     </div>
-    <ul>
-      <li><svg class="ic" style="width:15px;height:15px" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg><span>สมาร์ทล็อคพร้อมติดตั้งครบทุกบาน</span></li>
-      <li><svg class="ic" style="width:15px;height:15px" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg><span>ตั้งค่าเริ่มต้น + ทดสอบทีละห้อง</span></li>
-      <li><svg class="ic" style="width:15px;height:15px" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg><span>อบรมผู้ดูแล 1 รอบ</span></li>
-      <li><svg class="ic" style="width:15px;height:15px" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg><span>รับประกัน 1 ปี รวมแบตชุดแรก</span></li>
-      <li class="no"><svg class="ic" style="width:15px;height:15px" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg><span>ไม่มีระบบจัดการโรงแรม</span></li>
-      <li class="no"><svg class="ic" style="width:15px;height:15px" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg><span>ตั้งรหัสด้วยมือทีละห้อง</span></li>
-    </ul>
-  </div>
-  <div class="c">
-    
-    <span class="hi"><svg class="ic" style="width:20px;height:20px" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13"/><path d="M8 21h8M12 17v4"/></svg></span>
-    <h3>โปรแกรมอย่างเดียว</h3>
-    <span class="sub">ระบบจัดการโรงแรมครบ 5 มุมมอง</span>
-    <div class="pr">
-      <span class="was"></span>
-      <b class="baht" id="p-sw">฿150,000</b>
-      <span id="s-sw">สำหรับ 1–60 ห้อง</span>
+    <div class="br">
+      <span>พื้นฐาน 1–60 ห้อง</span><i id="base-std">฿150,000</i>
+      <span id="extra-lb-std">รวมครบทุกห้องแล้ว (สูงสุด 60 ห้อง)</span>
+      <i id="extra-std">—</i>
     </div>
-    <ul>
-      <li><svg class="ic" style="width:15px;height:15px" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg><span>จอง · ผังห้องสด · Walk-in จบใน 6 ขั้น</span></li>
-      <li><svg class="ic" style="width:15px;height:15px" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg><span>ใบกำกับภาษี ม.86/4 · ใบลดหนี้ ม.86/10</span></li>
-      <li><svg class="ic" style="width:15px;height:15px" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg><span>ทะเบียนผู้พัก ร.ร.3/4 ตาม ม.35</span></li>
-      <li><svg class="ic" style="width:15px;height:15px" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg><span>งานแม่บ้าน · POS ร้านอาหาร · บัญชีคู่</span></li>
-      <li><svg class="ic" style="width:15px;height:15px" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg><span>จอเจ้าของเปิดจากที่ไหนก็ได้</span></li>
-      <li><svg class="ic" style="width:15px;height:15px" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg><span>อบรม 3 วัน + ซัพพอร์ต 1 ปี</span></li>
-      <li class="no"><svg class="ic" style="width:15px;height:15px" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg><span>ยังใช้กุญแจหรือบัตรแบบเดิม</span></li>
-    </ul>
+    <div class="bun">
+      <span class="lb">รวมสมาร์ทล็อคทุกห้อง (ครบชุด)</span>
+      <span class="v baht" id="bun-std">฿294,000</span>
+      <span class="sv" id="sv-std">ประหยัด ฿28,000 จาก ฿322,000</span>
+    </div>
+    <p class="who">โรงแรมหรือคอนโดที่อยากเลิกใช้สมุดกับ Excel และออกใบกำกับภาษีให้ถูกต้อง</p>
+    <span class="care" id="care-std">ค่าดูแลปีที่ 2 — โปรแกรม ฿27,000/ปี · ล็อก ฿12,900/ปี</span>
   </div>
   <div class="c best">
     <span class="flag">แนะนำ</span>
-    <span class="hi"><svg class="ic" style="width:20px;height:20px" viewBox="0 0 24 24"><path d="M4 7h7v10H4zM13 7h7v10h-7z"/><path d="M11 12h2"/></svg></span>
-    <h3>ครบชุด</h3>
-    <span class="sub">ล็อกที่รู้จักการจอง</span>
+    <h3>Premium</h3>
+    <span class="sub">บวกร้านอาหารและตัวเลขที่เจ้าของดูเอง</span>
     <div class="pr">
-      <span class="was baht" id="w-full">฿322,000</span>
-      <b class="baht" id="p-full">฿294,000</b>
-      <span id="s-full">ประหยัด ฿28,000</span>
+      <b class="baht" id="sw-pre">฿285,000</b>
+      <span>ค่าโปรแกรม จ่ายครั้งเดียว</span>
     </div>
-    <ul>
-      <li><svg class="ic" style="width:15px;height:15px" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg><span>ได้ทุกอย่างของสองแพ็กเกจแรก</span></li>
-      <li><svg class="ic" style="width:15px;height:15px" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg><span>ออกรหัสเองตอนเช็กอิน ไม่ต้องมีใครกด</span></li>
-      <li><svg class="ic" style="width:15px;height:15px" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg><span>ปิดรหัสเองตอนเช็กเอาต์ ไม่ต้องไล่เก็บบัตร</span></li>
-      <li><svg class="ic" style="width:15px;height:15px" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg><span>รู้ว่าใครเปิดประตู โยงกับทะเบียนผู้พัก</span></li>
-      <li><svg class="ic" style="width:15px;height:15px" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg><span>แม่บ้านเปิดได้เฉพาะห้องในคิวตัวเอง</span></li>
-      <li><svg class="ic" style="width:15px;height:15px" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg><span>บัตรหาย เพิกถอนรหัสเดียว ไม่ต้องเปลี่ยนล็อก</span></li>
-
-    </ul>
+    <div class="br">
+      <span>พื้นฐาน 25 ห้องแรก</span><i id="base-pre">฿235,000</i>
+      <span id="extra-lb-pre">ห้องที่ 26–43 · 18 ห้อง × ฿2,800 (฿50,400 ปัดหลักพัน)</span>
+      <i id="extra-pre">฿50,000</i>
+    </div>
+    <div class="bun">
+      <span class="lb">รวมสมาร์ทล็อคทุกห้อง (ครบชุด)</span>
+      <span class="v baht" id="bun-pre">฿416,000</span>
+      <span class="sv" id="sv-pre">ประหยัด ฿41,000 จาก ฿457,000</span>
+    </div>
+    <p class="who">ที่พักที่มีร้านอาหารหรือมินิบาร์ และเจ้าของอยากเห็นตัวเลขโดยไม่ต้องรอฝ่ายบัญชี</p>
+    <span class="care" id="care-pre">ค่าดูแลปีที่ 2 — โปรแกรม ฿51,300/ปี · ล็อก ฿12,900/ปี</span>
+  </div>
+  <div class="c">
+    
+    <h3>Deluxe</h3>
+    <span class="sub">หลายสาขา รวมรายงานที่เดียว</span>
+    <div class="pr">
+      <b class="baht" id="sw-del">฿410,000</b>
+      <span>ค่าโปรแกรม จ่ายครั้งเดียว</span>
+    </div>
+    <div class="br">
+      <span>พื้นฐาน 25 ห้องแรก</span><i id="base-del">฿345,000</i>
+      <span id="extra-lb-del">ห้องที่ 26–43 · 18 ห้อง × ฿3,600 (฿64,800 ปัดหลักพัน)</span>
+      <i id="extra-del">฿65,000</i>
+    </div>
+    <div class="bun">
+      <span class="lb">รวมสมาร์ทล็อคทุกห้อง (ครบชุด)</span>
+      <span class="v baht" id="bun-del">฿530,000</span>
+      <span class="sv" id="sv-del">ประหยัด ฿52,000 จาก ฿582,000</span>
+    </div>
+    <p class="who">เครือที่มีมากกว่าหนึ่งที่ และต้องการต่อระบบอื่นเข้ามาเอง</p>
+    <span class="care" id="care-del">ค่าดูแลปีที่ 2 — โปรแกรม ฿73,800/ปี · ล็อก ฿12,900/ปี</span>
   </div>
 </main>
 
-<section class="ft"><div class="wrap">
-  <div><b>ค่าดูแลรายปี</b> เริ่มปีที่ 2 — <span id="care"></span><br>
-    ครอบคลุมอัปเดตตามกฎหมาย แก้บั๊ก ตรวจสำรองข้อมูล และซัพพอร์ต ·
-    ฝั่งล็อกเป็นแบตเตอรี่กับตรวจประจำปี เลือกซื้อหรือไม่ก็ได้</div>
-  <div><b>คืนทุนราว <span id="payback"></span></b> ถ้าระบบช่วยย้ายยอดจาก OTA
-    มาเป็นจองตรงได้เพิ่ม 10% = ประหยัดค่าคอมเดือนละ <span id="saved"></span></div>
+<section class="add"><div class="wrap">
+  <div>
+    <h3><svg class="ic" style="width:18px;height:18px" viewBox="0 0 24 24"><circle cx="8" cy="12" r="4"/><path d="M12 12h9M18 12v4"/></svg> สมาร์ทล็อค <span class="baht" id="lock-total">฿172,000</span></h3>
+    <p>฿4,000 ต่อห้อง × <b id="lock-n">43</b> ห้อง —
+      รวมล็อก ติดตั้ง ตั้งค่า ทดสอบทีละห้อง อบรมผู้ดูแล และรับประกัน 1 ปี ·
+      ราคา "ครบชุด" บนการ์ดคือค่าโปรแกรมรวมล็อกแล้ว และหักส่วนลดซื้อพร้อมกัน
+      9% ให้แล้ว</p>
+  </div>
+  <div>
+    <h3><svg class="ic" style="width:18px;height:18px" viewBox="0 0 24 24"><path d="M12 3.5l7 2.5v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9v-5z"/></svg> คืนทุนราว <span id="payback"></span></h3>
+    <p>ถ้าระบบช่วยย้ายยอดจาก OTA มาเป็นจองตรงได้เพิ่ม
+      10% = ประหยัดค่าคอมเดือนละ
+      <b id="saved"></b> · คิดจากราคาครบชุดระดับ Standard</p>
+  </div>
+</div></section>
+
+<section class="cmp"><div class="wrap">
+  <h2>ได้อะไรบ้างในแต่ละระดับ</h2>
+  <p class="lead">หมวด "ตามกฎหมาย" อยู่ในระดับ Standard ครบทุกข้อโดยตั้งใจ —
+    เราไม่ขายความสามารถที่กฎหมายบังคับเป็นของเสริม เพราะนั่นเท่ากับขายระบบที่ทำให้
+    ลูกค้าที่จ่ายน้อยกว่าทำผิดกฎหมาย · ข้อที่ติดป้าย <span class="soon">แผน</span>
+    คือของที่ยังพัฒนาไม่เสร็จ — ยังไม่รวมอยู่ในระดับไหน และเรายังไม่รับประกันวันส่งมอบ</p>
+  <div class="scroll"><table>
+    <thead><tr><th>ความสามารถ</th><th>Standard</th><th>Premium</th><th>Deluxe</th></tr></thead>
+    <tbody>
+      <tr class="grp"><th colspan="4">ตามกฎหมาย</th></tr>
+      <tr><td>ใบกำกับภาษีเต็มรูป ม.86/4 · ใบลดหนี้ ม.86/10</td><td class="v"><svg class="ic" style="width:17px;height:17px" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg></td><td class="v"><svg class="ic" style="width:17px;height:17px" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg></td><td class="v"><svg class="ic" style="width:17px;height:17px" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg></td></tr>
+      <tr><td>ทะเบียนผู้พัก ม.35 — หนึ่งแถวต่อผู้พักหนึ่งคน</td><td class="v"><svg class="ic" style="width:17px;height:17px" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg></td><td class="v"><svg class="ic" style="width:17px;height:17px" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg></td><td class="v"><svg class="ic" style="width:17px;height:17px" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg></td></tr>
+      <tr><td>ตม.30 · ร.ร.4 — เตรียมชุดข้อมูลและบันทึกเลขรับ</td><td class="v"><svg class="ic" style="width:17px;height:17px" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg></td><td class="v"><svg class="ic" style="width:17px;height:17px" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg></td><td class="v"><svg class="ic" style="width:17px;height:17px" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg></td></tr>
+      <tr><td>เก็บ log Wi-Fi 90 วัน ตาม ม.26 พ.ร.บ.คอมพิวเตอร์</td><td class="v"><svg class="ic" style="width:17px;height:17px" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg></td><td class="v"><svg class="ic" style="width:17px;height:17px" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg></td><td class="v"><svg class="ic" style="width:17px;height:17px" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg></td></tr>
+      <tr class="grp"><th colspan="4">งานประจำวัน</th></tr>
+      <tr><td>ปฏิทินห้อง · จองตรง · เช็กอิน/เช็กเอาท์</td><td class="v"><svg class="ic" style="width:17px;height:17px" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg></td><td class="v"><svg class="ic" style="width:17px;height:17px" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg></td><td class="v"><svg class="ic" style="width:17px;height:17px" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg></td></tr>
+      <tr><td>กันจองซ้ำระดับฐานข้อมูล</td><td class="v"><svg class="ic" style="width:17px;height:17px" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg></td><td class="v"><svg class="ic" style="width:17px;height:17px" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg></td><td class="v"><svg class="ic" style="width:17px;height:17px" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg></td></tr>
+      <tr><td>งานแม่บ้าน · ใบแจ้งซ่อม · กระดานงาน</td><td class="v"><svg class="ic" style="width:17px;height:17px" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg></td><td class="v"><svg class="ic" style="width:17px;height:17px" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg></td><td class="v"><svg class="ic" style="width:17px;height:17px" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg></td></tr>
+      <tr><td>สิทธิ์ผู้ใช้ 14 สิทธิ์ 6 บทบาท</td><td class="v"><svg class="ic" style="width:17px;height:17px" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg></td><td class="v"><svg class="ic" style="width:17px;height:17px" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg></td><td class="v"><svg class="ic" style="width:17px;height:17px" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg></td></tr>
+      <tr><td>สำรองและกู้คืนข้อมูลทั้งไฟล์</td><td class="v"><svg class="ic" style="width:17px;height:17px" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg></td><td class="v"><svg class="ic" style="width:17px;height:17px" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg></td><td class="v"><svg class="ic" style="width:17px;height:17px" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg></td></tr>
+      <tr class="grp"><th colspan="4">ทำเงิน · ลดแรง</th></tr>
+      <tr><td>POS ร้านอาหาร · มินิบาร์ ลงบิลเข้าห้องได้</td><td class="v"><span class="dash">—</span></td><td class="v"><svg class="ic" style="width:17px;height:17px" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg></td><td class="v"><svg class="ic" style="width:17px;height:17px" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg></td></tr>
+      <tr><td>จอเจ้าของ — รายได้ อัตราเข้าพัก ADR RevPAR</td><td class="v"><span class="dash">—</span></td><td class="v"><svg class="ic" style="width:17px;height:17px" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg></td><td class="v"><svg class="ic" style="width:17px;height:17px" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg></td></tr>
+      <tr><td>คิวส่งบัญชีออก ต่อโปรแกรมบัญชีที่ใช้อยู่</td><td class="v"><span class="dash">—</span></td><td class="v"><svg class="ic" style="width:17px;height:17px" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg></td><td class="v"><svg class="ic" style="width:17px;height:17px" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg></td></tr>
+      <tr><td>หัก ณ ที่จ่าย ท.ป.4/2528</td><td class="v"><span class="dash">—</span></td><td class="v"><svg class="ic" style="width:17px;height:17px" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg></td><td class="v"><svg class="ic" style="width:17px;height:17px" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg></td></tr>
+      <tr><td>Wi-Fi แบบสมาชิก แยกสิทธิ์รายห้อง</td><td class="v"><span class="dash">—</span></td><td class="v"><svg class="ic" style="width:17px;height:17px" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg></td><td class="v"><svg class="ic" style="width:17px;height:17px" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg></td></tr>
+      <tr class="grp"><th colspan="4">ขยายเครือ</th></tr>
+      <tr><td>หลายสาขา · รวมรายงานข้ามสาขา</td><td class="v"><span class="dash">—</span></td><td class="v"><span class="dash">—</span></td><td class="v"><svg class="ic" style="width:17px;height:17px" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg></td></tr>
+      <tr><td>API ให้ทีมไอทีของลูกค้าต่อเอง</td><td class="v"><span class="dash">—</span></td><td class="v"><span class="dash">—</span></td><td class="v"><svg class="ic" style="width:17px;height:17px" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg></td></tr>
+      <tr><td>ย้ายข้อมูลจากระบบเดิม</td><td class="v"><span class="dash">—</span></td><td class="v"><span class="dash">—</span></td><td class="v"><svg class="ic" style="width:17px;height:17px" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg></td></tr>
+      <tr class="grp later"><th colspan="4">แผนพัฒนา — ยังไม่ใช่ของที่ส่งมอบ</th></tr>
+      <tr><td>ต่อ OTA (Agoda/Booking) ดึงยอดอัตโนมัติ</td><td class="v"><span class="soon">แผน</span></td><td class="v"><span class="soon">แผน</span></td><td class="v"><span class="soon">แผน</span></td></tr>
+      <tr><td>แชทกับแขก · สะสมแต้ม</td><td class="v"><span class="soon">แผน</span></td><td class="v"><span class="soon">แผน</span></td><td class="v"><span class="soon">แผน</span></td></tr>
+      <tr><td>กลอน NFC เปิดจากมือถือ — รอทดสอบฮาร์ดแวร์จริง</td><td class="v"><span class="soon">แผน</span></td><td class="v"><span class="soon">แผน</span></td><td class="v"><span class="soon">แผน</span></td></tr>
+    </tbody>
+  </table></div>
+</div></section>
+
+<section class="cta"><div class="wrap">
+  <div>
+    <b>อยากได้เป็นแผ่นกระดาษเอาเข้าห้องประชุม</b>
+    <span>เอกสารเทียบสามระดับพร้อมตารางความสามารถ สั่งพิมพ์เป็น A4 แนวนอนสองหน้า</span>
+  </div>
+  <a href="/plans.html"><svg class="ic" style="width:15px;height:15px" viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h7"/></svg> เปิดเอกสารเทียบสามระดับ <em>→</em></a>
 </div></section>
 
 <section class="note"><div class="wrap">
@@ -220,26 +351,31 @@ body.over-max .over{display:block}
 </div></section>
 
 <script>
-/* กติกาคิดราคา — ค่าคงที่ทุกตัวฉีดมาจาก tools/quote-price.mjs ตอนสร้างไฟล์
+/* CALC-START */
+/* ค่าคงที่ทุกตัวฉีดมาจาก tools/quote-price.mjs ตอนสร้างไฟล์
    ห้ามแก้ตัวเลขตรงนี้ ให้แก้ที่โมดูลแล้วสร้างหน้าใหม่ · เทสคุมไว้ว่าต้องตรงกัน */
 var LOCK_PER_ROOM = 4000;
 var LOCK_CARE_PER_ROOM = 300;
 var CARE_RATE = 0.18;
 var BUNDLE_DISCOUNT_RATE = 0.09;
-var TIERS = [{"upTo":60,"price":150000,"label":"1–60 ห้อง"}];
-var ROI = {"adr":1343,"occupancy":0.77,"shiftToDirect":0.1,"otaCommission":[0.15,0.18]};
+var FREE_ROOMS = 25;
 var MAX = 60;
+var PLANS = [{"id":"std","name":"Standard","base":150000,"step":0,"tag":"เปิดโรงแรมได้ ถูกกฎหมายครบ","who":"โรงแรมหรือคอนโดที่อยากเลิกใช้สมุดกับ Excel และออกใบกำกับภาษีให้ถูกต้อง"},{"id":"pre","name":"Premium","base":235000,"step":2800,"best":true,"tag":"บวกร้านอาหารและตัวเลขที่เจ้าของดูเอง","who":"ที่พักที่มีร้านอาหารหรือมินิบาร์ และเจ้าของอยากเห็นตัวเลขโดยไม่ต้องรอฝ่ายบัญชี"},{"id":"del","name":"Deluxe","base":345000,"step":3600,"tag":"หลายสาขา รวมรายงานที่เดียว","who":"เครือที่มีมากกว่าหนึ่งที่ และต้องการต่อระบบอื่นเข้ามาเอง"}];
+var ROI = {"adr":1343,"occupancy":0.77,"shiftToDirect":0.1,"otaCommission":[0.15,0.18]};
 
-function baht(n){ return '฿' + n.toLocaleString('en-US'); }
+function planById(id){
+  for (var i = 0; i < PLANS.length; i++) if (PLANS[i].id === id) return PLANS[i];
+  return null;
+}
 
-function calc(rooms){
-  var tier = null;
-  for (var i = 0; i < TIERS.length; i++) {
-    if (rooms <= TIERS[i].upTo) { tier = TIERS[i]; break; }
-  }
-  if (!tier) return null;
+function calc(rooms, planId){
+  var p = planById(planId);
+  // เกินขั้นสุดท้ายหรือระดับไม่มีอยู่จริง — คืน null ให้หน้าไปซ่อนราคา
+  // ดีกว่าคืนตัวเลขที่เดาเอา เพราะลูกค้าจะเอาไปอ้างในที่ประชุม
+  if (!p || rooms > MAX) return null;
+  var extra = p.step === 0 ? 0 : Math.max(0, rooms - FREE_ROOMS);
+  var software = Math.round((p.base + extra * p.step) / 1000) * 1000;
   var lock = rooms * LOCK_PER_ROOM;
-  var software = tier.price;
   var gross = lock + software;
   var discount = Math.floor(gross * BUNDLE_DISCOUNT_RATE / 1000) * 1000;
   var bundle = gross - discount;
@@ -248,7 +384,12 @@ function calc(rooms){
   var lo = Math.round(shifted * ROI.otaCommission[0]);
   var hi = Math.round(shifted * ROI.otaCommission[1]);
   return {
-    rooms: rooms, lock: lock, software: software, tier: tier.label,
+    rooms: rooms, plan: p,
+    lock: lock, software: software,
+    softwareBase: p.base, softwareStep: p.step,
+    softwareExtraRooms: extra, softwareExtra: software - p.base,
+    softwareExtraRaw: extra * p.step,
+    softwareRounded: software - p.base !== extra * p.step,
     gross: gross, discount: discount, bundle: bundle,
     careSoftware: Math.round(software * CARE_RATE),
     careLock: rooms * LOCK_CARE_PER_ROOM,
@@ -257,54 +398,78 @@ function calc(rooms){
   };
 }
 
-var input = document.getElementById('rooms');
-var minus = document.getElementById('minus');
-var plus  = document.getElementById('plus');
+function baht(n){ return '฿' + n.toLocaleString('en-US'); }
+/* CALC-END */
 
-function render(){
-  var n = parseInt(input.value, 10);
-  // ค่าที่พิมพ์เองอาจว่างหรือติดลบ — หนีบให้อยู่ในช่วงที่คิดราคาได้จริง
+var num = document.getElementById('rooms');
+var slide = document.getElementById('slide');
+var minus = document.getElementById('minus');
+var plus = document.getElementById('plus');
+function set(id, txt){ var el = document.getElementById(id); if (el) el.textContent = txt; }
+
+function render(n, typing){
+  // ช่องกรอกตัวเลขพิมพ์อะไรก็ได้ รวมทั้งค่าว่างและติดลบ
   if (!isFinite(n) || n < 1) n = 1;
   if (n > 999) n = 999;
+  // เขียนค่ากลับลงช่องเฉพาะตอนที่ค่ามาจากที่อื่น (แถบลาก/ปุ่ม ±)
+  // ถ้าเขียนกลับตอนคนกำลังพิมพ์ การลบให้ว่างเพื่อพิมพ์เลขใหม่จะเด้งเป็น 1 ทันที
+  // แล้วพิมพ์ต่อไม่ได้ — ราคาข้างล่างใช้ค่าที่หนีบแล้วไปก่อนได้ ไม่ต้องบังคับช่อง
+  if (!typing && num.value !== String(n)) num.value = n;
+  // แถบลากมีช่วงแคบกว่าช่องพิมพ์ — หนีบไว้ไม่ให้หัวลากหลุดออกนอกราง
+  slide.value = Math.min(Math.max(n, 5), MAX);
   minus.disabled = n <= 1;
+  plus.disabled = n >= 999;
 
-  var q = calc(n);
-  if (!q) {
+  if (n > MAX) {
     document.body.classList.add('over-max');
-    document.getElementById('over-n').textContent = n;
+    set('over-n', n);
     return;
   }
   document.body.classList.remove('over-max');
 
-  document.getElementById('p-lock').textContent   = baht(q.lock);
-  document.getElementById('s-lock').textContent   = baht(LOCK_PER_ROOM) + ' × ' + n + ' ห้อง';
-  document.getElementById('p-sw').textContent     = baht(q.software);
-  document.getElementById('s-sw').textContent     = 'สำหรับ ' + q.tier;
-  document.getElementById('w-full').textContent   = baht(q.gross);
-  document.getElementById('p-full').textContent   = baht(q.bundle);
-  document.getElementById('s-full').textContent   = 'ประหยัด ' + baht(q.discount);
-  document.getElementById('care').textContent     =
-    'โปรแกรม ' + baht(q.careSoftware) + '/ปี · ล็อก ' + baht(q.careLock) + '/ปี';
-  document.getElementById('payback').textContent  =
-    q.paybackShort + '–' + q.paybackLong + ' เดือน';
-  document.getElementById('saved').textContent    =
-    baht(q.savedLow) + '–' + baht(q.savedHigh);
+  var first = null;
+  for (var i = 0; i < PLANS.length; i++) {
+    var id = PLANS[i].id;
+    var q = calc(n, id);
+    if (!first) first = q;
+    set('sw-' + id, baht(q.software));
+    set('base-' + id, baht(q.softwareBase));
+    // ถ้าคูณแล้วไม่ตรงกับยอดที่โชว์ ต้องบอกว่าปัดหลักพัน — ไม่งั้นคนกด
+    // เครื่องคิดเลขตามจะเจอส่วนต่างแล้วสงสัยว่าเราคิดเลขผิดหรือตั้งใจบวกเพิ่ม
+    set('extra-lb-' + id,
+      q.softwareStep === 0
+        ? 'รวมครบทุกห้องแล้ว (สูงสุด ' + MAX + ' ห้อง)'
+        : q.softwareExtraRooms === 0
+          ? 'ยังไม่เกิน ' + FREE_ROOMS + ' ห้องที่รวมไว้แล้ว'
+          : 'ห้องที่ ' + (FREE_ROOMS + 1) + '–' + n + ' · ' + q.softwareExtraRooms +
+            ' ห้อง × ' + baht(q.softwareStep) +
+            (q.softwareRounded ? ' (' + baht(q.softwareExtraRaw) + ' ปัดหลักพัน)' : ''));
+    set('extra-' + id, (q.softwareStep === 0 || q.softwareExtra === 0) ? '—' : baht(q.softwareExtra));
+    set('bun-' + id, baht(q.bundle));
+    set('sv-' + id, 'ประหยัด ' + baht(q.discount) + ' จาก ' + baht(q.gross));
+    set('care-' + id, 'ค่าดูแลปีที่ 2 — โปรแกรม ' + baht(q.careSoftware) +
+      '/ปี · ล็อก ' + baht(q.careLock) + '/ปี');
+  }
+
+  set('lock-total', baht(first.lock));
+  set('lock-n', n);
+  set('payback', first.paybackShort + '–' + first.paybackLong + ' เดือน');
+  set('saved', baht(first.savedLow) + '–' + baht(first.savedHigh));
 }
 
+function fromNum(){ render(parseInt(num.value, 10), true); }
+function fromSlide(){ render(parseInt(slide.value, 10)); }
 function bump(d){
-  var n = parseInt(input.value, 10);
+  var n = parseInt(num.value, 10);
   if (!isFinite(n)) n = 1;
-  n += d;
-  if (n < 1) n = 1;
-  if (n > 999) n = 999;
-  input.value = n;
-  render();
+  render(n + d);
 }
 
-input.addEventListener('input', render);
+num.addEventListener('input', fromNum);
+slide.addEventListener('input', fromSlide);
 minus.addEventListener('click', function(){ bump(-1); });
-plus.addEventListener('click',  function(){ bump(1); });
-render();
+plus.addEventListener('click', function(){ bump(1); });
+render(43);
 </script>
 </body>
 </html>
