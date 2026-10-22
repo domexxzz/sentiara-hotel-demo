@@ -154,15 +154,28 @@ test('หน้าราคาสาธารณะฝังค่าคงท�
   assert.equal(pick('LOCK_CARE_PER_ROOM'), String(M.LOCK_CARE_PER_ROOM))
   assert.equal(pick('CARE_RATE'), String(M.CARE_RATE))
   assert.equal(pick('BUNDLE_DISCOUNT_RATE'), String(M.BUNDLE_DISCOUNT_RATE))
-  assert.equal(pick('TIERS'), JSON.stringify(M.SOFTWARE_TIERS))
   assert.equal(pick('ROI'), JSON.stringify(M.ROI))
+
+  // หน้าเปลี่ยนจากขั้นเดียว (`TIERS`) มาเป็นสามแพ็กเกจ (`PLANS`) เมื่อ 3 ต.ค. 69
+  // โมดูลยังเป็นขั้นเดียวอยู่ จึงเทียบได้เฉพาะ Standard ซึ่งเป็นก้อนที่โมดูลเป็นเจ้าของ
+  // **Premium กับ Deluxe ยังไม่มีเจ้าของและไม่มีเทสคุมราคา** — ดู docs/packages.md ข้อ 4
+  const plans = JSON.parse(pick('PLANS'))
+  const std = plans.find((p) => p.id === 'std')
+  assert.ok(std, 'หน้าไม่มีแพ็กเกจ Standard')
+  assert.equal(std.base, M.softwarePrice(1).price, 'ราคาเปิด Standard ไม่ตรงกับโมดูล')
+  assert.equal(std.step, 0, 'Standard ต้องเป็นราคาเหมา ไม่คิดรายห้อง')
+  assert.equal(
+    Number(pick('MAX')), M.SOFTWARE_TIERS[M.SOFTWARE_TIERS.length - 1].upTo,
+    'เพดานจำนวนห้องบนหน้าไม่ตรงกับขั้นสุดท้ายของโมดูล')
 })
 
 test('หน้าราคาสาธารณะไม่มีข้อมูลรายดีลหลุดไป', () => {
   // ชื่อลูกค้า เลขที่ใบเสนอราคา และช่องเซ็น เป็นของรายเดียว ห้ามอยู่บนเว็บ
   const html = fs.readFileSync(path.join(ROOT, 'public', 'packages.html'), 'utf8')
-  for (const bad of ['เลขที่', 'QT-', 'ผู้อนุมัติ', 'เสนอต่อ', 'ยืนราคาถึง']) {
-    assert.ok(!html.includes(bad), `หน้าสาธารณะมี "${bad}" ซึ่งเป็นข้อมูลรายดีล`)
+  // `เลขที่` ต้องขึ้นต้นคำจริง ๆ ไม่งั้นไปโดนหางของ "ตัวเลขที่" ซึ่งเป็นคำธรรมดา
+  for (const bad of [/(?<![ก-๙])เลขที่/, 'QT-', 'ผู้อนุมัติ', 'เสนอต่อ', 'ยืนราคาถึง']) {
+    const hit = typeof bad === 'string' ? html.includes(bad) : bad.test(html)
+    assert.ok(!hit, `หน้าสาธารณะมี "${bad}" ซึ่งเป็นข้อมูลรายดีล`)
   }
 })
 
