@@ -1,0 +1,29 @@
+# Render Blueprint — เดโมหน้าบ้านเท่านั้น (static site) · ค่าเทียบเท่า vercel.json
+#
+# หลังบ้าน server/ ยังไม่มีระบบยืนยันตัวตน ห้ามเปิดออกเน็ต จึงไม่อยู่ในไฟล์นี้
+# ห้ามตั้ง VITE_API_URL ที่นี่ — ค่าว่างเท่านั้นที่แปลว่า "โหมดสาธิต" (ดู src/lib/api.ts)
+# ตั้งแล้วเดโมจะพยายามต่อหลังบ้านที่ไม่มีอยู่ แล้วพังทั้งหน้า
+services:
+  - type: web
+    name: sentiara-hotel-demo
+    runtime: static
+    buildCommand: npm ci && npm run build
+    staticPublishPath: ./dist
+    pullRequestPreviewsEnabled: false
+    envVars:
+      - key: NODE_VERSION
+        value: "24"
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    headers:
+      - path: /assets/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: Referrer-Policy
+        value: strict-origin-when-cross-origin
